@@ -1,0 +1,3 @@
+[submodule "teambot"]
+	path = teambot
+	url = git://github.com/tkt-hon/teambot.git
