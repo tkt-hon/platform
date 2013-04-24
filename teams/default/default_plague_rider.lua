@@ -12,9 +12,6 @@ behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_Enhance
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
-plaguerider.bReportBehavior = true
-plaguerider.bDebugUtility = true
-
 plaguerider.skills = {}
 local skills = plaguerider.skills
 
