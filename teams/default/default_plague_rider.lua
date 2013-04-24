@@ -92,7 +92,7 @@ local function DenyBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilDeny = botBrain.skills.abilDeny
   local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
-  if abilDeny:IsValid() and abilDeny:IsReady() and abilDeny:CanActivate() and randomAlly then
+  if abilDeny:CanActivate() and randomAlly then
     return 100
   end
   return 0
