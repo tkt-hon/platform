@@ -5,6 +5,13 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
+local behaviorLib = moonqueen.behaviorLib
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
