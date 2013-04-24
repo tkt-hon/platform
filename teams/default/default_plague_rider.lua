@@ -5,13 +5,18 @@ plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
 
+local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
+
+behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_FlamingEye" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
+behaviorLib.LateItems = { "Item_GrimoireOfPower" }
+
 plaguerider.bReportBehavior = true
 plaguerider.bDebugUtility = true
 
 plaguerider.skills = {}
 local skills = plaguerider.skills
-
-local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 local BotEcho = core.BotEcho
 local tinsert = _G.table.insert
@@ -164,7 +169,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return object.harassExecuteOld(botBrain)
+    return plaguerider.harassExecuteOld(botBrain)
   end
 end
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
