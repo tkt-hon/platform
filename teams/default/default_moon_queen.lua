@@ -5,7 +5,7 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
-local behaviorLib = moonqueen.behaviorLib
+local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
 behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
@@ -65,3 +65,77 @@ end
 -- override combat event trigger function.
 moonqueen.oncombateventOld = moonqueen.oncombatevent
 moonqueen.oncombatevent = moonqueen.oncombateventOverride
+
+local function NearbyCreepCount(botBrain, center, radius)
+  local count = 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+  local enemies = unitsLocal.EnemyCreeps
+  for _,unit in pairs(enemies) do
+    count = count + 1
+  end
+  return count
+end
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
+  end
+
+  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
+
+  if skills.abilUltimate:CanActivate() and creeps < 3 or skills.abilUltimate:IsActive() then
+    nUtil = nUtil + 100
+  end
+
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken and nLastHarassUtility > 50 then
+      if abilUltimate:CanActivate() then
+        local nRange = 600
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      elseif abilUltimate:IsActive() then
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+
+    local abilNuke = skills.abilNuke
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
+end
+moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
