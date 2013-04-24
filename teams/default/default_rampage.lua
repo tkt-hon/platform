@@ -94,6 +94,10 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + 9999
   end
 
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 30
+  end
+
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
@@ -103,6 +107,7 @@ local function HarassHeroExecuteOverride(botBrain)
     return true
   end
   local abilCharge = skills.abilCharge
+  local abilUltimate = skills.abilUltimate
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
@@ -117,9 +122,17 @@ local function HarassHeroExecuteOverride(botBrain)
 
   if core.CanSeeUnit(botBrain, unitTarget) then
 
+    if abilUltimate:CanActivate() then
+      local nRange = abilUltimate:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+      end
+    end
+
     if abilCharge:CanActivate() then
       bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
     end
+
   end
 
   if not bActionTaken then
