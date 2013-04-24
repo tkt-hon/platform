@@ -35,6 +35,14 @@ runfile "bots/behaviorLib.lua"
 
 local core = herobot.core
 
+object.tSkills = {
+  0, 1, 0, 1, 0,
+  3, 0, 1, 1, 2,
+  3, 2, 2, 2, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function herobot:SkillBuild()
   core.VerboseLog("skillbuild()")
 
@@ -43,18 +51,10 @@ function herobot:SkillBuild()
     return
   end
 
-  local tSkills = {
-    0, 1, 0, 1, 0,
-    3, 0, 1, 1, 2,
-    3, 2, 2, 2, 4,
-    3, 4, 4, 4, 4,
-    4, 4, 4, 4, 4
-  }
-
   local nlev = unitSelf:GetLevel()
   local nlevpts = unitSelf:GetAbilityPointsAvailable()
   local nStartPoint = 1+nlev-nlevpts
   for i = nStartPoint, nlev do
-    unitSelf:GetAbility( tSkills[i] ):LevelUp()
+    unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
   end
 end

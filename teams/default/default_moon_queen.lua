@@ -12,14 +12,27 @@ behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots",
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
----------------------------------------------------------------
---            SkillBuild override                            --
--- Handles hero skill building. To customize just write own  --
----------------------------------------------------------------
--- @param: none
--- @return: none
+moonqueen.skills = {}
+local skills = moonqueen.skills
+
+moonqueen.tSkills = {
+  0, 4, 0, 4, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 2,
+  3, 2, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function moonqueen:SkillBuildOverride()
-  moonqueen:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilNuke == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilBounce = unitSelf:GetAbility(1)
+    skills.abilAura = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
