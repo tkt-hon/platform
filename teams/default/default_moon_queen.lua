@@ -85,7 +85,7 @@ local function CustomHarassUtilityFnOverride(hero)
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 3 or skills.abilUltimate:IsActive() then
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
 
@@ -117,8 +117,6 @@ local function HarassHeroExecuteOverride(botBrain)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
-      elseif abilUltimate:IsActive() then
-        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
 
