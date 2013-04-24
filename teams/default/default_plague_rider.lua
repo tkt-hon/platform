@@ -9,6 +9,7 @@ plaguerider.bReportBehavior = true
 plaguerider.bDebugUtility = true
 
 plaguerider.skills = {}
+local skills = plaguerider.skills
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
@@ -17,7 +18,6 @@ local tinsert = _G.table.insert
 
 function plaguerider:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  local skills = self.skills
   if skills.abilDeny == nil then
     skills.abilNuke = unitSelf:GetAbility(0)
     skills.abilShield = unitSelf:GetAbility(1)
@@ -90,7 +90,7 @@ end
 
 local function DenyBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local abilDeny = botBrain.skills.abilDeny
+  local abilDeny = skills.abilDeny
   local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
   if abilDeny:CanActivate() and randomAlly then
     return 100
@@ -100,7 +100,7 @@ end
 
 local function DenyBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local abilDeny = botBrain.skills.abilDeny
+  local abilDeny = skills.abilDeny
   local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
   return core.OrderAbilityEntity(botBrain, abilDeny, randomAlly, false)
 end
@@ -110,3 +110,62 @@ DenyBehavior["Utility"] = DenyBehaviorUtility
 DenyBehavior["Execute"] = DenyBehaviorExecute
 DenyBehavior["Name"] = "Denying creep with spell"
 tinsert(behaviorLib.tBehaviors, DenyBehavior)
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 30
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 50
+  end
+
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return plaguerider.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+    local abilNuke = skills.abilNuke
+
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken then
+      if abilUltimate:CanActivate() then
+        local nRange = abilUltimate:GetRange()
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return object.harassExecuteOld(botBrain)
+  end
+end
+plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
