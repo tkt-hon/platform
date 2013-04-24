@@ -12,6 +12,8 @@ behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots",
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
+behaviorLib.pushingStrUtilMul = 1
+
 moonqueen.skills = {}
 local skills = moonqueen.skills
 
@@ -137,3 +139,10 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function DPSPushingUtilityOverride(myHero)
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3
+  return moonqueen.DPSPushingUtilityOld(myHero) * modifier
+end
+moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
+behaviorLib.DPSPushingUtility = DPSPushingUtilityOverride

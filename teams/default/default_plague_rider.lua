@@ -104,7 +104,10 @@ local function DenyBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilDeny = skills.abilDeny
   local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
-  return core.OrderAbilityEntity(botBrain, abilDeny, randomAlly, false)
+  if randomAlly then
+    return core.OrderAbilityEntity(botBrain, abilDeny, randomAlly, false)
+  end
+  return false
 end
 
 local DenyBehavior = {}

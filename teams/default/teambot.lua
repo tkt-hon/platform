@@ -2,6 +2,9 @@ local _G = getfenv(0)
 local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
+runfile 'bots/utils/rune_controlling/team.lua'
+
+Utils_RuneControlling_Team.Initialize(teambot)
 
 local core = teambot.core
 
@@ -45,7 +48,7 @@ teambot.FindBestLaneSolo = teambot.FindBestLaneSoloOverride
 function teambot:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-  -- custom code here
+  self.data.rune:Locate()
 end
 teambot.onthinkOld = teambot.onthink
 teambot.onthink = teambot.onthinkOverride

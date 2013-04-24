@@ -4,8 +4,11 @@ local rampage = _G.object
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/utils/rune_controlling/hero.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
+
+local tinsert = _G.table.insert
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
@@ -149,3 +152,35 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 rampage.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function RuneTakingUtility(botBrain)
+  local teambot = core.teamBotBrain
+  if Utils_RuneControlling_Hero.CanPickRune(teambot) then
+    return 30
+  end
+  return 0
+end
+
+local function RuneTakingExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local teambot = core.teamBotBrain
+  local runeLocation = Utils_RuneControlling_Hero.GetRuneLocation(teambot)
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), runeLocation)
+
+  local nRange = 100
+  if nTargetDistanceSq < (nRange * nRange) then
+    local runeEntity = Utils_RuneControlling_Hero.GetRuneEntity(teambot)
+    if runeEntity then
+      bActionTaken = core.OrderTouch(botBrain, unitSelf, runeEntity)
+    end
+  else
+    bActionTaken = core.OrderMoveToPosClamp(botBrain, unitSelf, runeLocation)
+  end
+  return bActionTaken
+end
+
+local RuneTakingBehavior = {}
+RuneTakingBehavior["Utility"] = RuneTakingUtility
+RuneTakingBehavior["Execute"] = RuneTakingExecute
+RuneTakingBehavior["Name"] = "Taking rune"
+tinsert(behaviorLib.tBehaviors, RuneTakingBehavior)
