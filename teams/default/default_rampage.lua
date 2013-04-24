@@ -108,6 +108,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
   local abilCharge = skills.abilCharge
   local abilUltimate = skills.abilUltimate
+  local abilSlow = skills.abilSlow
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
@@ -131,6 +132,13 @@ local function HarassHeroExecuteOverride(botBrain)
 
     if abilCharge:CanActivate() then
       bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
+    end
+
+    if abilSlow:CanActivate() then
+      local nRange = 300
+      if nTargetDistanceSq < (nRange * nRange) then
+        return core.OrderAbility(botBrain, abilSlow)
+      end
     end
 
   end
