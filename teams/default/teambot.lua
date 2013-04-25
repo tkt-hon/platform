@@ -124,6 +124,13 @@ local tMidHeros = {
 local tSuiciders = {
   "Hero_DiseasedRider"
 }
+local tSitters = {
+  "Hero_Frosty",
+  "Hero_Rhapsody"
+}
+local tSupports = {
+  "Hero_Frosty"
+}
 
 function teambot:CreateMemoryUnitOverride(unit)
   local original = self:CreateMemoryUnitOld(unit)
@@ -140,6 +147,12 @@ function teambot:CreateMemoryUnitOverride(unit)
     end
     if tfind(tSuiciders, unitType) then
       original.isSuicide = true
+    end
+    if tfind(tSitters, unitType) then
+      original.isSitter = true
+    end
+    if tfind(tSupports, unitType) then
+      original.isSupport = true
     end
   end
   return original
