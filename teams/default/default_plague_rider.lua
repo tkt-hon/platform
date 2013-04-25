@@ -15,7 +15,6 @@ behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 plaguerider.skills = {}
 local skills = plaguerider.skills
 
-local BotEcho = core.BotEcho
 local tinsert = _G.table.insert
 
 function plaguerider:SkillBuildOverride()
@@ -79,22 +78,33 @@ local function IsSiege(unit)
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
 
-local function GetUnitToDenyWithSpell(botBrain, center, radius)
-  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
   local allies = unitsLocal.AllyCreeps
+  local unitTarget = nil
+  local nDistance = 0
   for _,unit in pairs(allies) do
-    if not IsSiege(unit) then
-      return unit
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
+      unitTarget = unit
+      nDistance = nNewDistance
     end
   end
-  return nil
+  return unitTarget
+end
+
+local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+  return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
 end
 
 local function DenyBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilDeny = skills.abilDeny
-  local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
-  if abilDeny:CanActivate() and randomAlly then
+  local myPos = unitSelf:GetPosition()
+  local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+    plaguerider.denyTarget = unit
     return 100
   end
   return 0
@@ -103,9 +113,9 @@ end
 local function DenyBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilDeny = skills.abilDeny
-  local randomAlly = GetUnitToDenyWithSpell(botBrain, unitSelf:GetPosition(), abilDeny:GetRange())
-  if randomAlly then
-    return core.OrderAbilityEntity(botBrain, abilDeny, randomAlly, false)
+  local target = plaguerider.denyTarget
+  if target then
+    return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
   end
   return false
 end
@@ -121,10 +131,18 @@ local function CustomHarassUtilityFnOverride(hero)
 
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 30
+    local damages = {50,100,125,175}
+    if hero:GetHealth() < damages[skills.abilNuke:GetLevel()] then
+      nUtil = nUtil + 30
+    end
   end
 
   if skills.abilUltimate:CanActivate() then
-    nUtil = nUtil + 50
+    nUtil = nUtil + 100
+  end
+
+  if core.unitSelf.isSuicide then
+    nUtil = nUtil / 2
   end
 
   return nUtil
@@ -219,3 +237,13 @@ local function PreGameExecuteOverride(botBrain)
   end
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
+
+local function DistanceThreatUtilityOverride(nDist, nRange, nMoveSpeed, bAttackReady)
+  if core.unitSelf.isSuicide then
+    nRange = nRange * 2
+    nDist = nDist / 2
+  end
+  return behaviorLib.DistanceThreatUtilityOld(nDist, nRange, nMoveSpeed, bAttackReady)
+end
+behaviorLib.DistanceThreatUtilityOld = behaviorLib.DistanceThreatUtility
+behaviorLib.DistanceThreatUtility = DistanceThreatUtilityOverride

@@ -95,7 +95,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
 
   if skills.abilUltimate:CanActivate() then
-    nUtil = nUtil + 30
+    nUtil = nUtil + 50
   end
 
   return nUtil
@@ -229,7 +229,6 @@ local function ChargeUtility(botBrain)
   end
   local unitTarget, utility = ChargeTarget(botBrain, unitSelf, abilCharge)
   if unitTarget then
-    core.BotEcho(tostring(utility))
     rampage.chargeTarget = unitTarget
     return utility
   end
