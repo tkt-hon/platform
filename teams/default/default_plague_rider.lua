@@ -174,3 +174,48 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function GetWardFromBag(unitSelf)
+  local tItems = unitSelf:GetInventory()
+  for _, item in ipairs(tItems) do
+    if item:GetTypeName() == "Item_FlamingEye" then
+      return item
+    end
+  end
+  return nil
+end
+
+local function IsSpotWarded(spot)
+  local gadgets = HoN.GetUnitsInRadius(spot, 200, core.UNIT_MASK_GADGET + core.UNIT_MASK_ALIVE)
+  for k, gadget in pairs(gadgets) do
+    if gadget:GetTypeName() == "Gadget_FlamingEye" then
+      return true
+    end
+  end
+  return false
+end
+
+local function PreGameExecuteOverride(botBrain)
+  local unitSelf = core.unitSelf
+  local ward = GetWardFromBag(unitSelf)
+  local wardSpot = nil
+  if core.myTeam == HoN.GetLegionTeam() then
+    wardSpot = Vector3.Create(5003.0000, 12159.0000, 128.0000)
+  else
+    wardSpot = Vector3.Create(11140.0000, 3400.0000, 128.0000)
+  end
+  if core.unitSelf.isSuicide and ward and not IsSpotWarded(wardSpot) then
+    core.DrawXPosition(wardSpot)
+    local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), wardSpot)
+    local nRange = 600
+    if nTargetDistanceSq < (nRange * nRange) then
+      bActionTaken = core.OrderItemPosition(botBrain, unitSelf, ward, wardSpot)
+    else
+      bActionTaken = core.OrderMoveToPosClamp(botBrain, unitSelf, wardSpot)
+    end
+    return true
+  else
+    return behaviorLib.PreGameExecute(botBrain)
+  end
+end
+behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
