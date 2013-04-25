@@ -7,8 +7,12 @@ runfile 'bots/utils/rune_controlling/team.lua'
 Utils_RuneControlling_Team.Initialize(teambot)
 
 teambot.bGroupAndPush = false
+teambot.nInitialBotMove = 99999
+teambot.laneDoubleCheckTime = 0
 
 local core = teambot.core
+
+local tinsert = _G.table.insert
 
 teambot.myName = 'Default Team'
 
@@ -16,34 +20,79 @@ function teambot:GetMemoryUnit(unit)
   return unit and self.tMemoryUnits[unit:GetUniqueID()]
 end
 
-function teambot.FindBestLaneSoloOverride(tAvailableHeroes)
-  if core.NumberElements(tAvailableHeroes) == 0 then
-    return nil, nil
+local function FindSuicider(units)
+  for _, unit in pairs(units) do
+    if unit and unit.isSuicide then
+      return unit.object
+    end
+  end
+  return nil
+end
+
+local function FindGanker(units)
+  for _, unit in pairs(units) do
+    if unit and unit.isMid and unit.isGanker then
+      return unit.object
+    end
+  end
+  return nil
+end
+
+function teambot:BuildLanesOverride()
+  local tUnits = core.CopyTable(self.tAllyBotHeroes)
+  local memUnits = {}
+  for nUID,_ in pairs(tUnits) do
+    memUnits[nUID] = self.tMemoryUnits[nUID]
   end
 
-  local unitBestUnit = nil
-  for _, unit in pairs(tAvailableHeroes) do
-    local memUnit = teambot:GetMemoryUnit(unit)
+  if core.NumberElements(memUnits) <= 0 then
+    self:BuildLanesOld()
+    self.laneReassessInterval = 1000
+    return
+  end
+  self.laneReassessInterval = core.MinToMS(3)
+
+  local tTopLane = {}
+  local tMiddleLane = {}
+  local tBottomLane = {}
+
+  local tExposedLane = nil
+  local tSafeLane = nil
+  if core.myTeam == HoN.GetLegionTeam() then
+    tExposedLane = tTopLane
+    tSafeLane = tBottomLane
+  else
+    tExposedLane = tBottomLane
+    tSafeLane = tTopLane
+  end
+
+  local suicider = FindSuicider(memUnits)
+  if suicider then
+    local nUID = suicider:GetUniqueID()
+    tExposedLane[nUID] = suicider
+    memUnits[nUID] = nil
+  end
+
+  local ganker = FindGanker(memUnits)
+  if ganker then
+    local nUID = ganker:GetUniqueID()
+    tMiddleLane[nUID] = ganker
+    memUnits[nUID] = nil
+  end
+
+  for nUID, memUnit in pairs(memUnits) do
     if memUnit then
-      if memUnit.isMid and memUnit.isGanker then
-        return unit
-      elseif memUnit.isMid and memUnit.isCarry then
-        unitBestUnit = unit
-      end
+      tSafeLane[nUID] = memUnit.object
     end
   end
 
-  return unitBestUnit or teambot.FindBestLaneSoloOld(tAvailableHeroes)
+  self.tTopLane = tTopLane
+  self.tMiddleLane = tMiddleLane
+  self.tBottomLane = tBottomLane
 end
-teambot.FindBestLaneSoloOld = teambot.FindBestLaneSolo
-teambot.FindBestLaneSolo = teambot.FindBestLaneSoloOverride
+teambot.BuildLanesOld = teambot.BuildLanes
+teambot.BuildLanes = teambot.BuildLanesOverride
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
 function teambot:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
