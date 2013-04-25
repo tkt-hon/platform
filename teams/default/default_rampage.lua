@@ -93,9 +93,6 @@ local function CustomHarassUtilityFnOverride(hero)
   if skills.abilCharge:CanActivate() then
     nUtil = nUtil + 20
   end
-  if rampage.charged ~= CHARGE_NONE then
-    nUtil = nUtil + 9999
-  end
 
   if skills.abilUltimate:CanActivate() then
     nUtil = nUtil + 30
@@ -106,9 +103,6 @@ end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function HarassHeroExecuteOverride(botBrain)
-  if botBrain.charged ~= CHARGE_NONE then
-    return true
-  end
   local abilCharge = skills.abilCharge
   local abilUltimate = skills.abilUltimate
   local abilSlow = skills.abilSlow
@@ -162,6 +156,7 @@ local function RuneTakingUtility(botBrain)
 end
 
 local function RuneTakingExecute(botBrain)
+  local bActionTaken = false
   local unitSelf = botBrain.core.unitSelf
   local teambot = core.teamBotBrain
   local runeLocation = Utils_RuneControlling_Hero.GetRuneLocation(teambot)
@@ -184,3 +179,80 @@ RuneTakingBehavior["Utility"] = RuneTakingUtility
 RuneTakingBehavior["Execute"] = RuneTakingExecute
 RuneTakingBehavior["Name"] = "Taking rune"
 tinsert(behaviorLib.tBehaviors, RuneTakingBehavior)
+
+local function ChargeTarget(botBrain, unitSelf, abilCharge)
+  local tEnemyHeroes = HoN.GetHeroes(core.enemyTeam)
+  local utility = 0
+  local unitTarget = nil
+  local nTarget = 0
+  for nUID, unit in pairs(tEnemyHeroes) do
+    if core.CanSeeUnit(botBrain, unit) and unit:IsAlive() and (not unitTarget or unit:GetHealth() < unitTarget:GetHealth()) then
+      unitTarget = unit
+      nTarget = nUID
+    end
+  end
+  if unitTarget then
+    local damageLevels = {100,140,180,220}
+    local chargeDamage = damageLevels[abilCharge:GetLevel()]
+    local estimatedHP = unitTarget:GetHealth() - chargeDamage
+    if estimatedHP < 200 then
+      utility = 20
+    end
+    if unitTarget:GetManaPercent() < 30 then
+      utility = utility + 5
+    end
+    local level = unitTarget:GetLevel()
+    local ownLevel = unitSelf:GetLevel()
+    if level < ownLevel then
+      utility = utility + 5 * (ownLevel - level)
+    else
+      utility = utility - 10 * (ownLevel - level)
+    end
+    local vecTarget = unitTarget:GetPosition()
+    for nUID, unit in pairs(tEnemyHeroes) do
+      if nUID ~= nTarget and core.CanSeeUnit(botBrain, unit) and Vector3.Distance2DSq(vecTarget, unit:GetPosition()) < (500 * 500) then
+        utility = utility - 5
+      end
+    end
+  end
+  return unitTarget, utility
+end
+
+local function ChargeUtility(botBrain)
+  local abilCharge = skills.abilCharge
+  local unitSelf = core.unitSelf
+  if rampage.charged ~= CHARGE_NONE then
+    return 9999
+  end
+  if not abilCharge:CanActivate() then
+    return 0
+  end
+  local unitTarget, utility = ChargeTarget(botBrain, unitSelf, abilCharge)
+  if unitTarget then
+    core.BotEcho(tostring(utility))
+    rampage.chargeTarget = unitTarget
+    return utility
+  end
+  return 0
+end
+
+local function ChargeExecute(botBrain)
+  local bActionTaken = false
+  if botBrain.charged ~= CHARGE_NONE then
+    return true
+  end
+  if not rampage.chargeTarget then
+    return false
+  end
+  local abilCharge = skills.abilCharge
+  if abilCharge:CanActivate() then
+    bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, rampage.chargeTarget)
+  end
+  return bActionTaken
+end
+
+local ChargeBehavior = {}
+ChargeBehavior["Utility"] = ChargeUtility
+ChargeBehavior["Execute"] = ChargeExecute
+ChargeBehavior["Name"] = "Charge like a boss"
+tinsert(behaviorLib.tBehaviors, ChargeBehavior)

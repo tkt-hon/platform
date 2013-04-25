@@ -7,6 +7,7 @@ runfile 'bots/utils/rune_controlling/team.lua'
 Utils_RuneControlling_Team.Initialize(teambot)
 
 teambot.bGroupAndPush = false
+teambot.bDefense = false
 teambot.nInitialBotMove = 99999
 teambot.laneDoubleCheckTime = 0
 
