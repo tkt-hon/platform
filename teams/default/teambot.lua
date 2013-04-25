@@ -6,6 +6,8 @@ runfile 'bots/utils/rune_controlling/team.lua'
 
 Utils_RuneControlling_Team.Initialize(teambot)
 
+teambot.bGroupAndPush = false
+
 local core = teambot.core
 
 teambot.myName = 'Default Team'
@@ -23,13 +25,13 @@ function teambot.FindBestLaneSoloOverride(tAvailableHeroes)
     return nil, nil
   end
 
-  local bGankerFound = false
   local unitBestUnit = nil
   for _, unit in pairs(tAvailableHeroes) do
     if IsGanker(unit) then
-      bGankerFound = true
-      unitBestUnit = unit
-    elseif not bGankerFound and IsMidCarry(unit) then
+      local memUnit = teambot.tMemoryUnits[unit:GetUniqueID()]
+      memUnit.isGanker = true
+      return unit
+    elseif IsMidCarry(unit) then
       unitBestUnit = unit
     end
   end
