@@ -17,6 +17,8 @@ behaviorLib.pushingStrUtilMul = 1
 moonqueen.skills = {}
 local skills = moonqueen.skills
 
+core.itemGeoBane = nil
+
 moonqueen.tSkills = {
   0, 4, 0, 4, 0,
   3, 0, 2, 2, 1,
@@ -109,6 +111,14 @@ local function HarassHeroExecuteOverride(botBrain)
   local bActionTaken = false
 
   if core.CanSeeUnit(botBrain, unitTarget) then
+    local itemGeoBane = core.itemGeoBane
+    if not bActionTaken then
+      if itemGeoBane then
+        if itemGeoBane:CanActivate() then
+          bActionTaken = core.OrderItemClamp(botBrain, unitSelf, itemGeoBane)
+        end
+      end
+    end
 
     local abilUltimate = skills.abilUltimate
     if not bActionTaken and nLastHarassUtility > 50 then
@@ -146,3 +156,30 @@ local function DPSPushingUtilityOverride(myHero)
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
 behaviorLib.DPSPushingUtility = DPSPushingUtilityOverride
+
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = moonqueen.FindItemsOld(botBrain)
+
+  if core.itemGeoBane ~= nil and not core.itemGeoBane:IsValid() then
+    core.itemGeoBane = nil
+  end
+
+  if bUpdated then
+    if core.itemGeoBane then
+      return
+    end
+
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        if core.itemGeoBane == nil and curItem:GetName() == "Item_ManaBurn2" and not curItem:IsRecipe() then
+          core.itemGeoBane = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+  return bUpdated
+end
+moonqueen.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride

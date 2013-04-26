@@ -17,6 +17,8 @@ local skills = plaguerider.skills
 
 local tinsert = _G.table.insert
 
+core.itemWard = nil
+
 function plaguerider:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
   if skills.abilDeny == nil then
@@ -193,16 +195,6 @@ end
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
-local function GetWardFromBag(unitSelf)
-  local tItems = unitSelf:GetInventory()
-  for _, item in ipairs(tItems) do
-    if item:GetTypeName() == "Item_FlamingEye" then
-      return item
-    end
-  end
-  return nil
-end
-
 local function IsSpotWarded(spot)
   local gadgets = HoN.GetUnitsInRadius(spot, 200, core.UNIT_MASK_GADGET + core.UNIT_MASK_ALIVE)
   for k, gadget in pairs(gadgets) do
@@ -215,7 +207,7 @@ end
 
 local function PreGameExecuteOverride(botBrain)
   local unitSelf = core.unitSelf
-  local ward = GetWardFromBag(unitSelf)
+  local ward = core.itemWard
   local wardSpot = nil
   if core.myTeam == HoN.GetLegionTeam() then
     wardSpot = Vector3.Create(5003.0000, 12159.0000, 128.0000)
@@ -229,7 +221,7 @@ local function PreGameExecuteOverride(botBrain)
     if nTargetDistanceSq < (nRange * nRange) then
       bActionTaken = core.OrderItemPosition(botBrain, unitSelf, ward, wardSpot)
     else
-      bActionTaken = core.OrderMoveToPosClamp(botBrain, unitSelf, wardSpot)
+      bActionTaken = behaviorLib.MoveExecute(botBrain, wardSpot)
     end
     return bActionTaken
   else
@@ -247,3 +239,30 @@ local function DistanceThreatUtilityOverride(nDist, nRange, nMoveSpeed, bAttackR
 end
 behaviorLib.DistanceThreatUtilityOld = behaviorLib.DistanceThreatUtility
 behaviorLib.DistanceThreatUtility = DistanceThreatUtilityOverride
+
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = plaguerider.FindItemsOld(botBrain)
+
+  if core.itemWard ~= nil and not core.itemWard:IsValid() then
+    core.itemWard = nil
+  end
+
+  if bUpdated then
+    if core.itemWard then
+      return
+    end
+
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        if core.itemWard == nil and curItem:GetName() == "Item_FlamingEye" then
+          core.itemWard = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+  return bUpdated
+end
+plaguerider.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride
