@@ -231,7 +231,7 @@ local function PreGameExecuteOverride(botBrain)
     else
       bActionTaken = core.OrderMoveToPosClamp(botBrain, unitSelf, wardSpot)
     end
-    return true
+    return bActionTaken
   else
     return behaviorLib.PreGameExecute(botBrain)
   end
