@@ -266,3 +266,35 @@ local function funcFindItemsOverride(botBrain)
 end
 plaguerider.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
+
+local function EnemiesNearPosition(vecPosition)
+  local tHeroes = HoN.GetUnitsInRadius(vecPosition, core.localCreepRange, core.UNIT_MASK_ALIVE + core.UNIT_MASK_HERO)
+  for _, hero in pairs(tHeroes) do
+    if hero:GetTeam() == core.enemyTeam then
+      return true
+    end
+  end
+  return false
+end
+
+local function PositionSelfTraverseLaneOverride(botBrain)
+  local oldPosition = behaviorLib.PositionSelfTraverseLaneOld(botBrain, unitCurrentTarget)
+  local unitSelf = core.unitSelf
+  if unitSelf.isSuicide and not plaguerider.bMetEnemies then
+    if EnemiesNearPosition(oldPosition) then
+      plaguerider.bMetEnemies = true
+      return oldPosition
+    end
+    local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
+    local basePosition = core.allyMainBaseStructure:GetPosition()
+    if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
+      return oldPosition
+    else
+      return towerPosition
+    end
+  else
+    return oldPosition
+  end
+end
+behaviorLib.PositionSelfTraverseLaneOld= behaviorLib.PositionSelfTraverseLane
+behaviorLib.PositionSelfTraverseLane = PositionSelfTraverseLaneOverride
