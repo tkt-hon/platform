@@ -25,13 +25,11 @@ behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
 local function GetWardSpots()
   if core.myTeam == HoN.GetLegionTeam() then
     return {
-      Vector3.Create(14326.0000, 4977.0000, 128.0000),
       Vector3.Create(9896.0000, 4902.0000, 128.0000)
     }
   else
     return {
-      Vector3.Create(6179.0000, 8218.0000, 128.0000),
-      Vector3.Create(4829.0000, 13921.0000, 128.0000)
+      Vector3.Create(6179.0000, 8218.0000, 128.0000)
     }
   end
 end
@@ -103,3 +101,30 @@ local function funcFindItemsOverride(botBrain)
 end
 glacius.FindItemsOldOld = core.FindItems
 core.FindItems = funcFindItemsOverride
+
+local function PreGameExecuteOverride(botBrain)
+  local unitSelf = core.unitSelf
+  local ward = core.itemWard
+  local wardSpot = nil
+  if core.myTeam == HoN.GetLegionTeam() then
+    wardSpot = Vector3.Create(14326.0000, 4977.0000, 128.0000)
+  else
+    wardSpot = Vector3.Create(2100.0000, 10900.0000, 128.0000)
+  end
+  if unitSelf.isSitter and ward and not IsSpotWarded(wardSpot) then
+    core.DrawXPosition(wardSpot)
+    local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), wardSpot)
+    local nRange = 600
+    if nTargetDistanceSq < (nRange * nRange) then
+      bActionTaken = core.OrderItemPosition(botBrain, unitSelf, ward, wardSpot)
+    else
+      bActionTaken = behaviorLib.MoveExecute(botBrain, wardSpot)
+    end
+    return bActionTaken
+  elseif unitSelf.isSitter and not ward and botBrain:GetGold() > 100 then
+    return false
+  else
+    return behaviorLib.PreGameExecute(botBrain)
+  end
+end
+behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
