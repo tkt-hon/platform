@@ -109,14 +109,11 @@ local function PreGameExecuteOverride(botBrain)
   end
   local ward = core.itemWard
   local wardSpot = nil
-  local gankSpot = nil
   local bActionTaken = false
   if core.myTeam == HoN.GetLegionTeam() then
     wardSpot = Vector3.Create(14326.0000, 4977.0000, 128.0000)
-    gankSpot = Vector3.Create(13200.0000, 3500.0000, 128.0000)
   else
     wardSpot = Vector3.Create(2100.0000, 10900.0000, 128.0000)
-    gankSpot = Vector3.Create(3100.0000, 12300.0000, 128.0000)
   end
   if ward and not IsSpotWarded(wardSpot) then
     core.DrawXPosition(wardSpot)
@@ -127,10 +124,8 @@ local function PreGameExecuteOverride(botBrain)
     else
       bActionTaken = behaviorLib.MoveExecute(botBrain, wardSpot)
     end
-  elseif not ward and botBrain:GetGold() > 100 then
-    return false
   else
-    bActionTaken = behaviorLib.MoveExecute(botBrain, gankSpot)
+    bActionTaken = behaviorLib.PreGameSitterExecute(botBrain)
   end
   return bActionTaken
 end
