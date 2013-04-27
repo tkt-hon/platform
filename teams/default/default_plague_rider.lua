@@ -214,7 +214,7 @@ local function PreGameExecuteOverride(botBrain)
   else
     wardSpot = Vector3.Create(11140.0000, 3400.0000, 128.0000)
   end
-  if core.unitSelf.isSuicide and ward and not IsSpotWarded(wardSpot) then
+  if unitSelf.isSuicide and ward and not IsSpotWarded(wardSpot) then
     core.DrawXPosition(wardSpot)
     local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), wardSpot)
     local nRange = 600
@@ -224,6 +224,8 @@ local function PreGameExecuteOverride(botBrain)
       bActionTaken = behaviorLib.MoveExecute(botBrain, wardSpot)
     end
     return bActionTaken
+  elseif unitSelf.isSuicide and not ward and botBrain:GetGold() > 100 then
+    return false
   else
     return behaviorLib.PreGameExecute(botBrain)
   end
@@ -280,7 +282,7 @@ end
 local function PositionSelfTraverseLaneOverride(botBrain)
   local oldPosition = behaviorLib.PositionSelfTraverseLaneOld(botBrain, unitCurrentTarget)
   local unitSelf = core.unitSelf
-  if unitSelf.isSuicide and not plaguerider.bMetEnemies then
+  if unitSelf.isSuicide and not plaguerider.bMetEnemies and HoN.GetMatchTime() < core.MinToMS(1) then
     if EnemiesNearPosition(oldPosition) then
       plaguerider.bMetEnemies = true
       return oldPosition
