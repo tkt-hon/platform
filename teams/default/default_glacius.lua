@@ -104,14 +104,21 @@ core.FindItems = funcFindItemsOverride
 
 local function PreGameExecuteOverride(botBrain)
   local unitSelf = core.unitSelf
+  if not unitSelf.isSitter then
+    return behaviorLib.PreGameExecute(botBrain)
+  end
   local ward = core.itemWard
   local wardSpot = nil
+  local gankSpot = nil
+  local bActionTaken = false
   if core.myTeam == HoN.GetLegionTeam() then
     wardSpot = Vector3.Create(14326.0000, 4977.0000, 128.0000)
+    gankSpot = Vector3.Create(13200.0000, 3500.0000, 128.0000)
   else
     wardSpot = Vector3.Create(2100.0000, 10900.0000, 128.0000)
+    gankSpot = Vector3.Create(3100.0000, 12300.0000, 128.0000)
   end
-  if unitSelf.isSitter and ward and not IsSpotWarded(wardSpot) then
+  if ward and not IsSpotWarded(wardSpot) then
     core.DrawXPosition(wardSpot)
     local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), wardSpot)
     local nRange = 600
@@ -120,11 +127,11 @@ local function PreGameExecuteOverride(botBrain)
     else
       bActionTaken = behaviorLib.MoveExecute(botBrain, wardSpot)
     end
-    return bActionTaken
-  elseif unitSelf.isSitter and not ward and botBrain:GetGold() > 100 then
+  elseif not ward and botBrain:GetGold() > 100 then
     return false
   else
-    return behaviorLib.PreGameExecute(botBrain)
+    bActionTaken = behaviorLib.MoveExecute(botBrain, gankSpot)
   end
+  return bActionTaken
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
