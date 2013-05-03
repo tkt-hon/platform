@@ -2,9 +2,7 @@ local _G = getfenv(0)
 local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
-runfile 'bots/lib/rune_controlling/team.lua'
-
-Utils_RuneControlling_Team.Initialize(teambot)
+runfile 'bots/lib/rune_controlling/init_team.lua'
 
 teambot.bGroupAndPush = false
 teambot.bDefense = false
@@ -96,8 +94,6 @@ teambot.BuildLanes = teambot.BuildLanesOverride
 
 function teambot:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
-
-  self.data.rune:Locate()
 end
 teambot.onthinkOld = teambot.onthink
 teambot.onthink = teambot.onthinkOverride
