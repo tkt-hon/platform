@@ -1,6 +1,6 @@
 [submodule "teambot"]
 	path = teambot
 	url = git://github.com/tkt-hon/teambot.git
-[submodule "utils/rune_controlling"]
-	path = utils/rune_controlling
+[submodule "lib/rune_controlling"]
+	path = lib/rune_controlling
 	url = git://github.com/tkt-hon/rune_controlling.git

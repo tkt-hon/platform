@@ -2,7 +2,7 @@ local _G = getfenv(0)
 local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
-runfile 'bots/utils/rune_controlling/team.lua'
+runfile 'bots/lib/rune_controlling/team.lua'
 
 Utils_RuneControlling_Team.Initialize(teambot)
 
