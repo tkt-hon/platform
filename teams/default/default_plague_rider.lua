@@ -225,7 +225,7 @@ local function PreGameExecuteOverride(botBrain)
     end
     return bActionTaken
   elseif unitSelf.isSuicide and not ward and botBrain:GetGold() > 100 then
-    return false
+    return true
   else
     return behaviorLib.PreGameExecute(botBrain)
   end
