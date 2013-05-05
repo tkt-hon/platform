@@ -4,3 +4,6 @@
 [submodule "lib/rune_controlling"]
 	path = lib/rune_controlling
 	url = git://github.com/tkt-hon/rune_controlling.git
+[submodule "lib/metadata_manager"]
+	path = lib/metadata_manager
+	url = git://github.com/tkt-hon/metadata_manager.git
