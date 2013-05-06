@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Botswana_Rampage"
+  description="Botswana Rampage"
+  heroname="Hero_Rampage"
+  rootlua="botswana_rampage.lua"
+  defaultplayername="BotswanaRampageBot"
+  precachepath="/heroes/rampage/"
+/>
