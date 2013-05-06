@@ -25,8 +25,8 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
-
   -- custom code here
+  
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
@@ -39,7 +39,7 @@ moonqueen.onthink = moonqueen.onthinkOverride
 -- @return: none
 function moonqueen:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
-
+  
   -- custom code here
 end
 -- override combat event trigger function.
