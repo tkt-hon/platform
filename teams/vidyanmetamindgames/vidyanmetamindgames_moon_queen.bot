@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Template_MoonQueen"
+  description="Template Moon Queen"
+  heroname="Hero_Krixi"
+  rootlua="vidyanmetamindgames_moon_queen.lua"
+  defaultplayername="TemplateMQBot"
+  precachepath="/heroes/krixi/"
+/>
