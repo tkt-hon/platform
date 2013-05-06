@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-  name="Template_MoonQueen"
-  description="Template Moon Queen"
+  name="Vidyan_Moon_Queen"
+  description="Oon paras :D ebin :D valitse mut :D"
   heroname="Hero_Krixi"
   rootlua="vidyanmetamindgames_moon_queen.lua"
-  defaultplayername="TemplateMQBot"
+  defaultplayername="penis"
   precachepath="/heroes/krixi/"
 />

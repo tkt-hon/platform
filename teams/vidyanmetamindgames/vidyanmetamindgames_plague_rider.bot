@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-  name="Template_PlagueRider"
-  description="Template Plague Rider"
+  name="Vidyan_Plague_Rider"
+  description="HA GGGAYYYY"
   heroname="Hero_DiseasedRider"
   rootlua="vidyanmetamindgames_plague_rider.lua"
-  defaultplayername="TemplatePlagueBot"
+  defaultplayername="ebbbbbbbiiiiiiiiiiin"
   precachepath="/heroes/diseasedrider/"
 />
