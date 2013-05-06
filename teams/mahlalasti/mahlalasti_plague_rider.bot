@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-  name="Template_PlagueRider"
-  description="Template Plague Rider"
+  name="mahlalasti_PlagueRider"
+  description="Mahlalasti Epic Plague Rider"
   heroname="Hero_DiseasedRider"
-  rootlua="template_plague_rider.lua"
-  defaultplayername="TemplatePlagueBot"
+  rootlua="mahlalasti_plague_rider.lua"
+  defaultplayername="MahlalastiPlagueBot"
   precachepath="/heroes/diseasedrider/"
 />

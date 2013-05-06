@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-  name="Template_Rampage"
-  description="Template Rampage"
+  name="mahlalasti_Rampage"
+  description="Mahlalasti Epic Rampage"
   heroname="Hero_Rampage"
-  rootlua="template_rampage.lua"
-  defaultplayername="TemplateRampageBot"
+  rootlua="mahlalasti_rampage.lua"
+  defaultplayername="MahlalastiRampageBot"
   precachepath="/heroes/rampage/"
 />
