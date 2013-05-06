@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="temaNoHelp_PlagueRider"
+  description="temaNoHelp Plague Rider"
+  heroname="Hero_DiseasedRider"
+  rootlua="temaNoHelp_plague_rider.lua"
+  defaultplayername="temaNoHelpPlagueBot"
+  precachepath="/heroes/diseasedrider/"
+/>
