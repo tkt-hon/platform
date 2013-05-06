@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Kiinalainen_Rampage"
+  description="Kiinalainen Rampage"
+  heroname="Hero_Rampage"
+  rootlua="kiinalainen_rampage.lua"
+  defaultplayername="KiinalainenRampageBot"
+  precachepath="/heroes/rampage/"
+/>
