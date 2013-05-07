@@ -103,6 +103,38 @@ ShieldBehavior["Execute"] = ShieldBehaviorExecute
 ShieldBehavior["Name"] = "Casting shield spell on a creep"
 tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 
+local function GetEnemyTower(units)
+  if units.EnemyTowers == nil then
+    return nil
+  end
+
+  for unit in units.EnemyTowers do
+    return unit
+  end
+end
+
+local function TowerAttackBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local units = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
+  
+  local tower = GetEnemyTower(units)
+  if tower == nil then
+    return 0
+  end
+  
+  -- do your magic
+  
+end
+
+local function TowerAttackBehaviorExecute(botBrain)
+end
+
+local TowerAttackBehavior = {}
+TowerAttackBehavior["Utility"] = TowerAttackBehaviorUtility
+TowerAttackBehavior["Execute"] = TowerAttackBehaviorExecute
+TowerAttackBehavior["Name"] = "FUCK YEAH ATTACKING TOWERS :D"
+tinsert(behaviorLib.tBehaviors, TowerAttackBehavior)
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
