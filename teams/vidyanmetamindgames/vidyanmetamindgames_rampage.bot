@@ -4,6 +4,6 @@
   description="THIS IS A RAMPAGE, LANA"
   heroname="Hero_Rampage"
   rootlua="vidyanmetamindgames_rampage.lua"
-  defaultplayername="PenisRampageBot"
+  defaultplayername="Vidyan Rampage"
   precachepath="/heroes/rampage/"
 />
