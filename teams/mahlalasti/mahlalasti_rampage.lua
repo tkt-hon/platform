@@ -114,6 +114,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  HoN.DrawDebugLine (unitSelf:GetPosition(), unitTarget:GetPosition(),true,"green")
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
