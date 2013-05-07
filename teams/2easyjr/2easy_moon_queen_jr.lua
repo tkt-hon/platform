@@ -5,6 +5,14 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
+
+moonqueen.tSkills = {
+  2, 4, 4, 2, 2,
+  4, 2, 4, 4, 4,
+  4, 1, 1, 1, 1,
+  4, 4, 4, 0, 0,
+  0, 0, 3, 3, 3
+}
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
@@ -25,8 +33,8 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
-
   -- custom code here
+  
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
@@ -39,7 +47,7 @@ moonqueen.onthink = moonqueen.onthinkOverride
 -- @return: none
 function moonqueen:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
-
+  
   -- custom code here
 end
 -- override combat event trigger function.
