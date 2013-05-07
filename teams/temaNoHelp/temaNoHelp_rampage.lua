@@ -1,15 +1,19 @@
 local _G = getfenv(0)
 local rampage = _G.object
 local stunDuration = 0
+local tinsert = _G.table.insert
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_IronBuckler" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
-behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2" }
-behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
+--Kun 3 health potionia invussa ja rahaa tarpeeksi
+--Marchersien jälkee pitäis myydä 1 minori
+--Ostetaan ring of teacher
+--2x punch daggeria
+behaviorLib.LaneItems = { "Item_Marchers", "Item_HealthPotion" }
+behaviorLib.MidItems = {}
 
 rampage.bReportBehavior = true
 rampage.bDebugUtility = true
@@ -37,7 +41,7 @@ function rampage:SkillBuildOverride()
     skills.abilSlow = unitSelf:GetAbility(1)
     skills.abilBash = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)
+    skills.stats = unitSelf:GetAbility(4)local tinsert = _G.table.insert
   end
   self:SkillBuildOld()
 end
@@ -76,19 +80,26 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
   local unitTarget = behaviorLib.heroTarget
   local time = HoN.GetMatchTime()
+  local creepLane = core.GetFurthestCreepWavePos(core.tMyLane, core.bTraverseForward)
+  local myPos = core.unitSelf:GetPosition()
+--jos potu käytössä niin ei agroilla
+  if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
+    core.BotEcho("POTUU")
+	return -10000
+  end 
 
 --jos tornin rangella ni ei mennä
-  if core.GetClosestEnemyTower(hero:GetPosition(), 701) then
-    return -9001
+  if core.GetClosestEnemyTower(hero:GetPosition(), 715) then
+    return -10000
   end
   
-  local unitsNearby = core.AssessLocalUnits(rampage, hero:GetPosition(),500)
+ -- local unitsNearby = core.AssessLocalUnits(rampage, hero:GetPosition(),500)
 --jos ei omia creeppejä 500 rangella, niin ei aggroa
-  if core.NumberElements(unitsNearby.AllyCreeps) == 0 then
-    return 0
-  end
+ -- if core.NumberElements(unitsNearby.AllyCreeps) == 0 then
+ --   return 0
+--  end
 
-  if unitTarget and unitTarget:GetHealth() < 300 then
+  if unitTarget and unitTarget:GetHealth() < 250 and core.unitSelf:GetHealth() > 400 then
     return 100
   end
 
@@ -97,22 +108,14 @@ local function CustomHarassUtilityFnOverride(hero)
    stunDuration = time
   end
 
-  if time - stunDuration < 0.4 then
-    return 100;
+  if time - stunDuration < 1 then
+    return 30
   end
 
 -- Jos bash valmis niin aggro
   if skills.abilBash:IsReady() then
-    return 100
+    return 70
   end
-
- -- if skills.abilCharge:CanActivate() then
-
- -- end
-
- -- if skills.abilUltimate:CanActivate() then
-
-  --end
 
   return nUtil
 end
@@ -122,8 +125,8 @@ local function RetreatFromThreatUtilityOverride(botBrain)
 
   local selfPosition = core.unitSelf:GetPosition()
 
-  if core.GetClosestEnemyTower(selfPosition, 701) then
-    return 1000
+  if core.GetClosestEnemyTower(selfPosition, 715) then
+    return 10000
   end
 
   return behaviorLib.RetreatFromThreatUtility(botBrain)
@@ -146,6 +149,7 @@ local function HarassHeroExecuteOverride(botBrain)
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
+  
 
   if core.CanSeeUnit(botBrain, unitTarget) then
 
@@ -163,18 +167,15 @@ local function HarassHeroExecuteOverride(botBrain)
         end
 
       end
-
+	  --ulti 
       if abilUltimate:CanActivate() and unitTarget:GetHealth() < 400 then
         local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+		  rampage.ultitime = HoN.GetMatchTime()
+		  rampage.ultitarget = unitTarget
         end
       end
-
-
-
-
-
   end
 
   if not bActionTaken then
@@ -183,4 +184,55 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 rampage.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function UltimateBehaviorUtility(botBrain)
+  local unitTarget = rampage.ultitarget
+  local time = HoN.GetMatchTime()
+  if unitTarget then
+	if unitTarget:HasState("State_Rampage_Ability4") and time < rampage.ultitime + 2350 then
+	  return 99999
+	end 
+  end
+  return 0
+end
+
+local function UltimateBehaviorExecute(botBrain)
+  local bActionTaken = core.OrderMoveToPosClamp(botBrain, core.unitSelf, core.GetClosestAllyTower(core.unitSelf:GetPosition(), nMaxDist):GetPosition(), false, false) 
+  return bActionTaken
+end
+
+local UltimateBehavior = {}
+UltimateBehavior["Utility"] = UltimateBehaviorUtility
+UltimateBehavior["Execute"] = UltimateBehaviorExecute
+UltimateBehavior["Name"] = "MASA DUMSERIS"
+tinsert(behaviorLib.tBehaviors, UltimateBehavior)
+
+local function ChargeBehaviorUtility(botBrain)
+  local unitSelf = core.unitSelf
+  if unitSelf:HasState("State_Rampage_Ability1_Sight") or unitSelf:HasState("State_Rampage_Ability1_Warp") or unitSelf:HasState("State_Rampage_Ability1_Timer") then
+    return 99999
+  end 
+  
+  return 0
+end
+
+local function ChargeBehaviorExecute(botBrain)
+  return true
+end
+
+local ChargeBehavior = {}
+ChargeBehavior["Utility"] = ChargeBehaviorUtility
+ChargeBehavior["Execute"] = ChargeBehaviorExecute
+ChargeBehavior["Name"] = "PESSI CHARGETTU"
+tinsert(behaviorLib.tBehaviors, ChargeBehavior)
+
+function behaviorLib.HealthPotUtilFn(nHealthMissing)
+	--Roughly 20+ when we are down 400 hp 
+	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+	if nHealthMissing > 375 then
+	  return 100
+	end
+	return 0
+end
+
 
