@@ -4,6 +4,7 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/libhon/utils.lua'
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -37,10 +38,11 @@ moonqueen.onthink = moonqueen.onthinkOverride
 ----------------------------------------------
 -- @param: eventdata
 -- @return: none
-function moonqueen:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
+function moonqueen:oncombateventOverride(eventData)
+    self:oncombateventOld(eventData)
 
-  -- custom code here
+    -- Uncomment this to print the combat events
+    p(eventData)
 end
 -- override combat event trigger function.
 moonqueen.oncombateventOld = moonqueen.oncombatevent
