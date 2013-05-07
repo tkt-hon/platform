@@ -7,6 +7,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
+local BotEcho = core.BotEcho
 
 local tinsert = _G.table.insert
 
@@ -53,6 +54,11 @@ function rampage:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   -- custom code here
+  local matchtime = HoN.GetMatchTime()
+  if matchtime ~= 0 and matchtime % 2000 == 0 then
+    BotEcho("Last: " .. core.GetLastBehaviorName(rampage))
+    BotEcho("Current: " .. core.GetCurrentBehaviorName(rampage))
+  end
 end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
