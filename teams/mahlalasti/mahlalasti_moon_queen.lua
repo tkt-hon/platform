@@ -87,7 +87,7 @@ local function NearbyCreepCount(botBrain, center, radius)
 end
 
 local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 10
+  local nUtil = 12
 
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
@@ -95,7 +95,7 @@ local function CustomHarassUtilityFnOverride(hero)
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 3 then
+  if skills.abilUltimate:CanActivate() and creeps < 4 then
     nUtil = nUtil + 100
   end
 
@@ -191,7 +191,7 @@ moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
 
-moonqueen.purseMax = 2000
+moonqueen.purseMax = 1500
 moonqueen.purseMin = 500
 function behaviorLib.bigPurseUtility(botBrain)
     local bDebugEchos = false
