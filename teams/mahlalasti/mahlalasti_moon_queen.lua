@@ -186,34 +186,35 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
-object.purseMin = 1000
 
-local function ShopUtilityOverride(botBrain)
-	local bDebugUtility = true
-	core.BotEcho('CanAccessStash: '..tostring(core.unitSelf:CanAccessStash()))
-	local bCanAccessShop = core.unitSelf:CanAccessStash()
-
-	--just got into shop access, try buying
-	if bCanAccessShop and not behaviorLib.canAccessShopLast then
-		--BotEcho("Open for shopping!")
-		behaviorLib.finishedBuying = false
-	end
-
-	behaviorLib.canAccessShopLast = bCanAccessShop
-
-	local utility = 0
-	if botBrain:GetGold() > 400 then
-			utility = 90
-		end
-
-	if bDebugUtility == true and utility ~= 0 then
-		core.BotEcho("  ShopUtility: %g", utility)
-	end
-
-	return utility
+moonqueen.purseMax = 2000
+moonqueen.purseMin = 500
+function behaviorLib.bigPurseUtility(botBrain)
+    local bDebugEchos = false
+     
+    local Clamp = core.Clamp
+    local m = (100/(moonqueen.purseMax - moonqueen.purseMin))
+    nUtil = m*botBrain:GetGold() - m*moonqueen.purseMin
+    nUtil = Clamp(nUtil,0,100)
+ 
+    if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
+ 
+    return nUtil
 end
-
-behaviorLib.ShopBehaviorOld = behaviorLib.ShopBehavior["Utility"]
-behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
-
-
+ 
+-- Execute
+function behaviorLib.bigPurseExecute(botBrain)
+    local unitSelf = core.unitSelf
+ 
+    local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+    core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
+end
+      
+      
+      
+  
+behaviorLib.bigPurseBehavior = {}
+behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
+behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
+behaviorLib.bigPurseBehavior["Name"] = "bigPurse"
+tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
