@@ -7,6 +7,8 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
+local tinsert = _G.table.insert
+
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
 behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
@@ -183,4 +185,35 @@ local function funcFindItemsOverride(botBrain)
 end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
+
+object.purseMin = 1000
+
+local function ShopUtilityOverride(botBrain)
+	local bDebugUtility = true
+	core.BotEcho('CanAccessStash: '..tostring(core.unitSelf:CanAccessStash()))
+	local bCanAccessShop = core.unitSelf:CanAccessStash()
+
+	--just got into shop access, try buying
+	if bCanAccessShop and not behaviorLib.canAccessShopLast then
+		--BotEcho("Open for shopping!")
+		behaviorLib.finishedBuying = false
+	end
+
+	behaviorLib.canAccessShopLast = bCanAccessShop
+
+	local utility = 0
+	if botBrain:GetGold() > 400 then
+			utility = 90
+		end
+
+	if bDebugUtility == true and utility ~= 0 then
+		core.BotEcho("  ShopUtility: %g", utility)
+	end
+
+	return utility
+end
+
+behaviorLib.ShopBehaviorOld = behaviorLib.ShopBehavior["Utility"]
+behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
+
 
