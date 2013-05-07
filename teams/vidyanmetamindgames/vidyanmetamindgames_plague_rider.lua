@@ -43,6 +43,8 @@ plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
 plaguerider.ShieldTarget = nil
 
+local ArrowTarget = nil
+
 local function IsMelee(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
@@ -84,10 +86,11 @@ local function ShieldBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilShield = skills.abilShield
   local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
+  
   local target = GetShieldTarget(unitsLocal)  
   
   if target ~= nil and abilShield:CanActivate() then
-    core.BotEcho("Casting shield on "..target:GetDisplayName().." with hp="..target:GetHealth())
+    core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
     return core.OrderAbilityEntity(botBrain, abilShield, target, false)
   end
   
@@ -108,7 +111,11 @@ tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 -- @return: none
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
+  local myPos = core.unitSelf:GetPosition()
 
+  if ArrowTarget ~= nil then
+    core.DrawDebugArrow(myPos, ArrowTarget, "lime")
+  end
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
@@ -347,19 +354,25 @@ end
 local function PositionSelfTraverseLaneOverride(botBrain)
   local oldPosition = behaviorLib.PositionSelfTraverseLaneOld(botBrain, unitCurrentTarget)
   local unitSelf = core.unitSelf
+
   if unitSelf.isSuicide and not plaguerider.bMetEnemies and HoN.GetMatchTime() < core.MinToMS(1) then
     if EnemiesNearPosition(oldPosition) then
       plaguerider.bMetEnemies = true
-      return oldPosition
-    end
-    local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
-    local basePosition = core.allyMainBaseStructure:GetPosition()
-    if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
+      ArrowTarget = oldPosition
       return oldPosition
     else
-      return towerPosition
+      local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
+      local basePosition = core.allyMainBaseStructure:GetPosition()
+      if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
+      ArrowTarget = oldPosition  
+      return oldPosition
+      else
+        ArrowTarget = towerPosition
+        return towerPosition
+      end
     end
   else
+    ArrowTarget = oldPosition
     return oldPosition
   end
 end
