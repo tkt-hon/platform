@@ -1,5 +1,6 @@
 local _G = getfenv(0)
 local rampage = _G.object
+local tinsert = _G.table.insert
 
 rampage.heroName = "Hero_Rampage"
 
@@ -45,19 +46,18 @@ end
 rampage.SkillBuildOld = rampage.SkillBuild
 rampage.SkillBuild = rampage.SkillBuildOverride
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
-function rampage:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
+rampage.tSkills = {
+  1, 2, 1, 0, 1,
+  3, 1, 2, 2, 2,
+  3, 0, 0, 0, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
 
-  -- custom code here
-end
-rampage.onthinkOld = rampage.onthink
-rampage.onthink = rampage.onthinkOverride
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
+behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 function rampage.CustomHarassHeroUtilityOverride(botBrain)
   local nUtil = behaviorLib.HarassHeroUtility(botBrain)
