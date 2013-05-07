@@ -31,20 +31,79 @@ function plaguerider:SkillBuildOverride()
   if unitSelf:GetAbilityPointsAvailable() <= 0 then
     return
   end
-  if skills.abilUltimate:CanLevelUp() then
-    skills.abilUltimate:LevelUp()
+  if skills.abilShield:CanLevelUp() then
+    skills.abilShield:LevelUp()  
   elseif skills.abilDeny:CanLevelUp() then
     skills.abilDeny:LevelUp()
   elseif skills.abilNuke:CanLevelUp() then
     skills.abilNuke:LevelUp()
-  elseif skills.abilShield:CanLevelUp() then
-    skills.abilShield:LevelUp()
+  elseif skills.abilUltimate:CanLevelUp() then
+    skills.abilUltimate:LevelUp()
   else
     skills.stats:LevelUp()
   end
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
+
+plaguerider.ShieldTarget = nil
+
+local function IsMelee(unit)
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
+end
+
+-- check if the bot should cast the armor spell on an allied creep
+-- the creep with the most HP which has no armor will be chosen
+local function GetShieldTarget(units)
+  local nMaxHP = 0
+  local unitTarget = nil
+  
+  if units == nil then
+    return nil
+  end
+  
+  for _,unit in pairs(units.AllyCreeps) do
+    local nNewMaxHP = unit:GetHealth()
+    local bHasShield = unit:HasState("State_DiseasedRider_Ability2_Buff")
+    local bIsMelee = IsMelee(unit)
+    
+    if bIsMelee and nNewMaxHP > nMaxHP and not bHasShield then
+      nMaxHP = nNewMaxHP
+      unitTarget = unit
+    end
+  end
+  
+  return unitTarget
+end
+
+local function ShieldBehaviorUtility(botBrain)
+  if skills.abilShield:CanActivate() then
+    return 100
+  end
+  
+  return 0
+end
+
+local function ShieldBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilShield = skills.abilShield
+  local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
+  local target = GetShieldTarget(unitsLocal)  
+  
+  if target ~= nil and abilShield:CanActivate() then
+    core.BotEcho("Casting shield on unit with hp="..target:GetHealth())
+    return core.OrderAbilityEntity(botBrain, abilShield, target, false)
+  end
+  
+  return false
+end
+
+local ShieldBehavior = {}
+ShieldBehavior["Utility"] = ShieldBehaviorUtility
+ShieldBehavior["Execute"] = ShieldBehaviorExecute
+ShieldBehavior["Name"] = "Casting shield spell on a creep"
+tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -55,7 +114,6 @@ plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-  -- custom code here
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
@@ -80,6 +138,17 @@ local function IsSiege(unit)
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
 
+local function ShouldDenyByHP(unit)
+  local hpp = unit:GetHealthPercent()
+  
+  if hpp < 0.05 then
+    core.BotEcho('denying unit with health at '..hpp..'%')
+    return true
+  end
+  
+  return false
+end
+
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
   local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
   local allies = unitsLocal.AllyCreeps
@@ -87,7 +156,8 @@ local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
   local nDistance = 0
   for _,unit in pairs(allies) do
     local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
-    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
+    
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then --and ShouldDenyByHP(unit) then
       unitTarget = unit
       nDistance = nNewDistance
     end
