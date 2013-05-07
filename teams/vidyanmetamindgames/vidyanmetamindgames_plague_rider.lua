@@ -8,12 +8,20 @@ runfile 'bots/core_herobot.lua'
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 behaviorLib.StartingItems = { "Item_MysticPotpourri" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+behaviorLib.LaneItems = {"Item_MysticVestments", "Item_Marchers", "Item_EnhancedMarchers", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
 plaguerider.skills = {}
 local skills = plaguerider.skills
+
+plaguerider.tSkills = {
+  1, 4, 1, 4, 1,
+  3, 1, 4, 4, 4,
+  3, 0, 0, 0, 0,
+  3, 4, 4, 4, 4,
+  4, 2, 2, 2, 2
+}
 
 local tinsert = _G.table.insert
 
@@ -28,20 +36,7 @@ function plaguerider:SkillBuildOverride()
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
-  if unitSelf:GetAbilityPointsAvailable() <= 0 then
-    return
-  end
-  if skills.abilShield:CanLevelUp() then
-    skills.abilShield:LevelUp()  
-  elseif skills.abilUltimate:CanLevelUp() then
-    skills.abilUltimate:LevelUp()
-  elseif skills.stats:CanLevelUp() then
-    skills.stats:LevelUp()
-  elseif skills.abilNuke:CanLevelUp() then
-    skills.abilNuke:LevelUp()
-  else
-    skills.abilDeny:LevelUp()
-  end
+  self:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
