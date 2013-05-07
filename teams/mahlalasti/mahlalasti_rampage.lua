@@ -23,6 +23,7 @@ rampage.charged = CHARGE_NONE
 rampage.skills = {}
 local skills = rampage.skills
 
+-- Tarkka Skill Up -järjestys
 rampage.tSkills = {
   1, 2, 1, 0, 1,
   3, 1, 2, 2, 2,
@@ -53,7 +54,7 @@ rampage.SkillBuild = rampage.SkillBuildOverride
 function rampage:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-  -- custom code here
+  -- Tämänhetkisen Behaviorin tulostus All-chattiin
   local matchtime = HoN.GetMatchTime()
   if matchtime ~= 0 and matchtime % 2000 == 0 then
     self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
