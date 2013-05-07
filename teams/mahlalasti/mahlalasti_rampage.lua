@@ -56,7 +56,7 @@ function rampage:onthinkOverride(tGameVariables)
   -- custom code here
   local matchtime = HoN.GetMatchTime()
   if matchtime ~= 0 and matchtime % 2000 == 0 then
-    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(rampage))
+    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
   end
 end
 rampage.onthinkOld = rampage.onthink
