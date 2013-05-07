@@ -84,13 +84,13 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 6*skills.abilNuke:GetLevel()
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
   if skills.abilUltimate:CanActivate() and creeps < 3 then
-    nUtil = nUtil + 120
+    nUtil = nUtil + 100
   end
 
   return nUtil
@@ -151,7 +151,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local modifier = 1 + myHero:GetAbility(1):GetLevel() --*0.5
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility

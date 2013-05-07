@@ -151,7 +151,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.5
+  local modifier = 1 + myHero:GetAbility(1):GetLevel() +100 --* 0.5
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
