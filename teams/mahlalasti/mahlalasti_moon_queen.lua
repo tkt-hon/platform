@@ -53,6 +53,10 @@ function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   -- custom code here
+  local matchtime = HoN.GetMatchTime()
+  if matchtime ~= 0 and matchtime % 2000 == 0 then
+    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(rampage))
+  end
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride

@@ -7,6 +7,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
+local BotEcho = core.BotEcho
 
 local tinsert = _G.table.insert
 
@@ -22,6 +23,7 @@ rampage.charged = CHARGE_NONE
 rampage.skills = {}
 local skills = rampage.skills
 
+-- Tarkka Skill Up -järjestys
 rampage.tSkills = {
   1, 2, 1, 0, 1,
   3, 1, 2, 2, 2,
@@ -52,7 +54,11 @@ rampage.SkillBuild = rampage.SkillBuildOverride
 function rampage:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-  -- custom code here
+  -- Tämänhetkisen Behaviorin tulostus All-chattiin
+  local matchtime = HoN.GetMatchTime()
+  if matchtime ~= 0 and matchtime % 2000 == 0 then
+    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(rampage))
+  end
 end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
@@ -114,6 +120,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  HoN.DrawDebugLine (unitSelf:GetPosition(), unitTarget:GetPosition(),true,"green")
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
