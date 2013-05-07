@@ -92,7 +92,7 @@ local function ShieldBehaviorExecute(botBrain)
   local target = GetShieldTarget(unitsLocal)  
   
   if target ~= nil and abilShield:CanActivate() then
-    core.BotEcho("Casting shield on unit with hp="..target:GetHealth())
+    core.BotEcho("Casting shield on "..target:GetDisplayName().." with hp="..target:GetHealth())
     return core.OrderAbilityEntity(botBrain, abilShield, target, false)
   end
   
