@@ -5,6 +5,14 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
+
+moonqueen.tSkills = {
+  2, 4, 4, 2, 2,
+  4, 2, 4, 4, 4,
+  4, 1, 1, 1, 1,
+  4, 4, 4, 0, 0,
+  0, 0, 3, 3, 3
+}
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
