@@ -1,6 +1,15 @@
 local _G = getfenv(0)
 local moonqueen = _G.object
 
+-----------------------------------
+--        Todo                   --
+-- 				 --
+-----------------------------------
+-- Itemit
+-- Varovaisempi peli
+-- vihusta etäisyys
+-- position self ongelma tornin kanssa
+
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
