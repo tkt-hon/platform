@@ -7,6 +7,11 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
+--behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem" }
+--behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_Marchers", "Item_LifeSteal5",  "Item_WhisperingHelm" }
+--behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+--behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
 behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
