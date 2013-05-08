@@ -22,7 +22,7 @@ local skills = moonqueen.skills
 core.itemGeoBane = nil
 
 moonqueen.tSkills = {
-  0, 4, 0, 4, 0,
+  0, 1, 2, 4, 0,
   3, 0, 2, 2, 1,
   3, 1, 1, 1, 2,
   3, 2, 4, 4, 4,
@@ -87,7 +87,7 @@ local function NearbyCreepCount(botBrain, center, radius)
 end
 
 local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 12
+  local nUtil = 9
 
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
@@ -190,10 +190,15 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
+    
 
-moonqueen.purseMax = 1500
-moonqueen.purseMin = 500
 function behaviorLib.bigPurseUtility(botBrain)
+
+    local level = core.unitSelf:GetLevel()
+    local multiplier = level*0,3
+    
+    moonqueen.purseMax = 1500*multiplier
+    moonqueen.purseMin = 500*multiplier
     local bDebugEchos = false
      
     local Clamp = core.Clamp
