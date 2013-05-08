@@ -5,31 +5,167 @@ plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
 
----------------------------------------------------------------
---            SkillBuild override                            --
--- Handles hero skill building. To customize just write own  --
----------------------------------------------------------------
--- @param: none
--- @return: none
+local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
+
+behaviorLib.StartingItems = { "Item_HealthPotion", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_MinorTotem", "Item_ManaBattery", "Item_ManaPotion"}
+behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
+behaviorLib.LateItems = { "Item_GrimoireOfPower" }
+
+plaguerider.skills = {}
+local skills = plaguerider.skills
+
+local tinsert = _G.table.insert
+
+plaguerider.skills = {}
+local skills = plaguerider.skills
+
+plaguerider.tSkills = {
+  2, 0, 0, 2, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function plaguerider:SkillBuildOverride()
-  plaguerider:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilDeny == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilShield = unitSelf:GetAbility(1)
+    skills.abilDeny = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
-function plaguerider:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
 
-  -- custom code here
+------------------------------DENY SKILL START----------------------------------------------------------
+local function IsSiege(unit)
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
-plaguerider.onthinkOld = plaguerider.onthink
-plaguerider.onthink = plaguerider.onthinkOverride
+
+local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
+  local allies = unitsLocal.AllyCreeps
+  local unitTarget = nil
+  local nDistance = 0
+  for _,unit in pairs(allies) do
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
+      unitTarget = unit
+      nDistance = nNewDistance
+    end
+  end
+  return unitTarget
+end
+
+local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+  return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
+end
+
+local function DenyBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local myPos = unitSelf:GetPosition()
+  local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+    plaguerider.denyTarget = unit
+    return 100
+  end
+  return 0
+end
+
+local function DenyBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local target = plaguerider.denyTarget
+  if target then
+    return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
+  end
+  return false
+end
+
+local DenyBehavior = {}
+DenyBehavior["Utility"] = DenyBehaviorUtility
+DenyBehavior["Execute"] = DenyBehaviorExecute
+DenyBehavior["Name"] = "Denying creep with spell"
+tinsert(behaviorLib.tBehaviors, DenyBehavior)
+------------------------------DENY SKILL END----------------------------------------------------------
+
+------------------------------NUKE SKILL START----------------------------------------------------------
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 30
+    local damages = {50,100,125,175}
+    if hero:GetHealth() < damages[skills.abilNuke:GetLevel()] then
+      nUtil = nUtil + 30
+    end
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 100
+  end
+
+  if core.unitSelf.isSuicide then
+    nUtil = nUtil / 2
+  end
+
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return plaguerider.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+    local abilNuke = skills.abilNuke
+
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken then
+      if abilUltimate:CanActivate() then
+        local nRange = abilUltimate:GetRange()
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return plaguerider.harassExecuteOld(botBrain)
+  end
+end
+plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+------------------------------NUKE SKILL END----------------------------------------------------------
 
 ----------------------------------------------
 --            oncombatevent override        --

@@ -5,14 +5,38 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
----------------------------------------------------------------
---            SkillBuild override                            --
--- Handles hero skill building. To customize just write own  --
----------------------------------------------------------------
--- @param: none
--- @return: none
+local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_GuardianRing", "3 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_Scarab", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = {  }
+behaviorLib.LateItems = {  }
+
+behaviorLib.pushingStrUtilMul = 1
+
+moonqueen.skills = {}
+local skills = moonqueen.skills
+
+core.itemGeoBane = nil
+
+moonqueen.tSkills = {
+  1, 0, 1, 0, 1,
+  3, 1, 0, 0, 2,
+  3, 2, 2, 2, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function moonqueen:SkillBuildOverride()
-  moonqueen:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilNuke == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilBounce = unitSelf:GetAbility(1)
+    skills.abilAura = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
