@@ -63,7 +63,7 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @param: hero
 -- @return: utility
 function behaviorLib.CustomHarassUtility(hero)
-    return 100 -- ???
+    return 0 -- Default
 end
 
 --------------------------------------------------------------
@@ -74,7 +74,6 @@ end
 -- @return: none
 local oldExecute = behaviorLib.HarassHeroBehavior["Execute"]
 local function executeBehavior(botBrain)
-    p("Behaviour: Execute")
     return oldExecute(botBrain)
 end
 behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior

@@ -2,6 +2,8 @@ local _G = getfenv(0)
 local herobot = _G.object
 
 herobot.myName = herobot:GetName()
+local debug = string.find(herobot.myName, "DropTable") ~= nil
+if debug then print("Debug enabled for hero: " .. herobot.myName .. "\n") end
 
 herobot.bRunLogic = true
 herobot.bRunBehaviors = true
@@ -14,8 +16,9 @@ herobot.bAttackCommands = true
 herobot.bAbilityCommands = true
 herobot.bOtherCommands = true
 
-herobot.bReportBehavior = false
-herobot.bDebugUtility = false
+object.bDebugUtility = debug
+object.bReportBehavior = debug
+object.bDebugLines = debug
 
 herobot.logger = {}
 herobot.logger.bWriteLog = false
@@ -27,11 +30,11 @@ herobot.metadata = {}
 herobot.behaviorLib = {}
 herobot.skills = {}
 
-runfile "bots/core.lua"
-runfile "bots/botbraincore.lua"
-runfile "bots/eventsLib.lua"
-runfile "bots/metadata.lua"
-runfile "bots/behaviorLib.lua"
+runfile "bots/builtin/core.lua"
+runfile "bots/builtin/botbraincore.lua"
+runfile "bots/builtin/eventslib.lua"
+runfile "bots/builtin/metadata.lua"
+runfile "bots/builtin/behaviorlib.lua"
 
 local core = herobot.core
 
