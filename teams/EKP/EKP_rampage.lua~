@@ -23,11 +23,8 @@ rampage.skills = {}
 local skills = rampage.skills
 
 rampage.tSkills = {
-<<<<<<< HEAD
-  2, 1, 2, 0, 2,
-=======
+
   2, 1, 0, 2, 2,
->>>>>>> bf281b969334cff71ca379b8ffd73f504af7aade
   3, 2, 1, 1, 1,
   3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
@@ -65,27 +62,55 @@ rampage.onthink = rampage.onthinkOverride
 --joku
 ----------------------------------------------
 
-local function superAiOverride(botBrain)
+--local function superAiOverride(botBrain)
+--
+--  local unitSelf = self.core.unitSelf
+--  local bActionTaken = false
+--  if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() 
+--     and Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600
+--     and string.find(core.unitCreepTarget:GetTypeName(), "Creep")
+--    then
+--bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, 
+--     core.unitCreepTarget.object or core.unitCreepTarget, false)
+--  Echo("nyt lentaa kirves")
+--  end
+--if not bActionTaken then
+--bActionTaken = behaviorLib.AttackCreepsExecute(botBrain)
+--end
+--  return bActionTaken
+--end
+--
+--behaviorLib.AttackCreepsBehavior["Execute"] = superAiOverride
 
-  local unitSelf = self.core.unitSelf
-  local bActionTaken = false
-  if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() 
-     and Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600
-     and string.find(core.unitCreepTarget:GetTypeName(), "Creep")
-     then
-bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, 
-     core.unitCreepTarget.object or core.unitCreepTarget, false)
-  Echo("nyt lentaa kirves")
-  end
-if not bActionTaken then
-bActionTaken = behaviorLib.AttackCreepsExecute(botBrain)
+local function advancedThinkUtility(botBrain)				--## BALPH HATCHET
+        return 95; --always ridiculously important. Though, this rarly returns true.
 end
-  return bActionTaken
+ 
+local function advancedThinkExecute(botBrain)
+        local unitSelf = core.unitSelf
+        local vecSelfPos = unitSelf:GetPosition()
+        local vecWellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+        local distToWellSq=Vector3.Distance2DSq(vecSelfPos, vecWellPos)
+        local bActionTaken=false
+
+  if core.itemHatchet ~= nil and not core.itemHatchet:IsValid() then
+                core.itemHatchet = nil
+        end
+        --hatchet
+        if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() and --can activate
+          Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600 and --in range of hatchet.
+          unitSelf:GetBaseDamage()*(1-core.unitCreepTarget:GetPhysicalResistance())>core.unitCreepTarget:GetHealth() and --low enough hp, killable
+          string.find(core.unitCreepTarget:GetTypeName(), "Creep") then-- viable creep (this makes it ignore minions etc, some of which aren't hatchetable.)
+                bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, core.unitCreepTarget.object or core.unitCreepTarget, false)--use hatchet.
+        end
+       
+        return bActionTaken
 end
-
-behaviorLib.AttackCreepsBehavior["Execute"] = superAiOverride
-
-
+behaviorLib.advancedThink = {}
+behaviorLib.advancedThink["Utility"] = advancedThinkUtility
+behaviorLib.advancedThink["Execute"] = advancedThinkExecute
+behaviorLib.advancedThink["Name"] = "advancedThink"
+tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
  
 ----------------------------------------------
 --            oncombatevent override        --
