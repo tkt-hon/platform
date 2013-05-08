@@ -9,8 +9,8 @@ local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm", "Item_HealthPotion" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_ManaPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_ManaPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
@@ -23,7 +23,7 @@ local skills = moonqueen.skills
 core.itemGeoBane = nil
 
 moonqueen.tSkills = {
-  0, 4, 0, 4, 0,
+  0, 0, 4, 1, 0,
   3, 0, 2, 2, 1,
   3, 1, 1, 1, 2,
   3, 2, 4, 4, 4,
@@ -87,20 +87,22 @@ local function NearbyCreepCount(botBrain, center, radius)
   return count
 end
 
-local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 12 + (core.unitSelf:GetLevel()*0.5)
-  if core.unitSelf:GetManaPercent() < 0.25 then nUtil = nUtil-5
-  end
+local function CustomHarassUtilityFnOverride(hero, botBrain)
+  local level = core.unitSelf:GetLevel()
+  local mana = core.unitSelf:GetMana()
+  local nUtil = 9 + (level*0.5)
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
+  -- vaihdettu 5->5.5 JH
+    nUtil = nUtil + 5.0*skills.abilNuke:GetLevel()
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 3 then
+  if skills.abilUltimate:CanActivate() and creeps <= 3 then
     nUtil = nUtil + 100
   end
+    moonqueen:Chat("Current nUtil: " .. nUtil)
 
   return nUtil
 end
@@ -160,7 +162,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.25
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.2
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
@@ -193,19 +195,19 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
-    
+
 
 function behaviorLib.bigPurseUtility(botBrain)
 
     
     local level = core.unitSelf:GetLevel()
-    local multiplier = level*0.15
-    if level < 3 then
+    local multiplier = level*0.18
+    if level < 5 then
     moonqueen.purseMax = 1000
-    moonqueen.purseMin = 300
-    elseif level >= 3 then
-    moonqueen.purseMax = 1200*multiplier
-    moonqueen.purseMin = 600*multiplier
+    moonqueen.purseMin = 600
+    elseif level >= 5 then
+    moonqueen.purseMax = 1650*multiplier
+    moonqueen.purseMin = 700*multiplier
 end
     local bDebugEchos = false
      
@@ -235,3 +237,36 @@ behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
 behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
 behaviorLib.bigPurseBehavior["Name"] = "bigPurse"
 tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
+
+function behaviorLib.useManaGenUtility(botBrain)
+	local nOwnMana = core.unitSelf:GetMana()
+	local tInventory = core.unitSelf:GetInventory()
+	local idefManaPotion = HoN.GetItemDefinition("Item_ManaPotion")
+	local tManaPots = core.InventoryContains(tInventory, idefManaPotion:GetName())
+	if #tManaPots > 0 and nOwnMana < 120 then
+	nUtil = 99
+	--moonqueen:Chat("ManaUtility" .. nUtil)
+	return nUtil
+	end
+	--core.BotEcho("ManaUtility" .. nUtil)
+	nUtil = 0
+	return nUtil
+	end
+
+function behaviorLib.useManaGenExecute(botBrain)
+    local nOwnMana = core.unitSelf:GetMana()
+    local tInventory = core.unitSelf:GetInventory()
+	local idefManaPotion = HoN.GetItemDefinition("Item_ManaPotion")
+	local tManaPots = core.InventoryContains(tInventory, idefManaPotion:GetName())
+	core.OrderItemEntityClamp(botBrain, core.unitSelf, tManaPots[1], core.unitSelf)
+	moonqueen:Chat("Trying to execute...")
+	core.BotEcho("Used ManaGen!")
+	return
+	end
+	
+behaviorLib.useManaGenBehavior = {}
+behaviorLib.useManaGenBehavior["Utility"] = behaviorLib.useManaGenUtility
+behaviorLib.useManaGenBehavior["Execute"] = behaviorLib.useManaGenExecute
+behaviorLib.useManaGenBehavior["Name"] = "useMana"
+tinsert(behaviorLib.tBehaviors, behaviorLib.useManaGenBehavior)
+
