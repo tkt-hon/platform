@@ -7,7 +7,6 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-
 -- behaviorLib.StartingItems = { "Item_MysticPotpourri" }
 -- behaviorLib.StartingItems = { "6 Item_HealthPotion"  }
 behaviorLib.StartingItems = { "Item_HealthPotion", "Item_ManaRegen3" }
@@ -150,6 +149,7 @@ tinsert(behaviorLib.tBehaviors, TowerAttackBehavior)
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local myPos = core.unitSelf:GetPosition()
+ 
 
   --Continuously prints tower position if near one. Will be removed in the future
   local localUnits = core.localUnits
@@ -189,6 +189,7 @@ local function IsSiege(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
+
 
 local function ShouldDenyByHP(unit)
   local hpp = unit:GetHealthPercent()
@@ -249,6 +250,20 @@ DenyBehavior["Utility"] = DenyBehaviorUtility
 DenyBehavior["Execute"] = DenyBehaviorExecute
 DenyBehavior["Name"] = "Denying creep with spell"
 tinsert(behaviorLib.tBehaviors, DenyBehavior)
+
+local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
+    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+        core.BotEcho("Using new")
+        return unitEnemyCreep
+    end
+    core.BotEcho("Using OLD")
+    return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
+end
+
+behaviorLib.GetCreepAttackTargetOLD = behaviorLib.GetCreepAttackTarget
+behaviorLib.GetCreepAttackTarget = OverrideGetCreepAttackTarget
+
+
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
