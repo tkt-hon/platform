@@ -117,7 +117,7 @@ local function TowerAttackBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local units = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
   
-  local tower = GetEnemyTower(units)
+  local tower = nil--GetEnemyTower(units)
   if tower == nil then
     return 0
   end
@@ -144,6 +144,18 @@ tinsert(behaviorLib.tBehaviors, TowerAttackBehavior)
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local myPos = core.unitSelf:GetPosition()
+
+  --Continuously prints tower position if near one. Will be removed in the future
+  local localUnits = core.localUnits
+  local enemyBuildings = localUnits["EnemyBuildings"]
+  local sortedEnemyBuildings = core.SortBuildings(enemyBuildings)
+  local towers = sortedEnemyBuildings.enemyTowers
+  if core.NumberElements(towers) > 0 then
+    for id, tower in pairs(towers) do
+        core.BotEcho("tower pos: " ..tostring(tower:GetPosition()))
+    end
+  end
+  --tower pos print end
 
   if ArrowTarget ~= nil then
     core.DrawDebugArrow(myPos, ArrowTarget, "lime")
