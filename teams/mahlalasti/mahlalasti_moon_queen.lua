@@ -202,10 +202,10 @@ function behaviorLib.bigPurseUtility(botBrain)
     local multiplier = level*0.15
     if level < 3 then
     moonqueen.purseMax = 1000
-    moonqueen.purseMin = 400
+    moonqueen.purseMin = 300
     elseif level >= 3 then
     moonqueen.purseMax = 1200*multiplier
-    moonqueen.purseMin = 700*multiplier
+    moonqueen.purseMin = 600*multiplier
 end
     local bDebugEchos = false
      
