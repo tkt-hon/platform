@@ -4,6 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
+runfile 'shoppinglib.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
@@ -254,14 +255,23 @@ tinsert(behaviorLib.tBehaviors, DenyBehavior)
 local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
     if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
         core.BotEcho("Using new")
+        
+        local unitSelf = botBrain.core.unitSelf
+        local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 550)
+        local unitsAllies = unitsLocal.AllyCreeps
+        
+        if #unitsAllies == 1 and unitsAllies[1]:GetHealthPercent() ~= 1 then
+          return nil
+        end
+        
         return unitEnemyCreep
     end
     core.BotEcho("Using OLD")
     return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
 end
 
-behaviorLib.GetCreepAttackTargetOLD = behaviorLib.GetCreepAttackTarget
-behaviorLib.GetCreepAttackTarget = OverrideGetCreepAttackTarget
+--behaviorLib.GetCreepAttackTargetOLD = behaviorLib.GetCreepAttackTarget
+--behaviorLib.GetCreepAttackTarget = OverrideGetCreepAttackTarget
 
 
 
