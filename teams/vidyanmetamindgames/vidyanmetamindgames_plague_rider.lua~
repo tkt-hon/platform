@@ -7,13 +7,29 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_MysticPotpourri" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+--------------------------------------------------
+--         Testing max pushing strat		--
+--------------------------------------------------
+
+behaviorLib.pushingStrUtilMul = 0.7
+
+-- behaviorLib.StartingItems = { "Item_MysticPotpourri" }
+-- behaviorLib.StartingItems = { "6 Item_HealthPotion"  }
+behaviorLib.StartingItems = { "Item_HealthPotion", "Item_ManaRegen3" }
+behaviorLib.LaneItems = { "Item_MysticPotpourri", "Item_MysticVestments", "Item_Marchers", "Item_EnhancedMarchers", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
 plaguerider.skills = {}
 local skills = plaguerider.skills
+
+plaguerider.tSkills = {
+  1, 4, 1, 4, 1,
+  3, 1, 4, 4, 4,
+  3, 0, 0, 0, 0,
+  3, 4, 4, 4, 4,
+  4, 2, 2, 2, 2
+}
 
 local tinsert = _G.table.insert
 
@@ -28,25 +44,14 @@ function plaguerider:SkillBuildOverride()
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
-  if unitSelf:GetAbilityPointsAvailable() <= 0 then
-    return
-  end
-  if skills.abilShield:CanLevelUp() then
-    skills.abilShield:LevelUp()  
-  elseif skills.abilUltimate:CanLevelUp() then
-    skills.abilUltimate:LevelUp()
-  elseif skills.stats:CanLevelUp() then
-    skills.stats:LevelUp()
-  elseif skills.abilNuke:CanLevelUp() then
-    skills.abilNuke:LevelUp()
-  else
-    skills.abilDeny:LevelUp()
-  end
+  self:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
 plaguerider.ShieldTarget = nil
+
+local ArrowTarget = nil
 
 local function IsMelee(unit)
   local unitType = unit:GetTypeName()
@@ -89,10 +94,11 @@ local function ShieldBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilShield = skills.abilShield
   local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
+  
   local target = GetShieldTarget(unitsLocal)  
   
   if target ~= nil and abilShield:CanActivate() then
-    core.BotEcho("Casting shield on unit with hp="..target:GetHealth())
+    core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
     return core.OrderAbilityEntity(botBrain, abilShield, target, false)
   end
   
@@ -105,6 +111,41 @@ ShieldBehavior["Execute"] = ShieldBehaviorExecute
 ShieldBehavior["Name"] = "Casting shield spell on a creep"
 tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 
+
+
+
+local function GetEnemyTower(units)
+  if units.EnemyTowers == nil then
+    return nil
+  end
+
+  for unit in units.EnemyTowers do
+    return unit
+  end
+end
+
+local function TowerAttackBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local units = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
+  
+  local tower = nil--GetEnemyTower(units)
+  if tower == nil then
+    return 0
+  end
+  
+  -- do your magic
+  
+end
+
+local function TowerAttackBehaviorExecute(botBrain)
+end
+
+local TowerAttackBehavior = {}
+TowerAttackBehavior["Utility"] = TowerAttackBehaviorUtility
+TowerAttackBehavior["Execute"] = TowerAttackBehaviorExecute
+TowerAttackBehavior["Name"] = "FUCK YEAH ATTACKING TOWERS :D"
+tinsert(behaviorLib.tBehaviors, TowerAttackBehavior)
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
@@ -113,7 +154,23 @@ tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 -- @return: none
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
+  local myPos = core.unitSelf:GetPosition()
 
+  --Continuously prints tower position if near one. Will be removed in the future
+  local localUnits = core.localUnits
+  local enemyBuildings = localUnits["EnemyBuildings"]
+  local sortedEnemyBuildings = core.SortBuildings(enemyBuildings)
+  local towers = sortedEnemyBuildings.enemyTowers
+  if core.NumberElements(towers) > 0 then
+    for id, tower in pairs(towers) do
+        core.BotEcho("tower pos: " ..tostring(tower:GetPosition()))
+    end
+  end
+  --tower pos print end
+
+  if ArrowTarget ~= nil then
+    core.DrawDebugArrow(myPos, ArrowTarget, "lime")
+  end
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
@@ -352,19 +409,25 @@ end
 local function PositionSelfTraverseLaneOverride(botBrain)
   local oldPosition = behaviorLib.PositionSelfTraverseLaneOld(botBrain, unitCurrentTarget)
   local unitSelf = core.unitSelf
+
   if unitSelf.isSuicide and not plaguerider.bMetEnemies and HoN.GetMatchTime() < core.MinToMS(1) then
     if EnemiesNearPosition(oldPosition) then
       plaguerider.bMetEnemies = true
-      return oldPosition
-    end
-    local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
-    local basePosition = core.allyMainBaseStructure:GetPosition()
-    if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
+      ArrowTarget = oldPosition
       return oldPosition
     else
-      return towerPosition
+      local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
+      local basePosition = core.allyMainBaseStructure:GetPosition()
+      if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
+      ArrowTarget = oldPosition  
+      return oldPosition
+      else
+        ArrowTarget = towerPosition
+        return towerPosition
+      end
     end
   else
+    ArrowTarget = oldPosition
     return oldPosition
   end
 end

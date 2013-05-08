@@ -7,8 +7,11 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_MysticPotpourri" }
-behaviorLib.LaneItems = {"Item_MysticVestments", "Item_Marchers", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+
+-- behaviorLib.StartingItems = { "Item_MysticPotpourri" }
+-- behaviorLib.StartingItems = { "6 Item_HealthPotion"  }
+behaviorLib.StartingItems = { "Item_HealthPotion", "Item_ManaRegen3" }
+behaviorLib.LaneItems = { "Item_MysticPotpourri", "Item_MysticVestments", "Item_Marchers", "Item_EnhancedMarchers", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
@@ -102,6 +105,9 @@ ShieldBehavior["Utility"] = ShieldBehaviorUtility
 ShieldBehavior["Execute"] = ShieldBehaviorExecute
 ShieldBehavior["Name"] = "Casting shield spell on a creep"
 tinsert(behaviorLib.tBehaviors, ShieldBehavior)
+
+
+
 
 local function GetEnemyTower(units)
   if units.EnemyTowers == nil then
