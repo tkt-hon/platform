@@ -7,8 +7,8 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_FlamingEye" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
+behaviorLib.StartingItems = { "Item_MysticPotpourri" }
+behaviorLib.LaneItems = { "Item_MysticVestments", "Item_Marchers", "Item_Strength5", "Item_Astrolabe",  }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
@@ -19,32 +19,62 @@ local tinsert = _G.table.insert
 
 core.itemWard = nil
 
-function plaguerider:SkillBuildOverride()
-  local unitSelf = self.core.unitSelf
-  if skills.abilDeny == nil then
-    skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilShield = unitSelf:GetAbility(1)
-    skills.abilDeny = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)
-  end
-  if unitSelf:GetAbilityPointsAvailable() <= 0 then
-    return
-  end
-  if skills.abilUltimate:CanLevelUp() then
-    skills.abilUltimate:LevelUp()
-  elseif skills.abilDeny:CanLevelUp() then
-    skills.abilDeny:LevelUp()
-  elseif skills.abilNuke:CanLevelUp() then
-    skills.abilNuke:LevelUp()
-  elseif skills.abilShield:CanLevelUp() then
-    skills.abilShield:LevelUp()
-  else
-    skills.stats:LevelUp()
-  end
+object.tSkills = {
+	1, 0, 1, 0, 0, 
+	3, 0, 1, 1, 2, 
+	2, 2, 2, 3, 4, 
+	3, 4, 4, 4, 4, 
+	4, 4, 4, 4, 4
+}
+
+function object:SkillBuild()
+	local unitSelf = self.core.unitSelf
+	if  skills.abilNuke == nil then
+		skills.abilNuke = unitSelf:GetAbility(0)
+		skills.abilShield = unitSelf:GetAbility(1)
+		skills.abilDeny = unitSelf:GetAbility(2)
+		skills.abilUltimate = unitSelf:GetAbility(3)
+		skills.abilAttributeBoost = unitSelf:GetAbility(4)
+	end
+	
+	local nPoints = unitSelf:GetAbilityPointsAvailable()
+	if nPoints <= 0 then
+		return
+	end
+	
+	local nLevel = unitSelf:GetLevel()
+	for i = nLevel, (nLevel + nPoints) do
+		unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
+	end
 end
-plaguerider.SkillBuildOld = plaguerider.SkillBuild
-plaguerider.SkillBuild = plaguerider.SkillBuildOverride
+
+
+--function plaguerider:SkillBuildOverride()
+--  local unitSelf = self.core.unitSelf
+ -- if skills.abilDeny == nil then
+ --   skills.abilNuke = unitSelf:GetAbility(0)
+  --  skills.abilShield = unitSelf:GetAbility(1)
+  --  skills.abilDeny = unitSelf:GetAbility(2)
+  --  skills.abilUltimate = unitSelf:GetAbility(3)
+ --   skills.stats = unitSelf:GetAbility(4)
+ -- end
+ -- if unitSelf:GetAbilityPointsAvailable() <= 0 then
+   -- return
+  --end
+  --if skills.abilUltimate:CanLevelUp() then 		## Samin toteutus skillien levelauksesta "priorisoiden", tilalle rhapsodybotista hävyttömästi
+    --skills.abilUltimate:LevelUp()			## kopioitu table-toteutus
+  --elseif skills.abilDeny:CanLevelUp() then
+    --skills.abilDeny:LevelUp()
+  --elseif skills.abilNuke:CanLevelUp() then
+    --skills.abilNuke:LevelUp()
+  --elseif skills.abilShield:CanLevelUp() then
+    --skills.abilShield:LevelUp()
+  --else
+    --skills.stats:LevelUp()
+  --end
+--end
+--plaguerider.SkillBuildOld = plaguerider.SkillBuild
+--plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
 ------------------------------------------------------
 --            onthink override                      --
