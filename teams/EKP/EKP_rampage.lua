@@ -10,10 +10,10 @@ local core, behaviorLib = rampage.core, rampage.behaviorLib
 
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
-behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
-behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_LoggersHatchet", "Item_IronBuckler"}
+behaviorLib.LaneItems = {"Item_Marchers", "Item_Lifetube"}
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2"}
+behaviorLib.LateItems = {"Item_DaemonicBreastplate"}
 
 local CHARGE_NONE, CHARGE_STARTED, CHARGE_TIMER, CHARGE_WARP = 0, 1, 2, 3
 
@@ -23,8 +23,8 @@ rampage.skills = {}
 local skills = rampage.skills
 
 rampage.tSkills = {
-  1, 2, 1, 0, 1,
-  3, 1, 2, 2, 2,
+  2, 1, 0, 2, 2,
+  3, 2, 1, 1, 1,
   3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -57,6 +57,32 @@ end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
 
+----------------------------------------------
+--joku
+----------------------------------------------
+
+local function superAiOverride(botBrain)
+
+  local unitSelf = self.core.unitSelf
+  local bActionTaken = false
+  if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() 
+     and Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600
+     and string.find(core.unitCreepTarget:GetTypeName(), "Creep")
+     then
+bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, 
+     core.unitCreepTarget.object or core.unitCreepTarget, false)
+  Echo("nyt lentaa kirves")
+  end
+if not bActionTaken then
+bActionTaken = behaviorLib.AttackCreepsExecute(botBrain)
+end
+  return bActionTaken
+end
+
+behaviorLib.AttackCreepsBehavior["Execute"] = superAiOverride
+
+
+ 
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
