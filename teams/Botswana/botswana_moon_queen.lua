@@ -102,6 +102,63 @@ local function nearestCreep()
 	return nearest
 end
 
+
+local function checkTower(range)
+	local selfPos = core.unitSelf:GetPosition()
+	local torni = core.GetClosestEnemyTower(selfPos, range)
+	if torni == nil then
+	return false
+	end
+	return true
+
+end
+
+local function HarassHeroUtilityOverride(botBrain)
+	
+	if checkTower(1200) then
+		return 0
+	end
+	
+	return behaviorLib.HarassHeroUtility(botBrain)
+
+end
+
+behaviorLib.HarassHeroBehavior["Utility"] = HarassHeroUtilityOverride
+
+local function CheckForFriendlies()
+
+	local AllyCreeps = core.localUnits["AllyCreeps"]
+	local size = core.NumberElements(AllyCreeps)	
+	if size > 2 then
+	return true
+	end
+	return false
+end
+
+local function PushUtilityOverride(botBrain)
+	
+	if checkTower(1000) then
+		return 0
+	end
+	
+	if not CheckForFriendlies() then
+		return 0
+	end
+
+
+
+	return behaviorLib.PushUtility(botBrain)
+
+end
+
+behaviorLib.PushBehavior["Utility"] = PushUtilityOverride
+
+-- = core.AssessLocalUnits(botBrain, vecPosition, nRadius).AllyCreeps
+
+
+
+
+
 local function PushExecuteOverwrite(botBrain)
 
 	local bDebugLines = true
@@ -114,6 +171,16 @@ local function PushExecuteOverwrite(botBrain)
 
 	local unitSelf = core.unitSelf
 	local bActionTaken = false
+
+
+	--If no creeps around, go to tower to wait
+	
+	
+	
+
+
+
+
 
 	--Turn on Ring of the Teacher if we have it
 	if bActionTaken == false then
@@ -130,8 +197,6 @@ local function PushExecuteOverwrite(botBrain)
 			end
 		end
 	end
-
-
 
 
 	--Attack creeps if we're in range
