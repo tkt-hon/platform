@@ -5,6 +5,77 @@ local core, behaviorLib = lastHitter.core, lastHitter.behaviorLib
 
 local BotEcho = core.BotEcho
 
+lastHitter.trackedCreeps = lastHitter.trackedCreeps or {}
+
+DmgInfo = {d = 0.0, hpList = {}, timeList = {}, lastUpdateTime = 0}
+
+function DmgInfo:new(o)
+  o = o or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+																    
+function DmgInfo:update(hp)
+	local timeNow = HoN.GetMatchTime()
+--	local deltaTimeS = (timeNow - self.lastUpdateTime)/1000.0
+	
+	if #self.hpList - hp > 0 then
+--	  self.d = (self.lastHp - hp)/deltaTimeS
+--		self.lastUpdateTime = timeNow
+		self.hpList.insert(hp)
+		self.timeList.insert(timeNow)
+	end
+
+--	self.lastHp = hp
+end
+
+function DmgInfo:least_squares_fit(xx,yy)
+	local xsum,ysum,xxsum,yysum,xysum = 0,0,0,0,0
+	local m,c,d
+	local n = #xx
+
+	for i = 1,n do
+		local x,y = xx[i],yy[i]
+		xsum = xsum + x
+		ysum = ysum + y
+		xxsum = xxsum + x*x
+		yysum = yysum + y*y
+		xysum = xysum + x*y
+	end
+
+	d = n*xxsum - xsum*xsum
+	m = (n*xysum - xsum*ysum)/d
+	c = (xxsum*ysum - xysum*xsum)/d
+
+	return m,c
+end
+
+local onthinkOld = lastHitter.onthink 
+function lastHitter:onthink(tGameVariables)
+	if core.unitSelf then
+	  local unitsLocal = core.AssessLocalUnits(self) 
+	  local enemies = unitsLocal.EnemyCreeps
+	  for i,unit in pairs(enemies) do
+			if self.trackedCreeps[unit] then
+				self.trackedCreeps[unit]:update(unit:GetHealth())
+			else
+				local hp = {unit:GetHealth()}
+				local time = {HoN.GetMatchTime()}
+				self.trackedCreeps[unit] = DmgInfo:new{hpList = hp, timeList = time}
+			end
+	  end
+
+		for unit, v in pairs(self.trackedCreeps) do
+			if unit:GetHealth() == 0 then
+				self.trackedCreeps[unit] = nil
+			end
+		end
+	end
+	
+	onthinkOld(self, tGameVariables)
+end
+
 function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep) --called pretty much constantly
   local bDebugEchos = false
   -- prefers LH over deny
@@ -15,6 +86,10 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 
   core.FindItems(botBrain)
 
+	BotEcho("Tracked creeps: ")
+	for i,v in pairs(lastHitter.trackedCreeps) do
+		BotEcho(string.format("		- %s, %g", tostring(i), v.d))
+	end
 
   local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
 
