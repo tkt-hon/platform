@@ -91,7 +91,12 @@ rampage.oncombatevent = rampage.oncombateventOverride
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
+  local AllyTower = core.GetClosestAllyTower(hero:GetPosition(), 600)
 
+  if AllyTower then 
+    nUtil = nUtil + 65
+  end
+  
   if skills.abilBash:IsReady() then
     nUtil = nUtil + 10
   end
