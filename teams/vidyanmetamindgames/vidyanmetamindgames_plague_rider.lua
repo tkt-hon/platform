@@ -264,7 +264,11 @@ local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCr
           return nil
         end
         
-        return unitEnemyCreep
+        if unitEnemyCreep:GetHealthPercent() < 0.4 then
+            return unitEnemyCreep
+        end
+
+        return nil
     end
     return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
 end
