@@ -15,6 +15,8 @@ behaviorLib.LaneItems = { "Item_MysticPotpourri", "Item_MysticVestments", "Item_
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
+shopping.Setup(true, true, false, false, true, false)
+
 plaguerider.skills = {}
 local skills = plaguerider.skills
 
