@@ -6,10 +6,33 @@ moonqueen.heroName = "Hero_Krixi"
 runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
+local tinsert = _G.table.insert
 local BotEcho = core.BotEcho
+
+behaviorLib.StartingItems = { "Item_Bottle", "Item_MinorTotem 2" }
+behaviorLib.LaneItems = { "Item_Soulscream", "Item_Marchers", "Item_Soulscream 3" }
+behaviorLib.MidItems = { "Item_PostHaste" }
+behaviorLib.LateItems = { "Item_Evasion", "Item_Intelligence7" }
+
+-- http://honwiki.net/wiki/Moon_Queen:Hit_R_to_Win
+-- desired skillbuild order
+-- 0 = Q(Moon Beam)
+-- 1 = W(Multi-strike)
+-- 2 = E(Lunar glow)
+-- 3 = R(Moon Finale)
+-- 4 = Attribute boost
+moonqueen.tSkills = {
+  0, 4, 0, 4, 0,
+  3, 0, 2, 2, 2,
+  3, 2, 1, 1, 1,
+  3, 1, 4, 4, 4,
+  4, 4, 4, 4, 4,
+}
 
 moonqueen.skills = {}
 local skills = moonqueen.skills
+
+BotEcho("Hello world!")
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -135,3 +158,57 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+
+--------------------------------------------------------------------------------
+-- FindItems Override
+--
+local function funcFindItemsOverride(botBrain)
+	local bUpdated = moonqueen.FindItemsOld(botBrain)
+
+	if core.itemBottle ~= nil and not core.itemBottle:IsValid() then
+		core.itemBottle = nil
+	end
+
+	if bUpdated then
+		-- only update if we need to
+		if core.itemBottle then
+			return
+		end
+
+		local inventory = core.unitSelf:GetInventory(true)
+		for slot = 1, 12, 1 do
+			local curItem = inventory[slot]
+			if curItem then
+				if curItem:GetName() == "Item_Bottle" then
+					core.itemBottle = core.WrapInTable(curItem)
+					return
+				end
+			end
+		end
+	end
+end
+
+moonqueen.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+-- HEAL BEHAVIOR
+--
+--
+function behaviorLib.HealUtility(botBrain)
+	return 0
+end
+
+function behaviorLib.HealExecute(botBrain)
+end
+
+behaviorLib.HealBehavior = {}
+behaviorLib.HealBehavior["Utility"] = behaviorLib.HealUtility
+behaviorLib.HealBehavior["Execute"] = behaviorLib.HealExecute
+behaviorLib.HealBehavior["Name"] = "Heal"
+tinsert(behaviorLib.tBehaviors, behaviorLib.HealBehavior)
+--------------------------------------------------------------------------------
