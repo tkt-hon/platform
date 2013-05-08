@@ -58,11 +58,11 @@ local BotEcho, VerboseLog, BotLog = core.BotEcho, core.VerboseLog, core.BotLog
 
 
 --debugInfo
-local debugInfoGeneralInformation = true
+local debugInfoGeneralInformation = false
 local debugInfoItemHandler = false
 local debugInfoShoppingFunctions = false
-local debugInfoShoppingBehavior = true
-local debugInfoCourierRelated = true
+local debugInfoShoppingBehavior = false
+local debugInfoCourierRelated = false
 
 
 --if debugInfoItemHandler then BotEcho("") end

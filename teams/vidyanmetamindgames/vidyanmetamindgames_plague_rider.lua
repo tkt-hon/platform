@@ -15,7 +15,7 @@ behaviorLib.LaneItems = { "Item_MysticPotpourri", "Item_MysticVestments", "Item_
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
-shopping.Setup(true, true, false, false, true, false)
+--shopping.Setup(true, true, false, false, true, false)
 
 plaguerider.skills = {}
 local skills = plaguerider.skills
@@ -81,7 +81,7 @@ end
 
 local function ShieldBehaviorUtility(botBrain)
     if skills.abilShield:CanActivate() then
-        return 100
+        return 150
     end
 
     return 0
@@ -107,9 +107,6 @@ ShieldBehavior["Utility"] = ShieldBehaviorUtility
 ShieldBehavior["Execute"] = ShieldBehaviorExecute
 ShieldBehavior["Name"] = "Casting shield spell on a creep"
 tinsert(behaviorLib.tBehaviors, ShieldBehavior)
-
-
-
 
 local function GetEnemyTower(units)
     if units.EnemyTowers == nil then
@@ -256,8 +253,6 @@ tinsert(behaviorLib.tBehaviors, DenyBehavior)
 
 local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
     if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-        core.BotEcho("Using new")
-        
         local unitSelf = botBrain.core.unitSelf
         local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 550)
         local unitsAllies = unitsLocal.AllyCreeps
