@@ -1,43 +1,10 @@
 local _G = getfenv(0)
-local object = _G.object
-local moonqueen = _G.object
+local moonqueen = _G.moonqueen
 
-object.myName = object:GetName()
-
-object.bRunLogic         = true
-object.bRunBehaviors    = true
-object.bUpdates         = true
-object.bUseShop         = true
-
-object.bRunCommands     = true 
-object.bMoveCommands     = true
-object.bAttackCommands     = true
-object.bAbilityCommands = true
-object.bOtherCommands     = true
-
-object.bReportBehavior = false
-object.bDebugUtility = false
-
-object.logger = {}
-object.logger.bWriteLog = false
-object.logger.bVerboseLog = false
-
-object.core         = {}
-object.eventsLib     = {}
-object.metadata     = {}
-object.behaviorLib     = {}
-object.skills         = {}
 
 runfile 'bots/core_herobot.lua'
---runfile "bots/core.lua"
---runfile "bots/botbraincore.lua"
---runfile "bots/eventsLib.lua"
---runfile "bots/metadata.lua"
---runfile "bots/behaviorLib.lua"
 --runfile "bots/illusions.lua"
 --runfile "bots/steamboots.lua"
-
---local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
 
 local core, behaviorLib, eventsLib, metadata, skills = moonqueen.core, moonqueen.behaviorLib, moonqueen.eventsLib, moonqueen.metadata, moonqueen.skills
 
@@ -49,7 +16,7 @@ local ceil, floor, pi, tan, atan, atan2, abs, cos, sin, acos, max, random
 local BotEcho, VerboseLog, BotLog = core.BotEcho, core.VerboseLog, core.BotLog
 local Clamp = core.Clamp
 
---local SteamBootsLib = object.SteamBootsLib
+--local SteamBootsLib = moonqueen.SteamBootsLib
 
 BotEcho(' loading Moon Queen')
 
@@ -58,20 +25,20 @@ BotEcho(' loading Moon Queen')
 -----------------------
 
 --To keep track status of 2nd skill
-object.bouncing = true
-object.auraState = true
+moonqueen.bouncing = true
+moonqueen.auraState = true
 --bounce "resets" when you die to keep track when you respawn
-object.alive = true
+moonqueen.alive = true
 
 --To keep track day/night cycle
-object.isDay = true
+moonqueen.isDay = true
 
 --Constants
-object.heroName = 'Hero_Krixi'
+moonqueen.heroName = 'Hero_Krixi'
 behaviorLib.diveThreshold = 85
 
 -- skillbuild table, 0=beam, 1=bounce, 2=aura, 3=ult, 4=attri
-object.tSkills = {
+moonqueen.tSkills = {
     2, 0, 0, 1, 0,
     3, 0, 2, 2, 1,
     3, 2, 1, 1, 4,
@@ -93,7 +60,7 @@ behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
 ------------------------------
 -- @param: none
 -- @return: none
-function object:SkillBuild()
+function moonqueen:SkillBuild()
 	core.VerboseLog("skillbuild()")
 
 -- takes care at load/reload, <name_#> to be replaced by some convinient name.
@@ -112,14 +79,14 @@ function object:SkillBuild()
 	local nlev = unitSelf:GetLevel()
 	local nlevpts = unitSelf:GetAbilityPointsAvailable()
 	for i = nlev, nlev+nlevpts do
-		unitSelf:GetAbility( object.tSkills[i] ):LevelUp()
+		unitSelf:GetAbility( moonqueen.tSkills[i] ):LevelUp()
 
 		--initialy set aura and bounce to heroes only
 		if i == 1 then
-			object.toggleAura(self, false)
+			moonqueen.toggleAura(self, false)
 		end
 		if i == 4 then
-			object.toggleBounce(self, false)
+			moonqueen.toggleBounce(self, false)
 		end
 	end
 end
@@ -128,7 +95,7 @@ end
 -- Find geo, shrunken, rage and helm --
 ---------------------------------------
 local function funcFindItemsOverride(botBrain)
-	object.FindItemsOld(botBrain)
+	moonqueen.FindItemsOld(botBrain)
 	if core.itemGeometer ~= nil and not core.itemGeometer:IsValid() then
 		core.itemGeometer = nil
 	end
@@ -159,23 +126,23 @@ local function funcFindItemsOverride(botBrain)
 	end
 end
 
-object.FindItemsOld = core.FindItems
+moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
 ---------------------------
 --    onthink override   --
 -- Called every bot tick --
 ---------------------------
-function object:onthinkOverride(tGameVariables)
+function moonqueen:onthinkOverride(tGameVariables)
 	self:onthinkOld(tGameVariables)
 	local unitSelf = core.unitSelf
 	local heroPos = unitSelf:GetPosition()
 	if (unitSelf:IsAlive() and core.localUnits~=nil)then
-		if not object.alive then
+		if not moonqueen.alive then
 			--To keep track status of 2nd skill
-			object.alive = true
-			object.bouncing = true
-			object.toggleBounce(self, false)
+			moonqueen.alive = true
+			moonqueen.bouncing = true
+			moonqueen.toggleBounce(self, false)
 		end
 
 		-- Keep illus near
@@ -189,7 +156,7 @@ function object:onthinkOverride(tGameVariables)
 
 	if not unitSelf:IsAlive() then
 		--To keep track status of 2nd skill
-		object.alive = false
+		moonqueen.alive = false
 	end
 
 	--keep track of day/night only to say something stupid in all chat
@@ -199,12 +166,12 @@ function object:onthinkOverride(tGameVariables)
 		local day = math.floor(time/(7.5*60*1000)) % 2
 		--BotEcho(day)
 
-		if day == 0 and not object.isDay then
+		if day == 0 and not moonqueen.isDay then
 			--Good morning
-			object.isDay = true
-		elseif day == 1 and object.isDay then
+			moonqueen.isDay = true
+		elseif day == 1 and moonqueen.isDay then
 			--gnight
-			object.isDay = false
+			moonqueen.isDay = false
 			if math.random(5) == 1 then --math.random(upper) generates integer numbers between 1 and upper.
 				local randomMessageId = math.random(#core.nightMessages)
 				core.AllChat(core.nightMessages[randomMessageId])
@@ -213,24 +180,24 @@ function object:onthinkOverride(tGameVariables)
 	end
 
 end
-object.onthinkOld = object.onthink
-object.onthink 	= object.onthinkOverride
+moonqueen.onthinkOld = moonqueen.onthink
+moonqueen.onthink 	= moonqueen.onthinkOverride
 
 ---------------------------
 -- Togle aura and bounce --
 ---------------------------
 local function PushExecuteOverride(botBrain)
-	object.toggleBounce(botBrain, true)
-	object.toggleAura(botBrain, true)
+	moonqueen.toggleBounce(botBrain, true)
+	moonqueen.toggleAura(botBrain, true)
 --	SteamBootsLib.setAttributeBonus("agi")
-	object.PushExecuteOld(botBrain)
+	moonqueen.PushExecuteOld(botBrain)
 end
-object.PushExecuteOld = behaviorLib.PushBehavior["Execute"]
+moonqueen.PushExecuteOld = behaviorLib.PushBehavior["Execute"]
 behaviorLib.PushBehavior["Execute"] = PushExecuteOverride
 
 function behaviorLib.newPositionSelfExecute(botBrain)
-	object.toggleBounce(botBrain, false)
-	object.toggleAura(botBrain, false)
+	moonqueen.toggleBounce(botBrain, false)
+	moonqueen.toggleAura(botBrain, false)
 	behaviorLib.oldPositionSelfExecute(botBrain)
 end
 behaviorLib.oldPositionSelfExecute = behaviorLib.PositionSelfBehavior["Execute"]
@@ -240,25 +207,25 @@ behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.newPositionSelfExecute
 -- oncombatevent override --
 ----------------------------
 --Bonuses
-object.geometerUseBonus = 15
-object.ultUseBonus = 65
-object.beamUseBonus = 5
-object.SymbolofRageUseBonus = 50
-function object:oncombateventOverride(EventData)
+moonqueen.geometerUseBonus = 15
+moonqueen.ultUseBonus = 65
+moonqueen.beamUseBonus = 5
+moonqueen.SymbolofRageUseBonus = 50
+function moonqueen:oncombateventOverride(EventData)
 	self:oncombateventOld(EventData)
 
 	local addBonus = 0
 	if EventData.Type == "Ability" then	
 		if EventData.InflictorName == "Ability_Krixi1" then
-			addBonus = addBonus + object.beamUseBonus
+			addBonus = addBonus + moonqueen.beamUseBonus
 		elseif EventData.InflictorName == "Ability_Krixi4" then
-			addBonus = addBonus + object.ultUseBonus
+			addBonus = addBonus + moonqueen.ultUseBonus
 		end
 	elseif EventData.Type == "Item" then
 		if core.itemGeometer ~= nil and EventData.InflictorName == core.itemGeometer:GetName() then
-			addBonus = addBonus + object.geometerUseBonus
+			addBonus = addBonus + moonqueen.geometerUseBonus
 		elseif EventData.InflictorName == "Item_LifeSteal4" then
-			addBonus = addBonus + object.SymbolofRageUseBonus
+			addBonus = addBonus + moonqueen.SymbolofRageUseBonus
 		end
 	end
 	
@@ -267,8 +234,8 @@ function object:oncombateventOverride(EventData)
 		core.nHarassBonus = core.nHarassBonus + addBonus
 	end
 end
-object.oncombateventOld = object.oncombatevent
-object.oncombatevent 	= object.oncombateventOverride
+moonqueen.oncombateventOld = moonqueen.oncombatevent
+moonqueen.oncombatevent 	= moonqueen.oncombateventOverride
 
 ----------------------------
 -- Retreat override --
@@ -295,23 +262,23 @@ behaviorLib.RetreatFromThreatBehavior["Execute"] = behaviorLib.RetreatFromThreat
 ----------------------------------
 -- Extra value from spells and geo
 
-object.moonbeamUpBonus = 5
-object.ultUpBonus = 20
-object.geometerUpBonus = 5
+moonqueen.moonbeamUpBonus = 5
+moonqueen.ultUpBonus = 20
+moonqueen.geometerUpBonus = 5
 local function CustomHarassUtilityFnOverride(hero)
 	local val = 0
 	
 	if skills.moonbeam:CanActivate() then
-		val = val + object.moonbeamUpBonus
+		val = val + moonqueen.moonbeamUpBonus
 	end
 	
 	if skills.ult:CanActivate() then
-		val = val + object.ultUpBonus
+		val = val + moonqueen.ultUpBonus
 	end
 
 	if core.itemGeometer ~= nil then
 		if core.itemGeometer:CanActivate() then
-			val = val + object.geometerUpBonus
+			val = val + moonqueen.geometerUpBonus
 		end
 	end
 	-- Less mana less aggerssion
@@ -324,9 +291,9 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 ---------------------
 -- Harass Behavior --
 ---------------------
-object.geometerUseThreshold = 55
-object.moonbeamThreshold = 35
-object.ultTheresholds = {95, 85, 75}
+moonqueen.geometerUseThreshold = 55
+moonqueen.moonbeamThreshold = 35
+moonqueen.ultTheresholds = {95, 85, 75}
 local function HarassHeroExecuteOverride(botBrain)
 	--SteamBootsLib.setAttributeBonus("agi")
 	local unitTarget = behaviorLib.heroTarget
@@ -335,7 +302,7 @@ local function HarassHeroExecuteOverride(botBrain)
 	end
 
 	if not core.CanSeeUnit(botBrain, unitTarget) then
-		return object.harassExecuteOld(botBrain)
+		return moonqueen.harassExecuteOld(botBrain)
 	end
 
 	--some vars
@@ -350,25 +317,25 @@ local function HarassHeroExecuteOverride(botBrain)
 
 	local bActionTaken = false
 
-	local targetMagicImmune = object.IsMagicImmune(unitTarget)
+	local targetMagicImmune = moonqueen.IsMagicImmune(unitTarget)
 
 	----------------------------------------------------------------------------
 
 	if not bActionTaken then
-		if skills.moonbeam:CanActivate() and nLastHarassUtility > object.moonbeamThreshold and not targetMagicImmune then
+		if skills.moonbeam:CanActivate() and nLastHarassUtility > moonqueen.moonbeamThreshold and not targetMagicImmune then
 			bActionTaken = core.OrderAbilityEntity(botBrain, skills.moonbeam, unitTarget)
 		end
 	end
 
 	if not bActionTaken then
-		if nLastHarassUtility > object.geometerUseThreshold and core.itemGeometer and core.itemGeometer:CanActivate() then
+		if nLastHarassUtility > moonqueen.geometerUseThreshold and core.itemGeometer and core.itemGeometer:CanActivate() then
 			bActionTaken = core.OrderItemClamp(botBrain, unitSelf, core.itemGeometer, false, false)
 		end
 	end
 
 	if not bActionTaken and bCanSee and not targetMagicImmune then
 		--at higher levels this overpowers ult behavior with lastHarassUtil like 150
-		if skills.ult:CanActivate() and nLastHarassUtility > object.ultTheresholds[skills.ult:GetLevel()] and nTargetDistanceSq < 600 * 600 then
+		if skills.ult:CanActivate() and nLastHarassUtility > moonqueen.ultTheresholds[skills.ult:GetLevel()] and nTargetDistanceSq < 600 * 600 then
 			bActionTaken = behaviorLib.ultBehavior["Execute"](botBrain)
 		end
 	end
@@ -379,12 +346,12 @@ local function HarassHeroExecuteOverride(botBrain)
 
 	if not bActionTaken then
 		if core.itemSymbolofRage and core.itemSymbolofRage:CanActivate() and unitSelf:GetHealthPercent() < 0.7 then
-			botBrain:OrderItem(core.itemSymbolofRage.object)
+			botBrain:OrderItem(core.itemSymbolofRage.moonqueen)
 		end
-		return object.harassExecuteOld(botBrain)
+		return moonqueen.harassExecuteOld(botBrain)
 	end 
 end
-object.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 ----------------------
@@ -411,7 +378,7 @@ function behaviorLib.UltimateUtility(botBrain)
 	local enemyheroes = {}
 
 	for _, hero in pairs(localUnits["enemyHeroes"]) do
-		if Vector3.Distance2DSq(selfPos, hero:GetPosition()) < 600*600 and not object.IsMagicImmune(hero) then
+		if Vector3.Distance2DSq(selfPos, hero:GetPosition()) < 600*600 and not moonqueen.IsMagicImmune(hero) then
 			tinsert(enemyheroes, hero)
 		end
 	end
@@ -437,7 +404,7 @@ function behaviorLib.UltimateExecute(botBrain)
 	bActionTaken = core.OrderAbility(botBrain, skills.ult)
 
 	if core.itemShrunkenHead and bActionTaken then
-		botBrain:OrderItem(core.itemShrunkenHead.object)
+		botBrain:OrderItem(core.itemShrunkenHead.moonqueen)
 	end
 	return bActionTaken
 end
@@ -484,48 +451,48 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.stunBehavior)
 ---------------------------------
 --Helppers for bounce and aura --
 ---------------------------------
-function object.toggleAura(botBrain, state)
-	if object.getAuraState() == state or not skills.aura:CanActivate() then
+function moonqueen.toggleAura(botBrain, state)
+	if moonqueen.getAuraState() == state or not skills.aura:CanActivate() then
 		return false
 	end
 	local success = core.OrderAbility(botBrain, skills.aura)
 	if success then
-		object.auraState = not object.auraState
+		moonqueen.auraState = not moonqueen.auraState
 	end
 	return true
 end
 
-function object.toggleBounce(botBrain, state)
-	if object.getBounceState() == state or not skills.bounce:CanActivate() then
+function moonqueen.toggleBounce(botBrain, state)
+	if moonqueen.getBounceState() == state or not skills.bounce:CanActivate() then
 		return false
 	end
 
 	local success = core.OrderAbility(botBrain, skills.bounce)
 	if success then
-		object.bouncing = not object.bouncing
+		moonqueen.bouncing = not moonqueen.bouncing
 	end
 	return true
 end
 
 --true when target is "all" false when heroes only
-function object.getAuraState()
+function moonqueen.getAuraState()
 	if skills.aura:GetLevel() == 0 then
 		return false
 	end
-	return object.auraState
+	return moonqueen.auraState
 end
 
-function object.getBounceState()
+function moonqueen.getBounceState()
 	if skills.bounce:GetLevel() == 0 then
 		return false
 	end
-	return object.bouncing 
+	return moonqueen.bouncing 
 end
 
 --------------------
 -- Magic immunity --
 --------------------
-function object.IsMagicImmune(unit)
+function moonqueen.IsMagicImmune(unit)
 	local states = { "State_Item3E", "State_Predator_Ability2", "State_Jereziah_Ability2", "State_Rampage_Ability1_Self", "State_Rhapsody_Ability4_Buff", "State_Hiro_Ability1" }
 	for _, state in ipairs(states) do
 		if unit:HasState(state) then
