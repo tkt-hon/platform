@@ -3,7 +3,7 @@
   name="Vidyan_Plague_Rider"
   description="HA GGGAYYYY"
   heroname="Hero_DiseasedRider"
-  rootlua="vidyanmetamindgames_plague_rider.lua"
+  rootlua="vidyanmetamindgames_plague_rider_v2.lua"
   defaultplayername="Vidyan Plague Rider"
   precachepath="/heroes/diseasedrider/"
 />
