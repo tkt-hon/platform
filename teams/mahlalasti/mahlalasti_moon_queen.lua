@@ -10,9 +10,10 @@ local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 local tinsert = _G.table.insert
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm", "Item_HealthPotion" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -87,7 +88,9 @@ local function NearbyCreepCount(botBrain, center, radius)
 end
 
 local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 13
+  local nUtil = 12 + (core.unitSelf:GetLevel()*0.5)
+  if core.unitSelf:GetManaPercent() < 0.25 then nUtil = nUtil-5
+  end
 
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
@@ -95,7 +98,7 @@ local function CustomHarassUtilityFnOverride(hero)
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 4 then
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
 
@@ -157,7 +160,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.25
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
