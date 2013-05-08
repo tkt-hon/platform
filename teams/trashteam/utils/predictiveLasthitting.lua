@@ -5,190 +5,168 @@ local core, behaviorLib = lastHitter.core, lastHitter.behaviorLib
 
 local BotEcho = core.BotEcho
 
+local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
+
+
+    if not unitCreepTarget or not core.CanSeeUnit(botBrain, unitCreepTarget) then
+        return nil
+    end
+
+
+    local unitSelf = core.unitSelf
+
+
+    --Get info about the target we are about to attack
+    local vecSelfPos = unitSelf:GetPosition()
+    local vecTargetPos = unitCreepTarget:GetPosition()
+    local nDistSq = Vector3.Distance2DSq(vecSelfPos, vecTargetPos)
+    local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+    local nTargetHealth = unitCreepTarget:GetHealth()
+    local nDamageMin = unitSelf:GetFinalAttackDamageMin()
+
+
+    --Get projectile info
+    local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
+    local nProjectileTravelTime = Vector3.Distance2D(vecSelfPos, vecTargetPos) / nProjectileSpeed
+    if bDebugEchos then BotEcho ("Projectile travel time: " .. nProjectileTravelTime ) end
+
+    local nExpectedCreepDamage = 0
+    local nExpectedTowerDamage = 0
+    local tNearbyAttackingCreeps = nil
+    local tNearbyAttackingTowers = nil
+
+
+    --Get the creeps and towers on the opposite team
+    -- of our target
+    if unitCreepTarget:GetTeam() == unitSelf:GetTeam() then
+        tNearbyAttackingCreeps = core.localUnits['EnemyCreeps']
+        tNearbyAttackingTowers = core.localUnits['EnemyTowers']
+    else
+        tNearbyAttackingCreeps = core.localUnits['AllyCreeps']
+        tNearbyAttackingTowers = core.localUnits['AllyTowers']
+    end
+
+
+    --Determine the damage expected on the creep by other creeps
+    for i, unitCreep in pairs(tNearbyAttackingCreeps) do
+        if unitCreep:GetAttackTarget() == unitCreepTarget then
+            local nCreepAttacks = 1 + math.floor(unitCreep:GetAttackSpeed() * nProjectileTravelTime)
+            nExpectedCreepDamage = nExpectedCreepDamage + (unitCreep:GetFinalAttackDamageMin() +1)* nCreepAttacks
+        end
+    end
+
+
+    --Determine the damage expected on the creep by other towers
+    for i, unitTower in pairs(tNearbyAttackingTowers) do
+        if unitTower:GetAttackTarget() == unitCreepTarget then
+            local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
+            nExpectedTowerDamage = nExpectedTowerDamage + (unitTower:GetFinalAttackDamageMin() +1) * nTowerAttacks
+        end
+    end
+
+
+    return nExpectedCreepDamage + nExpectedTowerDamage
+end
+
+
 function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep) --called pretty much constantly
-  local bDebugEchos = false
-  -- prefers LH over deny
+    local bDebugEchos = false
 
 
-  local unitSelf = core.unitSelf
-  local nDamageMin = unitSelf:GetFinalAttackDamageMin()
-
-  core.FindItems(botBrain)
-
-
-  local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
+    --Get info about self
+    local unitSelf = core.unitSelf
+    local nDamageMin = unitSelf:GetFinalAttackDamageMin() + 2
 
 
-  if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-    local nTargetHealth = unitEnemyCreep:GetHealth()
-    local tNearbyAllyCreeps = core.localUnits['AllyCreeps']
-    local tNearbyAllyTowers = core.localUnits['AllyTowers']
-    local nExpectedCreepDamage = 0
-    local nExpectedTowerDamage = 0
-
-
-    local vecTargetPos = unitEnemyCreep:GetPosition()
-    local nProjectileTravelTime = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPos) / nProjectileSpeed
-    if bDebugEchos then BotEcho ("Projectile travel time: " .. nProjectileTravelTime ) end
-
-    --Determine the damage expcted on the creep by other creeps
-    for i, unitCreep in pairs(tNearbyAllyCreeps) do
-      if unitCreep:GetAttackTarget() == unitEnemyCreep then
-        --if unitCreep:IsAttackReady() then
-        local nCreepAttacks = 1 + math.floor(unitCreep:GetAttackSpeed() * nProjectileTravelTime)
-        nExpectedCreepDamage = nExpectedCreepDamage + unitCreep:GetFinalAttackDamageMin() * nCreepAttacks
-        --end
-      end
+    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+        local nTargetHealth = unitEnemyCreep:GetHealth()
+      local armor = unitEnemyCreep:GetArmor() -- 5
+      local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
+      nDamageMin = nDamageMin*dmgReduc
+        --Only attack if, by the time our attack reaches the target
+        -- the damage done by other sources brings the target's health
+        -- below our minimum damage
+        if nDamageMin >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitEnemyCreep)) then
+            if bDebugEchos then BotEcho("Returning an enemy") end
+            return unitEnemyCreep
+        end
     end
 
 
-    for i, unitTower in pairs(tNearbyAllyTowers) do
-      if unitTower:GetAttackTarget() == unitEnemyCreep then
-        --if unitTower:IsAttackReady() then
+    if unitAllyCreep then
+        local nTargetHealth = unitAllyCreep:GetHealth()
+      local armor = unitAllyCreep:GetArmor() -- 5
+      local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
+      nDamageMin = nDamageMin*dmgReduc
 
 
-        local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
-        nExpectedTowerDamage = nExpectedTowerDamage + unitTower:GetFinalAttackDamageMin() * nTowerAttacks
-        --end
-      end
-    end
+        --Only attack if, by the time our attack reaches the target
+        -- the damage done by other sources brings the target's health
+        -- below our minimum damage
+        if nDamageMin >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitAllyCreep)) then
+            local bActuallyDeny = true
 
-    if bDebugEchos then BotEcho ("Excpecting ally creeps to damage enemy creep for " .. nExpectedCreepDamage .. " - using this to anticipate lasthit time") end
+            --[Difficulty: Easy] Don't deny
+            if core.nDifficulty == core.nEASY_DIFFICULTY then
+                bActuallyDeny = false
+            end
 
-    if nDamageMin >= (nTargetHealth - nExpectedCreepDamage - nExpectedTowerDamage) then
-      local bActuallyLH = true
+            -- [Tutorial] Hellbourne *will* deny creeps after **** gets real
+            if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
+                bActuallyDeny = true
+            end
 
-      if bActuallyLH then
-        if bDebugEchos then BotEcho("Returning an enemy") end
-        return unitEnemyCreep
-      end
-    end
-  end
-
-
-  if unitAllyCreep then
-    local nTargetHealth = unitAllyCreep:GetHealth()
-    local tNearbyEnemyCreeps = core.localUnits['EnemyCreeps']
-    local tNearbyEnemyTowers = core.localUnits['EnemyTowers']
-    local nExpectedCreepDamage = 0
-    local nExpectedTowerDamage = 0
-
-
-    local vecTargetPos = unitAllyCreep:GetPosition()
-    local nProjectileTravelTime = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPos) / nProjectileSpeed
-    if bDebugEchos then BotEcho ("Projectile travel time: " .. nProjectileTravelTime ) end
-
-    --Determine the damage expcted on the creep by other creeps
-    for i, unitCreep in pairs(tNearbyEnemyCreeps) do
-      if unitCreep:GetAttackTarget() == unitAllyCreep then
-        --if unitCreep:IsAttackReady() then
-        local nCreepAttacks = 1 + math.floor(unitCreep:GetAttackSpeed() * nProjectileTravelTime)
-        nExpectedCreepDamage = nExpectedCreepDamage + unitCreep:GetFinalAttackDamageMin() * nCreepAttacks
-        --end
-      end
+            if bActuallyDeny then
+                if bDebugEchos then BotEcho("Returning an ally") end
+                return unitAllyCreep
+            end
+        end
     end
 
 
-    for i, unitTower in pairs(tNearbyEnemyTowers) do
-      if unitTower:GetAttackTarget() == unitAllyCreep then
-        --if unitTower:IsAttackReady() then
-
-
-        local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
-        nExpectedTowerDamage = nExpectedTowerDamage + unitTower:GetFinalAttackDamageMin() * nTowerAttacks
-        --end
-      end
-    end
-
-    if nDamageMin >= (nTargetHealth - nExpectedCreepDamage - nExpectedTowerDamage) then
-      local bActuallyDeny = true
-
-
-      if bActuallyDeny then
-        if bDebugEchos then BotEcho("Returning an ally") end
-        return unitAllyCreep
-      end
-    end
-  end
-
-
-  return nil
+    return nil
 end
 
 
 function AttackCreepsExecuteOverride(botBrain)
-  local unitSelf = core.unitSelf
-  local unitCreepTarget = core.unitCreepTarget
+    local unitSelf = core.unitSelf
+    local unitCreepTarget = core.unitCreepTarget
 
 
-  if unitCreepTarget and core.CanSeeUnit(botBrain, unitCreepTarget) then
-    local vecTargetPos = unitCreepTarget:GetPosition()
-    local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
-    local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+    if unitCreepTarget and core.CanSeeUnit(botBrain, unitCreepTarget) then
+        --Get info about the target we are about to attack
+        local vecSelfPos = unitSelf:GetPosition()
+        local vecTargetPos = unitCreepTarget:GetPosition()
+        local nDistSq = Vector3.Distance2DSq(vecSelfPos, vecTargetPos)
+        local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+        local nTargetHealth = unitCreepTarget:GetHealth()
+        local nDamageMin = unitSelf:GetFinalAttackDamageMin() 
+        local armor = unitCreepTarget:GetArmor() -- 5
+        local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
+        nDamageMin = nDamageMin*dmgReduc
 
-    local nDamageMin = unitSelf:GetFinalAttackDamageMin()
-
-
-    if unitCreepTarget ~= nil then
-      local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
-      local nTargetHealth = unitCreepTarget:GetHealth()
-
-
-      local vecTargetPos = unitCreepTarget:GetPosition()
-      local nProjectileTravelTime = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPos) / nProjectileSpeed
-      if bDebugEchos then BotEcho ("Projectile travel time: " .. nProjectileTravelTime ) end
-
-      local nExpectedCreepDamage = 0
-      local nExpectedTowerDamage = 0
-      local tNearbyAttackingCreeps = nil
-      local tNearbyAttackingTowers = nil
+        --Only attack if, by the time our attack reaches the target
+        -- the damage done by other sources brings the target's health
+        -- below our minimum damage, and we are in range and can attack right now
+        if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and nDamageMin >= (nTargetHealth - GetAttackDamageOnCreep(botBrain, unitCreepTarget)) then
+            core.OrderAttackClamp(botBrain, unitSelf, unitCreepTarget)
 
 
-      if unitCreepTarget:GetTeam() == unitSelf:GetTeam() then
-        tNearbyAttackingCreeps = core.localUnits['EnemyCreeps']
-        tNearbyAttackingTowers = core.localUnits['EnemyTowers']
-      else
-        tNearbyAttackingCreeps = core.localUnits['AllyCreeps']
-        tNearbyAttackingTowers = core.localUnits['AllyTowers']
-      end
 
-      --Determine the damage expcted on the creep by other creeps
-      for i, unitCreep in pairs(tNearbyAttackingCreeps) do
-        if unitCreep:GetAttackTarget() == unitCreepTarget then
-          --if unitCreep:IsAttackReady() then
-          local nCreepAttacks = 1 + math.floor(unitCreep:GetAttackSpeed() * nProjectileTravelTime)
-          nExpectedCreepDamage = nExpectedCreepDamage + unitCreep:GetFinalAttackDamageMin() * nCreepAttacks
-          --end
+        --Otherwise get within 70% of attack range if not already
+        -- This will decrease travel time for the projectile
+        elseif (nDistSq > nAttackRangeSq * 0.5) then
+            local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
+            core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
+
+
+        --If within a good range, just hold tight
+        else
+            core.OrderHoldClamp(botBrain, unitSelf, false)
         end
-      end
-
-      --Determine the damage expcted on the creep by other creeps
-      for i, unitTower in pairs(tNearbyAttackingTowers) do
-        if unitTower:GetAttackTarget() == unitCreepTarget then
-          --if unitTower:IsAttackReady() then
-          local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
-          nExpectedTowerDamage = nExpectedTowerDamage + unitTower:GetFinalAttackDamageMin() * nTowerAttacks
-          --end
-        end
-      end
-
-
-      if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and nDamageMin>=(unitCreepTarget:GetHealth() - nExpectedCreepDamage - nExpectedTowerDamage) then --only kill if you can get gold
-        --only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
-        core.OrderAttackClamp(botBrain, unitSelf, unitCreepTarget)
-      elseif (nDistSq > nAttackRangeSq * 0.6) then
-        --SR is a ranged hero - get somewhat closer to creep to slow down projectile travel time
-        --BotEcho("MOVIN OUT")
-        local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
-        core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
-      else
-        core.OrderHoldClamp(botBrain, unitSelf, false)
-      end
+    else
+        return false
     end
-  else
-    return false
-  end
 end
-
 object.AttackCreepsExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.AttackCreepsBehavior["Execute"] = AttackCreepsExecuteOverride
