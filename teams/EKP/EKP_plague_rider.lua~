@@ -7,7 +7,7 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_ManaRegen3", "Item_HealthPotion" }
+behaviorLib.StartingItems = { "Item_ManaRegen3" }
 behaviorLib.LaneItems = { "Item_Strength5", "Item_Astrolabe", "Item_MysticVestments", "Item_Marchers" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }

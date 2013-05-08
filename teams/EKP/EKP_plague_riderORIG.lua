@@ -7,8 +7,8 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_ManaRegen3", "Item_HealthPotion" }
-behaviorLib.LaneItems = { "Item_Strength5", "Item_Astrolabe", "Item_MysticVestments", "Item_Marchers" }
+behaviorLib.StartingItems = { "Item_MysticPotpourri" }
+behaviorLib.LaneItems = { "Item_MysticVestments", "Item_Marchers", "Item_Strength5", "Item_Astrolabe",  }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
@@ -19,62 +19,32 @@ local tinsert = _G.table.insert
 
 core.itemWard = nil
 
-object.tSkills = {
-	1, 0, 1, 0, 0, 
-	3, 0, 1, 1, 2, 
-	2, 2, 2, 3, 4, 
-	3, 4, 4, 4, 4, 
-	4, 4, 4, 4, 4
-}
-
-function object:SkillBuild()
-	local unitSelf = self.core.unitSelf
-	if  skills.abilNuke == nil then
-		skills.abilNuke = unitSelf:GetAbility(0)
-		skills.abilShield = unitSelf:GetAbility(1)
-		skills.abilDeny = unitSelf:GetAbility(2)
-		skills.abilUltimate = unitSelf:GetAbility(3)
-		skills.abilAttributeBoost = unitSelf:GetAbility(4)
-	end
-	
-	local nPoints = unitSelf:GetAbilityPointsAvailable()
-	if nPoints <= 0 then
-		return
-	end
-	
-	local nLevel = unitSelf:GetLevel()
-	for i = nLevel, (nLevel + nPoints) do
-		unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
-	end
+function plaguerider:SkillBuildOverride()
+  local unitSelf = self.core.unitSelf
+  if skills.abilDeny == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilShield = unitSelf:GetAbility(1)
+    skills.abilDeny = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  if unitSelf:GetAbilityPointsAvailable() <= 0 then
+    return
+  end
+  if skills.abilUltimate:CanLevelUp() then
+    skills.abilUltimate:LevelUp()
+  elseif skills.abilDeny:CanLevelUp() then
+    skills.abilDeny:LevelUp()
+  elseif skills.abilNuke:CanLevelUp() then
+    skills.abilNuke:LevelUp()
+  elseif skills.abilShield:CanLevelUp() then
+    skills.abilShield:LevelUp()
+  else
+    skills.stats:LevelUp()
+  end
 end
-
-
---function plaguerider:SkillBuildOverride()
---  local unitSelf = self.core.unitSelf
- -- if skills.abilDeny == nil then
- --   skills.abilNuke = unitSelf:GetAbility(0)
-  --  skills.abilShield = unitSelf:GetAbility(1)
-  --  skills.abilDeny = unitSelf:GetAbility(2)
-  --  skills.abilUltimate = unitSelf:GetAbility(3)
- --   skills.stats = unitSelf:GetAbility(4)
- -- end
- -- if unitSelf:GetAbilityPointsAvailable() <= 0 then
-   -- return
-  --end
-  --if skills.abilUltimate:CanLevelUp() then 		## Samin toteutus skillien levelauksesta "priorisoiden", tilalle rhapsodybotista hävyttömästi
-    --skills.abilUltimate:LevelUp()			## kopioitu table-toteutus
-  --elseif skills.abilDeny:CanLevelUp() then
-    --skills.abilDeny:LevelUp()
-  --elseif skills.abilNuke:CanLevelUp() then
-    --skills.abilNuke:LevelUp()
-  --elseif skills.abilShield:CanLevelUp() then
-    --skills.abilShield:LevelUp()
-  --else
-    --skills.stats:LevelUp()
-  --end
---end
---plaguerider.SkillBuildOld = plaguerider.SkillBuild
---plaguerider.SkillBuild = plaguerider.SkillBuildOverride
+plaguerider.SkillBuildOld = plaguerider.SkillBuild
+plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -105,16 +75,9 @@ end
 plaguerider.oncombateventOld = plaguerider.oncombatevent
 plaguerider.oncombatevent = plaguerider.oncombateventOverride
 
-
-
 local function IsSiege(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
-end
-
-local function IsMelee(unit)
-  local unitType = unit:GetTypeName()						--#### BOTTI TUNNISTAA MELEE CREEPIT
-  return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
 end
 
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
@@ -132,53 +95,10 @@ local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
   return unitTarget
 end
 
-local function GetUnitToShieldAlliedCreeps(botBrain, myPos, radius)
-  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)	--##### Target melee creeps for shield
-  local allies = unitsLocal.AllyCreeps
-  local unitTarget = nil
-  local nDistance = 0
-  for _,unit in pairs(allies) do
-    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
-    if IsMelee(unit) and (not unitTarget or nNewDistance < nDistance) then
-      unitTarget = unit
-      nDistance = nNewDistance
-    end
-  end
-  return unitTarget
-end
-
 local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
   local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
   return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
 end
-
-local function ShieldBehaviorUtility(botBrain) 		--##SHIELD##--
-  local unitSelf = botBrain.core.unitSelf
-  local abilShield = skills.abilShield
-  local myPos = unitSelf:GetPosition()
-  local unit = GetUnitToShieldAlliedCreeps(botBrain, myPos, abilShield:GetRange())
-  if abilShield:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
-    plaguerider.shieldTarget = unit
-    return 100
-  end
-  return 0
-end
-
-local function ShieldBehaviorExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local abilShield = skills.abilShield
-  local target = plaguerider.shieldTarget
-  if target then
-    return core.OrderAbilityEntity(botBrain, abilShield, target, false)
-  end
-  return false
-end
-
-local ShieldBehavior = {}
-ShieldBehavior["Utility"] = ShieldBehaviorUtility
-ShieldBehavior["Execute"] = ShieldBehaviorExecute
-ShieldBehavior["Name"] = "Shielding creep with spell"
-tinsert(behaviorLib.tBehaviors, ShieldBehavior)			--##/SHIELD##--
 
 local function DenyBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
@@ -329,12 +249,8 @@ local function funcFindItemsOverride(botBrain)
     core.itemWard = nil
   end
 
- if core.itemAstrolabe ~= nil and not core.itemAstrolabe:IsValid() then
-		core.itemAstrolabe = nil
- end
-
   if bUpdated then
-    if core.itemWard and core.itemAstrolabe then
+    if core.itemWard then
       return
     end
 
@@ -344,12 +260,6 @@ local function funcFindItemsOverride(botBrain)
       if curItem then
         if core.itemWard == nil and curItem:GetName() == "Item_FlamingEye" then
           core.itemWard = core.WrapInTable(curItem)
-
-	elseif core.itemAstrolabe == nil and curItem:GetName() == "Item_Astrolabe" then
-			core.itemAstrolabe = core.WrapInTable(curItem)
-			core.itemAstrolabe.nHealValue = 200
-			core.itemAstrolabe.nRadius = 600
-			Echo("I have Astrolabe")
         end
       end
     end
