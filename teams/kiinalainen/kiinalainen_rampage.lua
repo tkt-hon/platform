@@ -10,8 +10,10 @@ local core, behaviorLib = rampage.core, rampage.behaviorLib
 local tinsert = _G.table.insert
 
 local CHARGE_NONE, CHARGE_STARTED, CHARGE_TIMER, CHARGE_WARP = 0, 1, 2, 3
-
 rampage.charged = CHARGE_NONE
+
+local ULTI_NONE, ULTI_ON = 0, 1
+rampage.ulti = ULTI_NONE
 
 rampage.skills = {}
 local skills = rampage.skills
@@ -90,33 +92,7 @@ function rampage.CustomHarassHeroUtilityOverride(botBrain)
 
   return nUtil
 end
-behaviorLib.HarassHeroBehavior["Utility"] = rampage.CustomHarassHeroUtilityOverrid
-
-----------------------------------------------
---            oncombatevent override        --
--- use to check for infilictors (fe. buffs) --
-----------------------------------------------
--- @param: eventdata
--- @return: none
-function rampage:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
-
-  if EventData.Type == "Ability" and EventData.InflictorName == "Ability_Rampage1" then
-    self.charged = CHARGE_STARTED
-  elseif EventData.Type == "State_End" and EventData.StateName == "State_Rampage_Ability1_Timer" then
-    if self.charged == CHARGE_STARTED then
-      self.charged = CHARGE_NONE
-    end
-  elseif EventData.Type == "State" and EventData.StateName == "State_Rampage_Ability1_Warp" then
-    self.charged = CHARGE_WARP
-  elseif EventData.Type == "State_End" and EventData.StateName == "State_Rampage_Ability1_Warp" then
-    self.charged = CHARGE_NONE
-  elseif EventData.Type == "Death" then
-    self.charged = CHARGE_NONE
-  end
-end
-rampage.oncombateventOld = rampage.oncombatevent
-rampage.oncombatevent = rampage.oncombateventOverride
+behaviorLib.HarassHeroBehavior["Utility"] = rampage.CustomHarassHeroUtilityOverride
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
@@ -136,6 +112,34 @@ local function CustomHarassUtilityFnOverride(hero)
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+----------------------------------------------
+--            oncombatevent override        --
+-- use to check for infilictors (fe. buffs) --
+----------------------------------------------
+-- @param: eventdata
+-- @return: none
+function rampage:oncombateventOverride(EventData)
+  self:oncombateventOld(EventData)
+
+  print("EventType: ", EventData.Type, " Inflictor: ", EventData.InflictorName, " State: ", EventData.StateName, "\n")
+
+  if EventData.Type == "Ability" and EventData.InflictorName == "Ability_Rampage1" then
+    self.charged = CHARGE_STARTED
+  elseif EventData.Type == "State_End" and EventData.StateName == "State_Rampage_Ability1_Timer" then
+    if self.charged == CHARGE_STARTED then
+      self.charged = CHARGE_NONE
+    end
+  elseif EventData.Type == "State" and EventData.StateName == "State_Rampage_Ability1_Warp" then
+    self.charged = CHARGE_WARP
+  elseif EventData.Type == "State_End" and EventData.StateName == "State_Rampage_Ability1_Warp" then
+    self.charged = CHARGE_NONE
+  elseif EventData.Type == "Death" then
+    self.charged = CHARGE_NONE
+  end
+
+end
+rampage.oncombateventOld = rampage.oncombatevent
+rampage.oncombatevent = rampage.oncombateventOverride
 
 local function HarassHeroExecuteOverride(botBrain)
   local abilCharge = skills.abilCharge
