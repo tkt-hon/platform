@@ -57,7 +57,14 @@ function shopping.GetNextItemToBuy()
     if NumberInInventory(inventory, "Item_Punchdagger") < 2 then
       return "Item_Punchdagger"
     end
+  elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
+    return "Item_LifeSteal5"
+  elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
+    return "Item_SolsBulwark"
+  elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+    return "Item_DaemonicBreastplate"
   end
+
 end
 
 local function ItemToSell()
