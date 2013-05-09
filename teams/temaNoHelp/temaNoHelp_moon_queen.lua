@@ -202,14 +202,8 @@ end
 behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
 
 local function NearbyCreepCount(botBrain, center, radius)
-  local count = 0
   local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
-  local enemies = unitsLocal.EnemyCreeps
-
-  for _,unit in pairs(enemies) do
-    count = count + 1
-  end
-  return count
+  return core.NumberElements(unitsLocal.EnemyCreeps)
 end
 
 local function CustomHarassUtilityFnOverride(hero)
@@ -220,6 +214,10 @@ local function CustomHarassUtilityFnOverride(hero)
 
   --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 950) then
+    return -1000
+  end
+
+  if core.NumberElements(core.AssessLocalUnits(moonqueen).AllyCreeps) < 4 and hero:GetLevel() >= 6 then
     return -1000
   end
 
