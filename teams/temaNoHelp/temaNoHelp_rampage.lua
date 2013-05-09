@@ -1,22 +1,76 @@
 local _G = getfenv(0)
 local rampage = _G.object
 local stunDuration = 0
-local tinsert = _G.table.insert
+local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 
-local core, behaviorLib = rampage.core, rampage.behaviorLib
+local core, behaviorLib, shopping = rampage.core, rampage.behaviorLib, rampage.shopping
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_IronBuckler" }
---Kun 3 health potionia invussa ja rahaa tarpeeksi
---Marchersien jälkee pitäis myydä 1 minori
---Ostetaan ring of teacher
---2x punch daggeria
-behaviorLib.LaneItems = { "Item_Marchers", "Item_HealthPotion" }
-behaviorLib.MidItems = {}
 
-rampage.bReportBehavior = true
-rampage.bDebugUtility = true
+--rampage.bReportBehavior = true
+--rampage.bDebugUtility = true
+
+local function PreGameItems()
+  for _, item in ipairs(behaviorLib.StartingItems) do
+    tremove(behaviorLib.StartingItems, 1)
+    return item
+  end
+end
+
+local function NumberStackableElements(items)
+  local count = 0
+  for _, item in ipairs(items) do
+    if item:GetRechargeable() then
+      count = count + item:GetCharges()
+    else
+      count = count + 1
+    end
+  end
+  return count
+end
+
+local function NumberInInventory(inventory, name)
+  local items = core.InventoryContains(inventory, name, false, true)
+  return max(core.NumberElements(items), NumberStackableElements(items))
+end
+
+local function HasBoots(inventory)
+  local boots = {
+    "Item_Marchers",
+    "Item_EnhancedMarchers",
+  }
+  for _, name in ipairs(boots) do
+    if NumberInInventory(inventory, name) > 0 then
+      return true
+    end
+  end
+  return false
+end
+
+function shopping.GetNextItemToBuy()
+  if HoN.GetMatchTime() <= 0 then
+    return PreGameItems()
+  end
+  local inventory = core.unitSelf:GetInventory(true)
+  if NumberInInventory(inventory, "Item_HealthPotion") < 3 then
+    return "Item_HealthPotion"
+  elseif not HasBoots(inventory) then
+    return "Item_Marchers"
+  elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
+    if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
+      return "Item_GuardianRing"
+    elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
+      return "Item_Scarab"
+    end
+  elseif NumberInInventory(inventory, "Item_EnhancedMarchers") <= 0 then
+    if NumberInInventory(inventory, "Item_Punchdagger") < 2 then
+      return "Item_Punchdagger"
+    end
+  end
+end
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -86,13 +140,13 @@ local function CustomHarassUtilityFnOverride(hero)
   if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
     core.BotEcho("POTUU")
 	return -10000
-  end 
+  end
 
 --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(hero:GetPosition(), 715) then
     return -10000
   end
-  
+
  -- local unitsNearby = core.AssessLocalUnits(rampage, hero:GetPosition(),500)
 --jos ei omia creeppejä 500 rangella, niin ei aggroa
  -- if core.NumberElements(unitsNearby.AllyCreeps) == 0 then
@@ -149,7 +203,7 @@ local function HarassHeroExecuteOverride(botBrain)
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
-  
+
 
   if core.CanSeeUnit(botBrain, unitTarget) then
 
@@ -167,7 +221,7 @@ local function HarassHeroExecuteOverride(botBrain)
         end
 
       end
-	  --ulti 
+	  --ulti
       if abilUltimate:CanActivate() and unitTarget:GetHealth() < 400 then
         local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
@@ -191,13 +245,13 @@ local function UltimateBehaviorUtility(botBrain)
   if unitTarget then
 	if unitTarget:HasState("State_Rampage_Ability4") and time < rampage.ultitime + 2350 then
 	  return 99999
-	end 
+	end
   end
   return 0
 end
 
 local function UltimateBehaviorExecute(botBrain)
-  local bActionTaken = core.OrderMoveToPosClamp(botBrain, core.unitSelf, core.GetClosestAllyTower(core.unitSelf:GetPosition(), nMaxDist):GetPosition(), false, false) 
+  local bActionTaken = core.OrderMoveToPosClamp(botBrain, core.unitSelf, core.GetClosestAllyTower(core.unitSelf:GetPosition(), nMaxDist):GetPosition(), false, false)
   return bActionTaken
 end
 
@@ -211,8 +265,8 @@ local function ChargeBehaviorUtility(botBrain)
   local unitSelf = core.unitSelf
   if unitSelf:HasState("State_Rampage_Ability1_Sight") or unitSelf:HasState("State_Rampage_Ability1_Warp") or unitSelf:HasState("State_Rampage_Ability1_Timer") then
     return 99999
-  end 
-  
+  end
+
   return 0
 end
 
@@ -227,7 +281,7 @@ ChargeBehavior["Name"] = "PESSI CHARGETTU"
 tinsert(behaviorLib.tBehaviors, ChargeBehavior)
 
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
-	--Roughly 20+ when we are down 400 hp 
+	--Roughly 20+ when we are down 400 hp
 	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
 	if nHealthMissing > 375 then
 	  return 100
