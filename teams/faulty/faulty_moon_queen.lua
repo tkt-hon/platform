@@ -11,8 +11,8 @@ local BotEcho = core.BotEcho
 
 BotEcho("loading faulty_moon_queen.lua")
 
-behaviorLib.StartingItems = { "Item_Bottle", "Item_MinorTotem 2" }
-behaviorLib.LaneItems = { "Item_Soulscream", "Item_Marchers", "Item_Soulscream 3" }
+behaviorLib.StartingItems = { "Item_Bottle" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Soulscream 3" }
 behaviorLib.MidItems = { "Item_PostHaste" }
 behaviorLib.LateItems = { "Item_Evasion", "Item_Intelligence7" }
 
@@ -24,10 +24,10 @@ behaviorLib.LateItems = { "Item_Evasion", "Item_Intelligence7" }
 -- 3 = R(Moon Finale)
 -- 4 = Attribute boost
 moonqueen.tSkills = {
-  0, 4, 0, 4, 0,
-  3, 0, 2, 2, 2,
-  3, 2, 1, 1, 1,
-  3, 1, 4, 4, 4,
+  0, 4, 3, 4, 0,
+  3, 3, 0, 0, 2,
+  2, 2, 4, 4, 4,
+  2, 4, 4, 4, 4,
   4, 4, 4, 4, 4,
 }
 
@@ -93,17 +93,17 @@ moonqueen.oncombatevent = moonqueen.oncombateventOverride
 -- Execute: Just executes the action from moonqueen.doHarass array
 
 -- Base skill usable bonuses
-local nNukeUp     = 50
-local nBounceUp   = 40
-local nUltimateUp = 65
+local nNukeUp     = 10
+local nBounceUp   = 0 -- do no use for nao
+local nUltimateUp = 30
 
 -- Creep count modifiers
-local nNukeCreepMod     = 1
-local nBounceCreepMod   = 8
-local nUltimateCreepMod = -5
+local nNukeCreepMod     = 0
+local nBounceCreepMod   = 0
+local nUltimateCreepMod = -10 -- this is if greater than 2
 
 -- level bonus for the skill
-local nSkillLevelBonus = 2
+local nSkillLevelBonus = 10
 
 -- negative mana mod, if 0 mana, -10
 local nManaMod = 10
@@ -153,20 +153,22 @@ local function CustomHarassUtilityFnOverride(hero)
 	local unitSelf = core.unitSelf
 
 	local heroPos = hero:GetPosition()
+	local selfPos = unitSelf:GetPosition()
 
 	local ultimateVal = 0
 	local nukeVal     = 0
 	local bounceVal   = 0
 
 	local canSee = core.CanSeeUnit(moonqueen, hero)
-	local targetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), heroPos)
-	local ultimateRangeSq  = skills.abilUltimate:GetRange() * skills.abilUltimate:GetRange()
+	local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
 	local nukeRangeSq      = skills.abilNuke:GetRange() * skills.abilNuke:GetRange()
-	local bounceRangeSq    = skills.abilBounce:GetRange() * skills.abilBounce:GetRange()
 
-	if skills.abilUltimate:CanActivate() and canSee and targetDistanceSq < ultimateRangeSq then
-		local creeps = NearbyCreepCountUtility(moonqueen, heropos, 700)
-		ultimateVal = nUltimateUp + creeps * nUltimateCreepMod
+	if skills.abilUltimate:CanActivate() and targetDistanceSq < (700 * 700) then
+		local creeps = NearbyCreepCountUtility(moonqueen, selfPos, 700)
+		ultimateVal = nUltimateUp
+		if creeps > 2 then
+			ultimateVal = ultimateVal + creeps * nUltimateCreepMod
+		end
 		ultimateVal = ultimateVal + skills.abilUltimate:GetLevel() * nSkillLevelBonus
 	end
 
@@ -176,10 +178,14 @@ local function CustomHarassUtilityFnOverride(hero)
 		nukeVal = nukeVal + skills.abilNuke:GetLevel() * nSkillLevelBonus
 	end
 
-	if skills.abilBounce:CanActivate() and canSee and targetDistanceSq < bounceRangeSq then
-		local creeps = NearbyCreepCountUtility(moonqueen, heropos, 500)
-		bounceVal = nBounceUp + creeps * nBounceCreepMod
-		bounceVal = bounceVal + skills.abilBounce:GetLevel() * nSkillLevelBonus
+	--if skills.abilBounce:CanActivate() then
+	--	local creeps = NearbyCreepCountUtility(moonqueen, heropos, 500)
+	--	bounceVal = nBounceUp + creeps * nBounceCreepMod
+	--	bounceVal = bounceVal + skills.abilBounce:GetLevel() * nSkillLevelBonus
+	--end
+
+	if ultimateVal == 0 and nukeVal == 0 and bounceVal == 0 then
+		return 0
 	end
 
 	local doUltimate = false
@@ -220,6 +226,8 @@ local function CustomHarassUtilityFnOverride(hero)
 		ret = bounceVal
 	end
 
+	BotEcho(format("  CustomHarassUtil: nuke: %g, bounce: %g, ultimate: %g", nukeVal, bounceVal, ultimateVal))
+
 	return ret - ((1 - unitSelf:GetManaPercent()) * nManaMod)
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
@@ -256,8 +264,8 @@ local function HarassHeroExecuteOverride(botBrain)
 	]]--
 
 	local unitTarget = moonqueen.doHarass["target"]
-	if unitTarget == nil then
-		BotEcho("  HarassHeroExecute: INVALID TARGET!")
+	local skill = moonqueen.doHarass["skill"]
+	if unitTarget == nil or skill == nil or not skill:CanActivate() then
 		return moonqueen.harassExecuteOld(botBrain)
 	end
 
@@ -266,15 +274,22 @@ local function HarassHeroExecuteOverride(botBrain)
 	local targetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
 	local bActionTaken = false
 
-	if core.CanSeeUnit(botBrain, unitTarget) then
-		local skill = moonqueen.doHarass["skill"]
-		if skill:CanActivate() then
+	if skill:GetName() == "Ability_Krixi1" then
+		if core.CanSeeUnit(botBrain, unitTarget) then
 			local range = skill:GetRange()
 			if targetDistanceSq < (range * range) then
 				BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
 				bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
 			end
 		end
+	elseif skill:GetName() == "Ability_Krixi2" then
+		BotEcho(format("  HarassHeroExecute with %s (true)", skill:GetName()))
+		bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
+	elseif skill:GetName() == "Ability_Krixi4" then
+		BotEcho(format("  HarassHeroExecute with %s (true)", skill:GetName()))
+		bActionTaken = core.OrderAbility(botBrain, skill)
+	else
+		BotEcho(format("  HarassHeroExecute: INVALID SKILL %s", skill:GetName()))
 	end
 
 	if not bActionTaken then
@@ -336,8 +351,10 @@ moonqueen.doHeal = {}
 --moonqueen.doHeal["item"]   = nil
 
 local healThreshold = 0.7 -- heals when health below this %
-local healVar = 45        -- just some magic value
+local healVar = 40        -- just some magic value
                           -- higher it is, more likely to heal
+local manaThreshold = 0.5
+local manaVar = 20
 
 function behaviorLib.HealUtility(botBrain)
 	moonqueen.doHeal = {} -- reset
@@ -354,15 +371,19 @@ function behaviorLib.HealUtility(botBrain)
 		local unitSelf = core.unitSelf
 		local healthPercent = unitSelf:GetHealthPercent()
 		local healthLow = (healthPercent < healThreshold)
+		local manaPercent = unitSelf:GetManaPercent()
+		local manaLow = (manaPercent < manaThreshold)
 
 		if healthLow then
 			moonqueen.doHeal["target"] = unitSelf
 			moonqueen.doHeal["item"]   = itemBottle
 			local ret = (1 - healthPercent) * healVar
+			if manaLow then
+				ret = ret + (1 - manaPercent) * manaVar
+			end
 			BotEcho(format("  HealUtility: %g", ret))
 			return ret
 		end
-
 	end
 
 	return 0
