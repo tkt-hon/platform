@@ -2,25 +2,124 @@ local _G = getfenv(0)
 local plaguerider = _G.object
 local nuketime = HoN.GetMatchTime()
 
+local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
+
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/plague_lasthit.lua'
 
+runfile 'bots/teams/temaNoHelp/lib/courier.lua'
+runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 
-local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
+local core, behaviorLib, shopping, courier = plaguerider.core, plaguerider.behaviorLib, plaguerider.shopping, plaguerider.courier
 
 behaviorLib.StartingItems = { "Item_HealthPotion", "Item_RunesOfTheBlight", "Item_MinorTotem",  "Item_TrinketOfRestoration"}
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 
-plaguerider.bReportBehavior = true
-plaguerider.bDebugUtility = true
+local function PreGameItems()
+  for _, item in ipairs(behaviorLib.StartingItems) do
+    tremove(behaviorLib.StartingItems, 1)
+    return item
+  end
+end
 
-plaguerider.skills = {}
-local skills = plaguerider.skills
+local function NumberInInventory(inventory, name)
+  return shopping.NumberStackableElements(core.InventoryContains(inventory, name, false, true)) + shopping.NumberStackableElements(courier.CourierContains(name))
+end
 
-local tinsert = _G.table.insert
+local function HasBoots(inventory)
+  local boots = {
+    "Item_Marchers",
+    "Item_Steamboots",
+  }
+  for _, name in ipairs(boots) do
+    if NumberInInventory(inventory, name) > 0 then
+      return true
+    end
+  end
+  return false
+end
+
+function shopping.GetNextItemToBuy()
+  if HoN.GetMatchTime() <= 0 then
+    return PreGameItems()
+  end
+  local inventory = core.unitSelf:GetInventory(true)
+  if NumberInInventory(inventory, "Item_HealthPotion") < 3 then
+    return "Item_HealthPotion"
+  elseif not HasBoots(inventory) then
+    return "Item_Marchers"
+  elseif NumberInInventory(inventory, "Item_MysticVestments") <= 0 then
+    return "Item_MysticVestments"
+  elseif NumberInInventory(inventory, "Item_Steamboots") <= 0 then
+    if NumberInInventory(inventory, "Item_BlessedArmband") <= 0 then
+      return "Item_BlessedArmband"
+    elseif NumberInInventory(inventory, "Item_GlovesOfHaste") <= 0 then
+      return "Item_GlovesOfHaste"
+    end
+  elseif NumberInInventory(inventory, "Item_MagicArmor2") <= 0 then
+    if NumberInInventory(inventory, "Item_HelmOfTheVictim") <= 0 then
+      return "Item_HelmOfTheVictim"
+    elseif NumberInInventory(inventory, "Item_TrinketOfRestoration") < 2 then
+      return "Item_TrinketOfRestoration"
+    end
+  end
+end
+
+local function ItemToSell()
+  local inventory = core.unitSelf:GetInventory()
+  local prioList = {
+    "Item_RunesOfTheBlight",
+    "Item_MinorTotem"
+  }
+  for _, name in ipairs(prioList) do
+    local item = core.InventoryContains(inventory, name)
+    if core.NumberElements(item) > 0 then
+      return item[1]
+    end
+  end
+  return nil
+end
+
+local function ItemCombines(inventory, item)
+  if item == "Item_Scarab" then
+    return true
+  elseif item == "Item_GlovesOfHaste" then
+    return true
+  end
+  return false
+end
+
+local function GetSpaceNeeded(inventoryHero, inventoryCourier)
+  local count = core.NumberElements(inventoryCourier) - (6 - core.NumberElements(inventoryHero))
+  for i = 1, 6, 1 do
+    local item = inventoryCourier[i]
+    if item then
+      local name = item:GetName()
+      local heroHas = core.InventoryContains(inventoryHero, name)
+      if core.NumberElements(heroHas) > 0 and item:GetRechargeable() or ItemCombines(inventoryHero, name) then
+        count = count - 1
+      end
+    end
+  end
+  return max(count, 0)
+end
+
+local function SellItems()
+  if courier.HasCourier() then
+    local unitSelf = core.unitSelf
+    local unitCourier = courier.unitCourier
+    if Vector3.Distance2DSq(unitSelf:GetPosition(), unitCourier:GetPosition()) < 300*300 then
+      local spaceNeeded = GetSpaceNeeded(unitSelf:GetInventory(), unitCourier:GetInventory())
+      for i = 1, spaceNeeded, 1 do
+        local itemTosell = ItemToSell()
+        if itemTosell then
+          unitSelf:Sell(itemTosell)
+        end
+      end
+    end
+  end
+end
 
 plaguerider.skills = {}
 local skills = plaguerider.skills
@@ -54,14 +153,14 @@ local function CustomHarassUtilityFnOverride(hero)
   --jos potu käytössä niin ei agroilla
   if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
     core.BotEcho("POTUU")
-	return -10000
-  end 
+    return -10000
+  end
 
---jos tornin rangella ni ei mennä
+  --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(hero:GetPosition(), 715) then
     return -10000
   end
-  
+
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 30
     local damages = {50,100,125,175}
@@ -109,7 +208,7 @@ local function DenyBehaviorUtility(botBrain)
   local myPos = unitSelf:GetPosition()
   local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
 
---jos tornin rangella ni ei mennä
+  --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) then
     return -10000
   end
@@ -185,7 +284,7 @@ UltiBehavior["Name"] = "Ulti to the creeps like a baus"
 tinsert(behaviorLib.tBehaviors, UltiBehavior)
 
 
-local function HarassHeroExecuteOverride(botBrain)  
+local function HarassHeroExecuteOverride(botBrain)
   local time = HoN.GetMatchTime()
   core.BotEcho("time: "..tostring(time))
   core.BotEcho("nuketime: "..tostring(nuketime))
@@ -203,15 +302,15 @@ local function HarassHeroExecuteOverride(botBrain)
   if core.CanSeeUnit(botBrain, unitTarget) then
     local abilNuke = skills.abilNuke
     if skills.abilUltimate:CanActivate() and unitTarget:GetHealth() < 200 then
-	  local nRange = skills.abilUltimate:GetRange()
+      local nRange = skills.abilUltimate:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, skills.abilUltimate, unitTarget)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
-  
---mätetään nukeja ennen nelosleveliä koko ajan 
+
+    --mätetään nukeja ennen nelosleveliä koko ajan
     if abilNuke:CanActivate() and not core.GetClosestEnemyTower(unitSelf:GetPosition(), 701) and core.unitSelf:GetLevel() < 4 then
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
@@ -221,32 +320,32 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
---pyritään säästelemään manaa kolmoslevelin jälkeen kuitenkin jos tappoon mahollisuus niin go
-    
+    --pyritään säästelemään manaa kolmoslevelin jälkeen kuitenkin jos tappoon mahollisuus niin go
+
 
     if abilNuke:CanActivate() and not core.GetClosestEnemyTower(unitSelf:GetPosition(), 701) and core.unitSelf:GetMana() > 150 and core.unitSelf:GetLevel() > 3 then
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-	    nuketime = HoN.GetMatchTime()
+        nuketime = HoN.GetMatchTime()
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
-	if time > nuketime + 15000 then
+    if time > nuketime + 15000 then
       local nuke = skills.abilNuke
-  	  local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
-	  if unitsLocal ~= nil then
-  	    local enemies = unitsLocal.EnemyCreeps
+      local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
+      if unitsLocal ~= nil then
+        local enemies = unitsLocal.EnemyCreeps
         local target = nil
         for _, unit in pairs(enemies) do
           target = unit
-		  if target:GetHealth() > 200 then
+          if target:GetHealth() > 200 then
             nuketime = HoN.GetMatchTime()
             return core.OrderAbilityEntity(botBrain, nuke, target)
           end
-        end        
-	  end
+        end
+      end
     end
 
   end
@@ -259,6 +358,21 @@ plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 ------------------------------NUKE & ULT SKILL END----------------------------------------------------------
 
+------------------------------------------------------
+--            onthink override                      --
+-- Called every bot tick, custom onthink code here  --
+------------------------------------------------------
+-- @param: tGameVariables
+-- @return: none
+function plaguerider:onthinkOverride(tGameVariables)
+  self:onthinkOld(tGameVariables)
+
+  SellItems()
+  -- custom code here
+end
+plaguerider.onthinkOld = plaguerider.onthink
+plaguerider.onthink = plaguerider.onthinkOverride
+
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
@@ -268,18 +382,18 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 function plaguerider:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
-local nAddBonus = 0
+  local nAddBonus = 0
 
-    if EventData.Type == "Ability" then
-        if EventData.InflictorName == "Ability_DiseasedRider4" then
-            nAddBonus = nAddBonus + 100
-        end
-	end
-
-   if nAddBonus > 0 then
-        core.DecayBonus(self)
-        core.nHarassBonus = core.nHarassBonus + nAddBonus
+  if EventData.Type == "Ability" then
+    if EventData.InflictorName == "Ability_DiseasedRider4" then
+      nAddBonus = nAddBonus + 100
     end
+  end
+
+  if nAddBonus > 0 then
+    core.DecayBonus(self)
+    core.nHarassBonus = core.nHarassBonus + nAddBonus
+  end
   -- custom code here
 end
 -- override combat event trigger function.
@@ -292,7 +406,7 @@ local function RetreatFromThreatUtilityOverride(botBrain)
   if unitTarget ~= nil then
     if core.unitSelf:GetHealth() + 50 < unitTarget:GetHealth() then
       return 10000
-    end 
+    end
   end
 
   if core.GetClosestEnemyTower(selfPosition, 715) then
@@ -302,6 +416,3 @@ local function RetreatFromThreatUtilityOverride(botBrain)
   return behaviorLib.RetreatFromThreatUtility(botBrain)
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
-
-
-

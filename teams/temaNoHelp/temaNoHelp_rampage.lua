@@ -21,20 +21,8 @@ local function PreGameItems()
   end
 end
 
-local function NumberStackableElements(items)
-  local count = 0
-  for _, item in ipairs(items) do
-    if item:GetRechargeable() then
-      count = count + item:GetCharges()
-    else
-      count = count + 1
-    end
-  end
-  return count
-end
-
 local function NumberInInventory(inventory, name)
-  return NumberStackableElements(core.InventoryContains(inventory, name, false, true)) + NumberStackableElements(rampage.courier.CourierContains(name))
+  return shopping.NumberStackableElements(core.InventoryContains(inventory, name, false, true)) + shopping.NumberStackableElements(rampage.courier.CourierContains(name))
 end
 
 local function HasBoots(inventory)
@@ -364,5 +352,4 @@ function behaviorLib.PositionSelfExecute(botBrain)
     return false
   end
 end
-
 behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute

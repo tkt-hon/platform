@@ -14,6 +14,18 @@ local function NeverUtility(botBrain)
 end
 behaviorLib.ShopBehavior["Utility"] = NeverUtility
 
+function shopping.NumberStackableElements(items)
+  local count = 0
+  for _, item in ipairs(items) do
+    if item:GetRechargeable() then
+      count = count + item:GetCharges()
+    else
+      count = count + 1
+    end
+  end
+  return count
+end
+
 function shopping.GetNextItemToBuy()
   return shopping.itemList[1] or "Item_HomecomingStone"
 end
