@@ -7,9 +7,18 @@ rampage.heroName = "Hero_Rampage"
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
+runfile 'bots/teams/temaNoHelp/rampage_lasthit.lua'
 
 local core, behaviorLib, shopping = rampage.core, rampage.behaviorLib, rampage.shopping
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_IronBuckler" }
+
+--Kun 3 health potionia invussa ja rahaa tarpeeksi
+--Marchersien jälkee pitäis myydä 1 minori
+--Ostetaan ring of teacher
+--2x punch daggeria
+behaviorLib.LaneItems = { "Item_Marchers", "Item_HealthPotion", "Item_Punchdagger", "Item_Punchdagger" }
+behaviorLib.MidItems = {}
+
 
 --rampage.bReportBehavior = true
 --rampage.bDebugUtility = true

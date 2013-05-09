@@ -4,6 +4,7 @@ local nuketime = HoN.GetMatchTime()
 
 local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
 
+
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
@@ -413,6 +414,7 @@ function plaguerider:oncombateventOverride(EventData)
     core.DecayBonus(self)
     core.nHarassBonus = core.nHarassBonus + nAddBonus
   end
+
   -- custom code here
 end
 -- override combat event trigger function.
@@ -464,4 +466,3 @@ function behaviorLib.HealthPotUtilFn(nHealthMissing)
 	end
 	return 0
 end
-

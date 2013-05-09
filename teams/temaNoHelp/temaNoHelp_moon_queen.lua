@@ -8,10 +8,14 @@ moonqueen.heroName = "Hero_Krixi"
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
+runfile 'bots/teams/temaNoHelp/mq_lasthit.lua'
+runfile 'bots/teams/temaNoHelp/mq_position.lua'
 
 local core, behaviorLib, shopping, courier = moonqueen.core, moonqueen.behaviorLib, moonqueen.shopping, moonqueen.courier
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_GuardianRing", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem" }
+local ultDuration = HoN.GetMatchTime()-500
+
+behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_IronBuckler", "Item_RunesOfTheBlight", "Item_HealthPotion"}
 
 local function PreGameItems()
   for _, item in ipairs(behaviorLib.StartingItems) do
@@ -45,7 +49,9 @@ function shopping.GetNextItemToBuy()
   if NumberInInventory(inventory, "Item_HealthPotion") < 3 then
     return "Item_HealthPotion"
   elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
-    if NumberInInventory(inventory, "Item_Scarab") <= 0 then
+    if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
+      return "Item_GuardianRing"
+    elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
       return "Item_Scarab"
     end
   elseif not HasBoots(inventory) then
@@ -128,18 +134,20 @@ end
 
 behaviorLib.pushingStrUtilMul = 1
 
+moonqueen.bReportBehavior = true
+moonqueen.bDebugUtility = true
+
 moonqueen.skills = {}
 local skills = moonqueen.skills
 
-core.itemGeoBane = nil
-
 moonqueen.tSkills = {
-  1, 0, 1, 0, 1,
-  3, 1, 0, 0, 2,
+  4, 0, 0, 4, 0,
+  3, 0, 4, 0, 4,
+  3, 1, 1, 1, 2,
   3, 2, 2, 2, 4,
-  3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
+
 
 function moonqueen:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
@@ -152,30 +160,20 @@ function moonqueen:SkillBuildOverride()
   end
   self:SkillBuildOld()
 end
+
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   SellItems()
   -- custom code here
 end
+
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
 
-----------------------------------------------
---            oncombatevent override        --
--- use to check for infilictors (fe. buffs) --
-----------------------------------------------
--- @param: eventdata
--- @return: none
 function moonqueen:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
@@ -204,3 +202,121 @@ function behaviorLib.PositionSelfExecute(botBrain)
   end
 end
 behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
+
+local function NearbyCreepCount(botBrain, center, radius)
+  local count = 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+  local enemies = unitsLocal.EnemyCreeps
+
+  for _,unit in pairs(enemies) do
+    count = count + 1
+  end
+  return count
+end
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 10
+  local time = HoN.GetMatchTime()
+  local counter = HoN.GetMatchTime()-ultDuration
+  --core.BotEcho(tostring(counter))
+
+  
+  --jos tornin rangella ni ei mennä
+  if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 950) then
+    return -1000
+  end
+
+  if counter < 20000 then  
+  core.BotEcho("MANUP SAATANA")
+    return 200
+  end
+
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 20
+  end
+
+  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
+
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
+    nUtil = nUtil + 300
+  end
+
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken and nLastHarassUtility > 50 then
+      if abilUltimate:CanActivate() and unitSelf:GetMana() > 149 then
+        local nRange = 600
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+          ultDuration = HoN.GetMatchTime()
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+
+    local abilNuke = skills.abilNuke
+    if abilNuke:CanActivate() and core.unitSelf:GetLevel() > 2 then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
+end
+moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+
+local function RetreatFromThreatUtilityOverride(botBrain)
+
+  local selfPosition = core.unitSelf:GetPosition()
+
+  if core.GetClosestEnemyTower(selfPosition, 950) then
+    core.BotEcho("APUA PERKELE")
+    return 10000
+  end
+
+  return behaviorLib.RetreatFromThreatUtility(botBrain)
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
+
+local function DPSPushingUtilityOverride(myHero)
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3
+  return moonqueen.DPSPushingUtilityOld(myHero) * modifier
+end
+moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
+behaviorLib.DPSPushingUtility = DPSPushingUtilityOverride
+
+function behaviorLib.HealthPotUtilFn(nHealthMissing)
+	--Roughly 20+ when we are down 400 hp
+	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+	if nHealthMissing > 250 then
+	  return 100
+	end
+	return 0
+end
