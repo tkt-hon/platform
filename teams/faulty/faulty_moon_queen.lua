@@ -196,15 +196,22 @@ core.FindItems = funcFindItemsOverride
 
 
 --------------------------------------------------------------------------------
--- HEAL BEHAVIOR
+-- HEAL BEHAVIOR - Currently only heals self
 --
+-- Utility: 0 if health greater than healThreshold value, or item unusable
+--          (1 - healthPercent) * healVar else:
+--             e.g. assume healVar is 45, and health at given percent
+--               0.7: 13.5
+--               0.5: 22.5
+--               0.3: 31.5
+--               0.2: 36
 moonqueen.doHeal = {}
 --moonqueen.doHeal["target"] = nil
 --moonqueen.doHeal["skill"]  = nil
 --moonqueen.doHeal["item"]   = nil
 
 local healThreshold = 0.7 -- heals when health below this %
-local healVar = 50        -- just some magic value
+local healVar = 45        -- just some magic value
                           -- higher it is, more likely to heal
 
 function behaviorLib.HealUtility(botBrain)
