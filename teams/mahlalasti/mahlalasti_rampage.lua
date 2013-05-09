@@ -10,10 +10,10 @@ local core, behaviorLib = rampage.core, rampage.behaviorLib
 local BotEcho = core.BotEcho
 
 local tinsert = _G.table.insert
-
+-- muutettu itemeitä lanelle, defaultin manabattery ei ehkä optimi kun ei ole castereita vastassa
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
-behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
+behaviorLib.LaneItems = {"Item_Lifetube", "Item_Marchers", "Item_Scarab" }
+behaviorLib.MidItems = { "Item_GhostMarchers", "Item_Shield2"}
 behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 local CHARGE_NONE, CHARGE_STARTED, CHARGE_TIMER, CHARGE_WARP = 0, 1, 2, 3
@@ -24,11 +24,12 @@ rampage.skills = {}
 local skills = rampage.skills
 
 -- Tarkka Skill Up -järjestys
--- Laitettu kokeeksi toinen buildi, ei tunnu olevan merkittävää vaikutusta ainakaan parempaan
+-- Sama buildi kun defaultilla atm
 rampage.tSkills = {
-  2, 0, 1, 1, 2,
-3, 1, 1, 2, 2,
-2, 3, 4, 4, 4,
+1, 2, 1, 0, 1,
+3, 1, 2, 2, 2,
+3, 0, 0, 0, 4, 
+3, 4, 4, 4, 4,
 4, 4, 4, 4, 4
 }
 function rampage:SkillBuildOverride()
