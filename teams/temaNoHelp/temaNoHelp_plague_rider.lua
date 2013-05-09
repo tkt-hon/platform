@@ -63,7 +63,26 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_TrinketOfRestoration") < 2 then
       return "Item_TrinketOfRestoration"
     end
+  elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
+    if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
+      return "Item_TrinketOfRestoration"
+    elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
+      return "Item_HungrySpirit"
+    elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
+      if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
+        return "Item_GuardianRing"
+      elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
+        return "Item_Scarab"
+      end
+    else
+      return "Item_LifeSteal5"
+    end
+  elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
+    return "Item_SolsBulwark"
+  elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+    return "Item_DaemonicBreastplate"
   end
+  
 end
 
 local function ItemToSell()
@@ -416,3 +435,33 @@ local function RetreatFromThreatUtilityOverride(botBrain)
   return behaviorLib.RetreatFromThreatUtility(botBrain)
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
+
+function behaviorLib.PositionSelfExecute(botBrain)
+  local unitSelf = core.unitSelf
+  local vecMyPosition = unitSelf:GetPosition()
+
+  if core.unitSelf:IsChanneling() then
+    return
+  end
+
+  local vecDesiredPos = vecMyPosition
+  vecDesiredPos, _ = behaviorLib.PositionSelfLogic(botBrain)
+
+  if vecDesiredPos then
+    return behaviorLib.MoveExecute(botBrain, vecDesiredPos)
+  else
+    BotEcho("PositionSelfExecute - nil desired position")
+    return false
+  end
+end
+behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
+
+function behaviorLib.HealthPotUtilFn(nHealthMissing)
+	--Roughly 20+ when we are down 400 hp
+	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+	if nHealthMissing > 300 then
+	  return 100
+	end
+	return 0
+end
+

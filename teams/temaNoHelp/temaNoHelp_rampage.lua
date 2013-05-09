@@ -58,7 +58,13 @@ function shopping.GetNextItemToBuy()
       return "Item_Punchdagger"
     end
   elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
-    return "Item_LifeSteal5"
+    if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
+      return "Item_TrinketOfRestoration"
+    elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
+      return "Item_HungrySpirit"
+    else
+      return "Item_LifeSteal5"
+    end
   elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
     return "Item_SolsBulwark"
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
@@ -335,7 +341,7 @@ tinsert(behaviorLib.tBehaviors, ChargeBehavior)
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
 	--Roughly 20+ when we are down 400 hp
 	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
-	if nHealthMissing > 375 then
+	if nHealthMissing > 350 then
 	  return 100
 	end
 	return 0

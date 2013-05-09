@@ -56,6 +56,18 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_GlovesOfHaste") <= 0 then
       return "Item_GlovesOfHaste"
     end
+    elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
+    if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
+      return "Item_TrinketOfRestoration"
+    elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
+      return "Item_HungrySpirit"
+    else
+      return "Item_LifeSteal5"
+    end
+  elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
+    return "Item_SolsBulwark"
+  elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+    return "Item_DaemonicBreastplate"
   end
 end
 
