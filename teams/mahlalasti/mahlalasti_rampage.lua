@@ -91,11 +91,15 @@ rampage.oncombateventOld = rampage.oncombatevent
 rampage.oncombatevent = rampage.oncombateventOverride
 
 local function CustomHarassUtilityFnOverride(hero)
+  local unitSelf = core.unitSelf
   local nUtil = 0
-  local AllyTower = core.GetClosestAllyTower(hero:GetPosition(), 600)
+  -- Onko vihu oman tornin rangella (ts. löytyykö 600 unitin radiukselta vihun ympärillä allyTower)
+  local EnemyInsideAlliedTowerRange = core.GetClosestAllyTower(hero:GetPosition(), 600)
+  -- Ollaanko itse vihollistornin rangella
+  local SelfInsideEnemyTowerRange = core.GetClosestEnemyTower(unitSelf:GetPosition(),600)
 
-  if AllyTower then 
-    nUtil = nUtil + 65
+  if EnemyInsideAlliedTowerRange then 
+   nUtil = nUtil + 75
   end
   
   if skills.abilBash:IsReady() then
@@ -109,6 +113,10 @@ local function CustomHarassUtilityFnOverride(hero)
   if skills.abilUltimate:CanActivate() then
     nUtil = nUtil + 50
   end
+
+  if SelfInsideEnemyTowerRange then
+    nUtil = nUtil - 55
+  end  
 
   return nUtil
 end
