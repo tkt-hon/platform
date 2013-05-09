@@ -5,8 +5,6 @@ local tinsert, tremove = _G.table.insert, _G.table.remove
 
 herobot.courier = herobot.courier or {}
 
-local skills = {}
-
 local core, courier = herobot.core, herobot.courier
 
 function courier.HasCourier()
@@ -18,8 +16,6 @@ function courier.HasCourier()
     for key, unit in pairs(allUnits) do
       if unit:GetTeam() == core.myTeam and core.IsCourier(unit) and unit:IsValid() then
         courier.unitCourier = unit
-        skills.abilDeliver = unit:GetAbility(2)
-        skills.abilReturn = unit:GetAbility(3)
         return true
       end
     end
@@ -61,15 +57,61 @@ local function MoveItems()
   end
 end
 
+local function CourierFlys(unitCourier)
+  return unitCourier:GetTypeName() == "Pet_FlyngCourier"
+end
+
+local function Danger(unitCourier)
+  local vecCourier = unitCourier:GetPosition()
+  local sortedUnits = {}
+  local buildings = HoN.GetUnitsInRadius(vecCourier, 1000, core.UNIT_MASK_ALIVE + core.UNIT_MASK_BUILDING)
+  local heroes = HoN.GetUnitsInRadius(vecCourier, 1000, core.UNIT_MASK_ALIVE + core.UNIT_MASK_HERO)
+  sortedUnits = core.SortUnitsAndBuildings(buildings, sortedUnits)
+  sortedUnits = core.SortUnitsAndBuildings(heroes, sortedUnits)
+  return core.NumberElements(sortedUnits.enemyHeroes) + core.NumberElements(sortedUnits.enemyTowers) > 0
+end
+
 local function DeliverItems()
   local unitCourier = courier.unitCourier
+  local abilDeliver = unitCourier:GetAbility(2)
+  local abilReturn = unitCourier:GetAbility(3)
   if unitCourier:GetStashAccess() and ItemsInStash() then
     MoveItems()
   end
+  local ItemsInCourier = core.NumberElements(unitCourier:GetInventory()) > 0
+  if unitCourier:GetStashAccess() and not ItemsInCourier then
+    return
+  end
   local beha = unitCourier:GetBehavior()
   if not beha or beha:GetType() == "Guard" then
-    core.OrderAbility(herobot, skills.abilDeliver)
-    core.OrderAbility(herobot, skills.abilReturn, true, true)
+    if unitCourier:GetStashAccess() then
+      core.OrderAbility(herobot, abilDeliver)
+    else
+      core.OrderAbility(herobot, abilReturn, true, true)
+    end
+  elseif CourierFlys(unitCourier) then
+    local abilSpeed = unitCourier:GetAbility(0)
+    local abilShield = unitCourier:GetAbility(1)
+    if abilSpeed:CanActivate() then
+      core.OrderAbility(herobot, abilSpeed)
+    elseif abilShield:CanActivate() and Danger(unitCourier) then
+      core.OrderAbility(herobot, abilShield)
+    end
+  elseif Danger(unitCourier) then
+    local closestTower = core.GetClosestAllyTower(unitCourier:GetPosition(), 2000)
+    core.OrderMoveToPosAndHoldClamp(herobot, unitCourier, closestTower:GetPosition())
+  end
+end
+
+local function UpgradeCourier()
+  local unitCourier = courier.unitCourier
+  if not CourierFlys(unitCourier) then
+    if HoN.GetMatchTime() > 0 then
+      local abilFly = unitCourier:GetAbility(0)
+      if herobot:GetGold() >= 200 then
+        core.OrderAbility(herobot, abilFly)
+      end
+    end
   end
 end
 
@@ -78,6 +120,7 @@ function herobot:onthink(tGameVariables)
   onthinkOld(self, tGameVariables)
 
   if courier.HasCourier() then
+    UpgradeCourier()
     DeliverItems()
   end
 end

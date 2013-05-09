@@ -203,37 +203,36 @@ local function CustomHarassUtilityFnOverride(hero)
   local time = HoN.GetMatchTime()
   local creepLane = core.GetFurthestCreepWavePos(core.tMyLane, core.bTraverseForward)
   local myPos = core.unitSelf:GetPosition()
---jos potu käytössä niin ei agroilla
+  --jos potu käytössä niin ei agroilla
   if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
-    core.BotEcho("POTUU")
-	return -10000
+    return -10000
   end
 
---jos tornin rangella ni ei mennä
+  --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(hero:GetPosition(), 715) then
     return -10000
   end
 
- -- local unitsNearby = core.AssessLocalUnits(rampage, hero:GetPosition(),500)
---jos ei omia creeppejä 500 rangella, niin ei aggroa
- -- if core.NumberElements(unitsNearby.AllyCreeps) == 0 then
- --   return 0
---  end
+  -- local unitsNearby = core.AssessLocalUnits(rampage, hero:GetPosition(),500)
+  --jos ei omia creeppejä 500 rangella, niin ei aggroa
+  -- if core.NumberElements(unitsNearby.AllyCreeps) == 0 then
+  --   return 0
+  --  end
 
   if unitTarget and unitTarget:GetHealth() < 250 and core.unitSelf:GetHealth() > 400 then
     return 100
   end
 
---timeri päälle kun vihu stunnissa, että voidaan hakata autoattack
+  --timeri päälle kun vihu stunnissa, että voidaan hakata autoattack
   if unitTarget and unitTarget:IsStunned() then
-   stunDuration = time
+    stunDuration = time
   end
 
   if time - stunDuration < 1 then
     return 30
   end
 
--- Jos bash valmis niin aggro
+  -- Jos bash valmis niin aggro
   if skills.abilBash:IsReady() then
     return 70
   end
@@ -274,29 +273,29 @@ local function HarassHeroExecuteOverride(botBrain)
 
   if core.CanSeeUnit(botBrain, unitTarget) then
 
-      if unitTarget and unitTarget:GetHealth() < 250 then
-        --charge
-        if abilCharge:CanActivate() then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
-        end
-        --slowi
-        if abilSlow:CanActivate() then
+    if unitTarget and unitTarget:GetHealth() < 250 then
+      --charge
+      if abilCharge:CanActivate() then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
+      end
+      --slowi
+      if abilSlow:CanActivate() then
         local nRange = 300
-          if nTargetDistanceSq < (nRange * nRange) then
-            return core.OrderAbility(botBrain, abilSlow)
-          end
-        end
-
-      end
-	  --ulti
-      if abilUltimate:CanActivate() and unitTarget:GetHealth() < 400 then
-        local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-		  rampage.ultitime = HoN.GetMatchTime()
-		  rampage.ultitarget = unitTarget
+          return core.OrderAbility(botBrain, abilSlow)
         end
       end
+
+    end
+    --ulti
+    if abilUltimate:CanActivate() and unitTarget:GetHealth() < 400 then
+      local nRange = abilUltimate:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+        rampage.ultitime = HoN.GetMatchTime()
+        rampage.ultitarget = unitTarget
+      end
+    end
   end
 
   if not bActionTaken then
@@ -310,9 +309,9 @@ local function UltimateBehaviorUtility(botBrain)
   local unitTarget = rampage.ultitarget
   local time = HoN.GetMatchTime()
   if unitTarget then
-	if unitTarget:HasState("State_Rampage_Ability4") and time < rampage.ultitime + 2350 then
-	  return 99999
-	end
+    if unitTarget:HasState("State_Rampage_Ability4") and time < rampage.ultitime + 2350 then
+      return 99999
+    end
   end
   return 0
 end
@@ -348,12 +347,12 @@ ChargeBehavior["Name"] = "PESSI CHARGETTU"
 tinsert(behaviorLib.tBehaviors, ChargeBehavior)
 
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
-	--Roughly 20+ when we are down 400 hp
-	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
-	if nHealthMissing > 350 then
-	  return 100
-	end
-	return 0
+  --Roughly 20+ when we are down 400 hp
+  --  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+  if nHealthMissing > 350 then
+    return 100
+  end
+  return 0
 end
 
 function behaviorLib.PositionSelfExecute(botBrain)
@@ -370,7 +369,6 @@ function behaviorLib.PositionSelfExecute(botBrain)
   if vecDesiredPos then
     return behaviorLib.MoveExecute(botBrain, vecDesiredPos)
   else
-    BotEcho("PositionSelfExecute - nil desired position")
     return false
   end
 end

@@ -62,7 +62,7 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_GlovesOfHaste") <= 0 then
       return "Item_GlovesOfHaste"
     end
-    elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
+  elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
     if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
       return "Item_TrinketOfRestoration"
     elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
@@ -197,7 +197,6 @@ function behaviorLib.PositionSelfExecute(botBrain)
   if vecDesiredPos then
     return behaviorLib.MoveExecute(botBrain, vecDesiredPos)
   else
-    BotEcho("PositionSelfExecute - nil desired position")
     return false
   end
 end
@@ -218,16 +217,14 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 10
   local time = HoN.GetMatchTime()
   local counter = HoN.GetMatchTime()-ultDuration
-  --core.BotEcho(tostring(counter))
 
-  
+
   --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 950) then
     return -1000
   end
 
-  if counter < 20000 then  
-  core.BotEcho("MANUP SAATANA")
+  if counter < 20000 then
     return 200
   end
 
@@ -297,7 +294,6 @@ local function RetreatFromThreatUtilityOverride(botBrain)
   local selfPosition = core.unitSelf:GetPosition()
 
   if core.GetClosestEnemyTower(selfPosition, 950) then
-    core.BotEcho("APUA PERKELE")
     return 10000
   end
 
@@ -313,10 +309,10 @@ moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
 behaviorLib.DPSPushingUtility = DPSPushingUtilityOverride
 
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
-	--Roughly 20+ when we are down 400 hp
-	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
-	if nHealthMissing > 250 then
-	  return 100
-	end
-	return 0
+  --Roughly 20+ when we are down 400 hp
+  --  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+  if nHealthMissing > 250 then
+    return 100
+  end
+  return 0
 end

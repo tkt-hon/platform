@@ -83,7 +83,7 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
     return "Item_DaemonicBreastplate"
   end
-  
+
 end
 
 local function ItemToSell()
@@ -172,7 +172,6 @@ local function CustomHarassUtilityFnOverride(hero)
   local unitTarget = behaviorLib.heroTarget
   --jos potu käytössä niin ei agroilla
   if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
-    core.BotEcho("POTUU")
     return -10000
   end
 
@@ -306,8 +305,6 @@ tinsert(behaviorLib.tBehaviors, UltiBehavior)
 
 local function HarassHeroExecuteOverride(botBrain)
   local time = HoN.GetMatchTime()
-  core.BotEcho("time: "..tostring(time))
-  core.BotEcho("nuketime: "..tostring(nuketime))
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
     return plaguerider.harassExecuteOld(botBrain)
@@ -452,17 +449,16 @@ function behaviorLib.PositionSelfExecute(botBrain)
   if vecDesiredPos then
     return behaviorLib.MoveExecute(botBrain, vecDesiredPos)
   else
-    BotEcho("PositionSelfExecute - nil desired position")
     return false
   end
 end
 behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
 
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
-	--Roughly 20+ when we are down 400 hp
-	--  Fn which crosses 20 at x=400 and 40 at x=650, convex down
-	if nHealthMissing > 300 then
-	  return 100
-	end
-	return 0
+  --Roughly 20+ when we are down 400 hp
+  --  Fn which crosses 20 at x=400 and 40 at x=650, convex down
+  if nHealthMissing > 300 then
+    return 100
+  end
+  return 0
 end
