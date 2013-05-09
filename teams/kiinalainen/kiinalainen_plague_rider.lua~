@@ -4,39 +4,20 @@ local tinsert = _G.table.insert
 
 plaguerider.heroName = "Hero_DiseasedRider"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/core_kiinalainen_herobot.lua'
 
-local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
-plaguerider.skills = {}
-local skills = plaguerider.skills
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
--- table listing desired skillbuild. 0=Q(Contagion), 1=W(Cursed Shield), 2=E(Extinguish), 3=R(Plague Carrier), 4=AttributeBoost
-plaguerider.tSkills = {
-   0, 2, 0, 2, 0,
-   3, 0, 2, 2, 1,
-   3, 4, 4, 4, 4,
-   3, 1, 1, 1, 4,
-   4, 4, 4, 4, 4,
-}
-
 function plaguerider:SkillBuildOverride()
-  local unitSelf = self.core.unitSelf
-  if skills.abilContagion == nil then
-    skills.abilContagion = unitSelf:GetAbility(0)
-    skills.abilCursedShield = unitSelf:GetAbility(1)
-    skills.abilExtinguish = unitSelf:GetAbility(2)
-    skills.abilPlagueCarrier = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)
-  end
-  self:SkillBuildOld()
+  plaguerider:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
+
 
 --items
 behaviorLib.StartingItems = { "Item_HealthPotion", "Item_RunesOfTheBlight", "Item_MarkOfTheNovice", "Item_PretendersCrown" }
@@ -98,6 +79,7 @@ DenyBehavior["Utility"] = DenyBehaviorUtility
 DenyBehavior["Execute"] = DenyBehaviorExecute
 DenyBehavior["Name"] = "Denying creep with spell"
 tinsert(behaviorLib.tBehaviors, DenyBehavior)
+
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -172,13 +154,14 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil - 200
     end
 
-    if unitSelf:GetHealthPercent > 0.79 then
+    if unitSelf:GetHealthPercent() > 0.79 then
     nUtil = nUtil + 20
     end
     return nUtil
 end
 -- assisgn custom Harrass function to the behaviourLib object
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
 
 ----------------------------------------------
 --            oncombatevent override        --
@@ -189,6 +172,7 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 function plaguerider:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
+<<<<<<< HEAD
 local nAddBonus = 0
  
     if EventData.Type == "Ability" then
