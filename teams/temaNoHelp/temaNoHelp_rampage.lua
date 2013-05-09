@@ -346,4 +346,23 @@ function behaviorLib.HealthPotUtilFn(nHealthMissing)
 	return 0
 end
 
+function behaviorLib.PositionSelfExecute(botBrain)
+  local unitSelf = core.unitSelf
+  local vecMyPosition = unitSelf:GetPosition()
 
+  if core.unitSelf:IsChanneling() then
+    return
+  end
+
+  local vecDesiredPos = vecMyPosition
+  vecDesiredPos, _ = behaviorLib.PositionSelfLogic(botBrain)
+
+  if vecDesiredPos then
+    return behaviorLib.MoveExecute(botBrain, vecDesiredPos)
+  else
+    BotEcho("PositionSelfExecute - nil desired position")
+    return false
+  end
+end
+
+behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
