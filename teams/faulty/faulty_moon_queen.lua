@@ -105,13 +105,29 @@ local nUltimateCreepMod = -10 -- this is if greater than 2
 -- level bonus for the skill
 local nSkillLevelBonus = 10
 
--- negative mana mod, if 0 mana, -10
-local nManaMod = 10
+-- enemy weakened bonuses, attack more if enemy is weaker.
+local nEnemyNoMana = 20
+local nEnemyNoHealth = 20
 
 moonqueen.doHarass = {}
 -- moonqueen.doHarass["target"] = nil
 -- moonqueen.doHarass["skill"]  = nil
 -- moonqueen.doHarass["item"]   = nil
+
+-- functions returns integer value representing hero state.
+local function HeroStateValue(hero, nNoManaVal, nNoHealthVal)
+	local nHealthPercent = hero:GetHealthPercent()
+	local nManaPercent   = hero:GetManaPercent()
+
+	local nRet = 0
+	if nHealthPercent ~= nil then
+		nRet = nRet + (1 - nHealthPercent) * nNoHealthVal
+	end
+	if nManaPercent ~= nil then
+		nRet = nRet + (1 - nManaPercent) * nNoManaVal
+	end
+	return nRet
+end
 
 -- Returns the number of nearby creeps in given radius
 local function NearbyCreepCountUtility(botBrain, center, radius)
@@ -125,30 +141,6 @@ local function NearbyCreepCountUtility(botBrain, center, radius)
 end
 
 local function CustomHarassUtilityFnOverride(hero)
-	--[[
-	local nUtil = 0
-
-	if skills.abilNuke:CanActivate() then
-		nUtil = nUtil + 5*skills.abilNuke:GetLevel()
-	end
-
-	local heroPos = hero:GetPosition()
-	local queryRadius = 700
-
-	local creeps = NearbyCreepCount(moonqueen, heroPos, queryRadius)
-
-	core.DrawDebugArrow(heroPos, heroPos + Vector3.Create( queryRadius, 0), 'white')
-	core.DrawDebugArrow(heroPos, heroPos + Vector3.Create(-queryRadius, 0), 'white')
-	core.DrawDebugArrow(heroPos, heroPos + Vector3.Create(0, -queryRadius), 'white')
-	core.DrawDebugArrow(heroPos, heroPos + Vector3.Create(0,  queryRadius), 'white')
-
-	if skills.abilUltimate:CanActivate() and creeps < 3 then
-		nUtil = nUtil + 100
-	end
-
-	return nUtil
-	]]--
-
 	moonqueen.doHarass = {} -- reset
 	local unitSelf = core.unitSelf
 
@@ -158,6 +150,11 @@ local function CustomHarassUtilityFnOverride(hero)
 	local ultimateVal = 0
 	local nukeVal     = 0
 	local bounceVal   = 0
+
+	local nRet = 0
+	local nMe = HeroStateValue(unitSelf, nEnemyNoMana, nEnemyNoHealth)
+	local nEnemy = HeroStateValue(hero, nEnemyNoMana, nEnemyNoHealth)
+	nRet = (nRet + nEnemy - nMe)
 
 	local canSee = core.CanSeeUnit(moonqueen, hero)
 	local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
@@ -185,7 +182,7 @@ local function CustomHarassUtilityFnOverride(hero)
 	--end
 
 	if ultimateVal == 0 and nukeVal == 0 and bounceVal == 0 then
-		return 0
+		return nRet
 	end
 
 	local doUltimate = false
@@ -207,28 +204,26 @@ local function CustomHarassUtilityFnOverride(hero)
 		end
 	end
 
-	local ret = 0
-
 	moonqueen.doHarass["target"] = hero
 
 	if doUltimate then
 		moonqueen.doHarass["skill"] = skills.abilUltimate
-		ret = ultimateVal
+		nRet = nRet + ultimateVal
 	end
 
 	if doNuke then
 		moonqueen.doHarass["skill"] = skills.abilNuke
-		ret = nukeVal
+		nRet = nRet + nukeVal
 	end
 
 	if doBounce then
 		moonqueen.doHarass["skill"] = skills.abilBounce
-		ret = bounceVal
+		nRet = nRet + bounceVal
 	end
 
 	BotEcho(format("  CustomHarassUtil: nuke: %g, bounce: %g, ultimate: %g", nukeVal, bounceVal, ultimateVal))
 
-	return ret - ((1 - unitSelf:GetManaPercent()) * nManaMod)
+	return nRet
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
@@ -237,32 +232,6 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 --
 --------------------------------------------------------------------------------
 local function HarassHeroExecuteOverride(botBrain)
-	--[[
-	local unitTarget = behaviorLib.heroTarget
-	if unitTarget == nil then
-		return moonqueen.harassExecuteOld(botBrain)
-	end
-
-	local unitSelf = core.unitSelf
-	-- distance to target squared
-	local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
-	local bActionTaken = false
-
-	local abilNuke = skills.abilNuke
-	if core.CanSeeUnit(botBrain, unitTarget) then
-		if abilNuke:CanActivate() then
-			local nRange = abilNuke:GetRange()
-			if nTargetDistanceSq < (nRange * nRange) then
-				bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-			end
-		end
-	end
-
-	if not bActionTaken then
-		return moonqueen.harassExecuteOld(botBrain)
-	end
-	]]--
-
 	local unitTarget = moonqueen.doHarass["target"]
 	local skill = moonqueen.doHarass["skill"]
 	if unitTarget == nil or skill == nil or not skill:CanActivate() then
