@@ -5,6 +5,7 @@ local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 
 local core, behaviorLib, shopping = rampage.core, rampage.behaviorLib, rampage.shopping
@@ -33,8 +34,7 @@ local function NumberStackableElements(items)
 end
 
 local function NumberInInventory(inventory, name)
-  local items = core.InventoryContains(inventory, name, false, true)
-  return max(core.NumberElements(items), NumberStackableElements(items))
+  return NumberStackableElements(core.InventoryContains(inventory, name, false, true)) + NumberStackableElements(rampage.courier.CourierContains(name))
 end
 
 local function HasBoots(inventory)
@@ -68,6 +68,62 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_EnhancedMarchers") <= 0 then
     if NumberInInventory(inventory, "Item_Punchdagger") < 2 then
       return "Item_Punchdagger"
+    end
+  end
+end
+
+local function ItemToSell()
+  local inventory = core.unitSelf:GetInventory()
+  local prioList = {
+    "Item_RunesOfTheBlight",
+    "Item_MinorTotem"
+  }
+  for _, name in ipairs(prioList) do
+    local item = core.InventoryContains(inventory, name)
+    if core.NumberElements(item) > 0 then
+      return item[1]
+    end
+  end
+  return nil
+end
+
+local function ItemCombines(inventory, item)
+  if item == "Item_Scarab" then
+    return core.NumberElements(core.InventoryContains(inventory, "Item_GuardianRing")) > 0
+  elseif item == "Item_Punchdagger" then
+    return core.NumberElements(core.InventoryContains(inventory, item)) > 0
+  end
+  return false
+end
+
+local function GetSpaceNeeded(inventoryHero, inventoryCourier)
+  local count = core.NumberElements(inventoryCourier) - (6 - core.NumberElements(inventoryHero))
+  for i = 1, 6, 1 do
+    local item = inventoryCourier[i]
+    if item then
+      local name = item:GetName()
+      local heroHas = core.InventoryContains(inventoryHero, name)
+      if core.NumberElements(heroHas) > 0 and item:GetRechargeable() or ItemCombines(inventoryHero, name) then
+        count = count - 1
+      end
+    end
+  end
+  return max(count, 0)
+end
+
+local function SellItems()
+  local courier = rampage.courier
+  if courier.HasCourier() then
+    local unitSelf = core.unitSelf
+    local unitCourier = courier.unitCourier
+    if Vector3.Distance2DSq(unitSelf:GetPosition(), unitCourier:GetPosition()) < 300*300 then
+      local spaceNeeded = GetSpaceNeeded(unitSelf:GetInventory(), unitCourier:GetInventory())
+      for i = 1, spaceNeeded, 1 do
+        local itemTosell = ItemToSell()
+        if itemTosell then
+          unitSelf:Sell(itemTosell)
+        end
+      end
     end
   end
 end
@@ -111,6 +167,7 @@ rampage.SkillBuild = rampage.SkillBuildOverride
 function rampage:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
+  SellItems()
   -- custom code here
 end
 rampage.onthinkOld = rampage.onthink
