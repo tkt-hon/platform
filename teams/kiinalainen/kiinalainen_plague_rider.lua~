@@ -118,11 +118,11 @@ local nAddBonus = 0
  
     if EventData.Type == "Ability" then
         if EventData.InflictorName == "Ability_DiseasedRider1" then
-            nAddBonus = nAddBonus + object.nContagionUse
+            nAddBonus = nAddBonus + plaguerider.nContagionUse
         elseif EventData.InflictorName == "Ability_DiseasedRider3" then
-            nAddBonus = nAddBonus + object.nExtinguishUse
+            nAddBonus = nAddBonus + plaguerider.nExtinguishUse
         elseif EventData.InflictorName == "Ability_Pyromancer4" then
-            nAddBonus = nAddBonus + object.nPlagueCarrierUse
+            nAddBonus = nAddBonus + plaguerider.nPlagueCarrierUse
         end
     end
  
@@ -133,10 +133,8 @@ local nAddBonus = 0
  
 end
 -- override combat event trigger function.
-object.oncombateventOld = object.oncombatevent
-object.oncombatevent     = object.oncombateventOverride
-  -- custom code here
-end
--- override combat event trigger function.
 plaguerider.oncombateventOld = plaguerider.oncombatevent
-plaguerider.oncombatevent = plaguerider.oncombateventOverride
+plaguerider.oncombatevent     = plaguerider.oncombateventOverride
+  -- custom code here
+
+
