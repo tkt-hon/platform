@@ -181,4 +181,81 @@ plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- EXTINGUISH BEHAVIOR - Will consume creeps to restore mana.
+--
+
+local nBaseExtinguishUp = 20
+
+local nManaThreshold = 0.8
+local nManaLostBonus = 20
+
+local nExtinguishSkillLevelBonus = 3
+
+plaguerider.doExtinguish = {}
+--plaguerider.doExtinguish["target"] = nil
+
+function behaviorLib.ExtinguishUtility(botBrain)
+	plaguerider.doExtinguish = {}
+
+	if core.GetCurrentBehaviorName(botBrain) == "HealAtWell" then
+		-- don't consume if going to well
+		return 0
+	end
+
+	local unitSelf = core.unitSelf
+
+	local nManaPercent = unitSelf:GetManaPercent()
+
+	if nManaPercent < nManaThreshold and skills.abilExtinguish:CanActivate() then
+		local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 800)
+
+		local target = nil
+		local maxHealth = 0
+		local count = 0
+
+		-- find target
+		for _,creep in pairs(unitsLocal.AllyCreeps) do
+			if creep:GetHealthPercent() > maxHealth then
+				target = creep
+				maxHealth = creep:GetHealthPercent()
+			end
+
+			count = count + 1
+		end
+
+		if count == 0 then
+			return 0
+		end
+
+		plaguerider.doExtinguish["target"] = target
+
+		local nValue = nBaseExtinguishUp + (1 - nManaPercent) * nManaLostBonus
+		nValue = nValue + skills.abilExtinguish:GetLevel() * nExtinguishSkillLevelBonus
+		BotEcho(format("  ExtinguishUtility: ret: %g", nValue))
+		return nValue
+	end
+
+	return 0
+end
+
+function behaviorLib.ExtinguishExecute(botBrain)
+	local target = plaguerider.doExtinguish["target"]
+	if target then
+		if skills.abilExtinguish:CanActivate() then
+			BotEcho("  ExtinguishExecuted!")
+			core.OrderAbilityEntity(botBrain, skills.abilExtinguish, target)
+		end
+	else
+		BotEcho("  ExtinguishExecute: INVALID TARGET!")
+	end
+end
+
+behaviorLib.ExtinguishBehavior = {}
+behaviorLib.ExtinguishBehavior["Utility"] = behaviorLib.ExtinguishUtility
+behaviorLib.ExtinguishBehavior["Execute"] = behaviorLib.ExtinguishExecute
+behaviorLib.ExtinguishBehavior["Name"] = "Extinguish"
+tinsert(behaviorLib.tBehaviors, behaviorLib.ExtinguishBehavior)
+--------------------------------------------------------------------------------
+
 BotEcho("finished loading faulty_plague_rider.lua")
