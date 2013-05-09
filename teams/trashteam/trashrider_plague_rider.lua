@@ -221,12 +221,9 @@ local function CustomHarassUtilityFnOverride(hero)
 	for key,unit in pairs(kriipit) do
     	if unit:GetAttackTarget() ~= core.unitSelf and not core.IsCourier(unit) then
 				return 100
-			else return nil
+			else return 0
 		end
 	end
-  
-  
-
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
