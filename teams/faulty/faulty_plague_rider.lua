@@ -187,7 +187,7 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local nBaseExtinguishUp = 20
 
-local nManaThreshold = 0.8
+local nManaThreshold = 0.7
 local nManaLostBonus = 20
 
 local nExtinguishSkillLevelBonus = 3
