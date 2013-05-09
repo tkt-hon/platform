@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_GuardianRing", "3 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_Scarab", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = {  }
-behaviorLib.LateItems = {  }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -83,7 +83,6 @@ end
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
   end
@@ -150,7 +149,6 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
-
 
 local function DPSPushingUtilityOverride(myHero)
   local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3

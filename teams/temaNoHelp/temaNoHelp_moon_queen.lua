@@ -9,7 +9,6 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/mq_lasthit.lua'
-runfile 'bots/teams/temaNoHelp/mq_position.lua'
 
 local core, behaviorLib, shopping, courier = moonqueen.core, moonqueen.behaviorLib, moonqueen.shopping, moonqueen.courier
 
@@ -315,4 +314,13 @@ function behaviorLib.HealthPotUtilFn(nHealthMissing)
     return 100
   end
   return 0
+end
+
+local PositionSelfCreepWaveOld = behaviorLib.PositionSelfCreepWave
+function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget, tEnemyUnits)
+  local vecSelf = core.unitSelf:GetPosition()
+  if core.GetClosestEnemyTower(vecSelf, 715) then
+    return core.GetClosestAllyTower(vecSelf, 2000)
+  end
+  return PositionSelfCreepWaveOld(botBrain, unitCurrentTarget, tEnemyUnits)
 end

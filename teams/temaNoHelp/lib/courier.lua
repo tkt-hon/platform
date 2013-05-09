@@ -98,8 +98,10 @@ local function DeliverItems()
       core.OrderAbility(herobot, abilShield)
     end
   elseif Danger(unitCourier) then
-    local closestTower = core.GetClosestAllyTower(unitCourier:GetPosition(), 2000)
-    core.OrderMoveToPosAndHoldClamp(herobot, unitCourier, closestTower:GetPosition())
+    local closestTower = core.GetClosestAllyTower(unitCourier:GetPosition(), 3000)
+    if closestTower then
+      core.OrderMoveToPosAndHoldClamp(herobot, unitCourier, closestTower:GetPosition())
+    end
   end
 end
 

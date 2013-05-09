@@ -46,18 +46,6 @@ end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 
-local function RetreatFromThreatUtilityOverride(botBrain)
-
-  local selfPosition = core.unitSelf:GetPosition()
-
-  if core.GetClosestEnemyTower(selfPosition, 715) then
-    return 10000
-  end
-
-  return behaviorLib.RetreatFromThreatUtility(botBrain)
-end
-behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
-
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
