@@ -13,12 +13,11 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
-
+--"Item_HealthPotion",
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
-
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_TrinketOfRestoration",  "3 Item_MinorTotem"}
+behaviorLib.LaneItems = { "Item_Punchdagger","Item_TrinketOfRestoration", "Item_MagicArmor2" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 
@@ -36,13 +35,18 @@ local BotEcho = core.BotEcho
 -- @param: none
 -- @return: none
 moonqueen.tSkills = {
-  2, 4, 2, 1, 2,
-  4, 2, 1, 4, 1,
-  4, 1, 4, 4, 4,
-  3, 0, 0, 0, 0,
-  3, 3, 0, 0, 0
+ 1, 4, 1, 4, 2,
+ 4, 2, 4, 2, 1,
+ 2, 1, 4, 4, 0,
+ 0, 0, 0, 3, 3,
+ 3, 0, 0, 0, 0
 }
-
+ 
+--  2, 4, 2, 1, 2,
+--  4, 2, 1, 4, 1,
+--  4, 1, 4, 4, 4,
+--  3, 0, 0, 0, 0,
+--  3, 3, 0, 0, 0
 
 --  0, 4, 0, 4, 0,
 --  3, 0, 2, 2, 1,
@@ -138,7 +142,7 @@ local function CheckForFriendlies()
 
 	local AllyCreeps = core.localUnits["AllyCreeps"]
 	local size = core.NumberElements(AllyCreeps)	
-	if size > 2 then
+	if size > 3 then
 	return true
 	end
 	return false
@@ -146,7 +150,7 @@ end
 
 local function PushUtilityOverride(botBrain)
 	
-	if checkTower(1000) then
+	if checkTower(1200) then
 		return 0
 	end
 	
@@ -162,11 +166,23 @@ end
 
 behaviorLib.PushBehavior["Utility"] = PushUtilityOverride
 
--- = core.AssessLocalUnits(botBrain, vecPosition, nRadius).AllyCreeps
 
 
+local function Ostelee(botBrain)
+	local massit = moonqueen:GetGold()
+	local hp = moonqueen:GetHeroUnit ():GetHealthPercent ()
 
+	if massit > 1050 or hp < 0.3 then
+		return 50
+	end
+	
+	
+	
+	return behaviorLib.HealAtWellUtility(botBrain)
+	
+end
 
+behaviorLib.HealAtWellBehavior["Utility"] = Ostelee
 
 local function PushExecuteOverwrite(botBrain)
 
