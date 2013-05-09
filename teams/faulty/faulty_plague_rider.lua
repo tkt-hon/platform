@@ -97,8 +97,13 @@ plaguerider.oncombatevent = plaguerider.oncombateventOverride
 -- 3 = R(Plague Carrier)
 -- 4 = Attribute boost
 
--- nuke skill base
-local nContagionUp = 10
+-- skill bases
+local nContagionUp = 20
+local nPlagueUp    = 10
+
+-- creep amount modifier
+local nContagionCreepMod = 0 -- single target
+local nPlagueCreepMod    = 10 
 
 -- enemy weakened bonuses, attack more if enemy is weaker.
 local nEnemyNoMana = 20
@@ -108,6 +113,16 @@ local nEnemyNoHealth = 20
 local nSkillLevelBonus = 5
 
 plaguerider.doHarass = {}
+
+local function NearbyCreepCountUtility(botBrain, center, radius)
+	local count = 0
+	local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+	local enemies = unitsLocal.EnemyCreeps
+	for _,unit in pairs(enemies) do
+		count = count + 1
+	end
+	return count
+end
 
 local function HeroStateValue(hero, nNoManaVal, nNoHealthVal)
 	local nHealthPercent = hero:GetHealthPercent()
@@ -137,20 +152,40 @@ local function CustomHarassUtilityFnOverride(hero)
 
 	local bCanSee = core.CanSeeUnit(plaguerider, hero)
 
+	local nContagionVal = nRet
+	local nPlagueVal = nRet
+
 	if skills.abilContagion:CanActivate() and bCanSee then
 		local nRange = skills.abilContagion:GetRange()
 		local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
 
 		if targetDistanceSq < (nRange * nRange) then
-			plaguerider.doHarass["target"] = hero
-			plaguerider.doHarass["skill"]  = skills.abilContagion
-
-			nRet = nRet + nContagionUp + skills.abilContagion:GetLevel() * nSkillLevelBonus
-			BotEcho(format("  CustomHarass, nRet: %g", nRet))
+			nContagionVal = nContagionVal + nContagionUp + skills.abilContagion:GetLevel() * nSkillLevelBonus
 		end
 	end
 
-	return nRet
+	if skills.abilPlague:CanActivate() and bCanSee then
+		local nRange = skills.abilContagion:GetRange()
+		local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
+
+		if targetDistanceSq < (nRange * nRange) then
+			local creeps = NearbyCreepCountUtility(plaguerider, heroPo, 600)
+			nPlagueVal = nPlagueVal + nPlagueUp + skills.abilContagion:GetLevel() * nSkillLevelBonus + creeps * nPlagueCreepMod
+		end
+	end
+
+	if nContagionVal > nRet or nPlagueVal > nRet then
+		plaguerider.doHarass["target"] = hero
+		BotEcho(format("  CustomHarass; Contagion: %g, Plague: %g", nContagionVal, nPlagueVal))
+	end
+
+	if nPlagueVal > nContagionVal then
+		plaguerider.doHarass["skill"] = skills.abilPlague
+	else
+		plaguerider.doHarass["skill"] = skills.abilContagion
+	end
+
+	return math.max(nPlagueVal, nContagionVal)
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
