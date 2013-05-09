@@ -14,8 +14,8 @@ herobot.bAttackCommands = true
 herobot.bAbilityCommands = true
 herobot.bOtherCommands = true
 
-herobot.bReportBehavior = true
-herobot.bDebugUtility = true
+herobot.bReportBehavior = false
+herobot.bDebugUtility = false
 
 herobot.logger = {}
 herobot.logger.bWriteLog = false
