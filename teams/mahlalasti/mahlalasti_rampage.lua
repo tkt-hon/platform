@@ -24,12 +24,12 @@ rampage.skills = {}
 local skills = rampage.skills
 
 -- Tarkka Skill Up -järjestys
+-- Laitettu kokeeksi toinen buildi, ei tunnu olevan merkittävää vaikutusta ainakaan parempaan
 rampage.tSkills = {
-  1, 2, 1, 0, 1,
-  3, 1, 2, 2, 2,
-  3, 0, 0, 0, 4,
-  3, 4, 4, 4, 4,
-  4, 4, 4, 4, 4
+  2, 0, 1, 1, 2,
+3, 1, 1, 2, 2,
+2, 3, 4, 4, 4,
+4, 4, 4, 4, 4
 }
 function rampage:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
