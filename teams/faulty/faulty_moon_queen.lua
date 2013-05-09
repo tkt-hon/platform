@@ -283,10 +283,10 @@ local function HarassHeroExecuteOverride(botBrain)
 			end
 		end
 	elseif skill:GetName() == "Ability_Krixi2" then
-		BotEcho(format("  HarassHeroExecute with %s (true)", skill:GetName()))
+		BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
 		bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
 	elseif skill:GetName() == "Ability_Krixi4" then
-		BotEcho(format("  HarassHeroExecute with %s (true)", skill:GetName()))
+		BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
 		bActionTaken = core.OrderAbility(botBrain, skill)
 	else
 		BotEcho(format("  HarassHeroExecute: INVALID SKILL %s", skill:GetName()))
