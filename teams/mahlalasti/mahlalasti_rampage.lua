@@ -95,11 +95,11 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
   -- Onko vihu oman tornin rangella (ts. löytyykö 600 unitin radiukselta vihun ympärillä allyTower)
   local EnemyInsideAlliedTowerRange = core.GetClosestAllyTower(hero:GetPosition(), 600)
-  -- Ollaanko itse vihollistornin rangella
+  -- Ollaanko itse vihollistornin rangella (:---D)
   local SelfInsideEnemyTowerRange = core.GetClosestEnemyTower(unitSelf:GetPosition(),600)
 
   if EnemyInsideAlliedTowerRange then 
-   nUtil = nUtil + 75
+   nUtil = nUtil + 60
   end
   
   if skills.abilBash:IsReady() then
@@ -115,7 +115,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
 
   if SelfInsideEnemyTowerRange then
-    nUtil = nUtil - 55
+    nUtil = nUtil - 50
   end  
 
   return nUtil
