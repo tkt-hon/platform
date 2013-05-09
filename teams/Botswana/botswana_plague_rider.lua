@@ -258,7 +258,7 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 ---------------------------------------------------------------
 
 
-local function PushExecute(botBrain)
+local function PushExecuteOverride(botBrain)
 	self: PushExecuteOld(botBrain)
 	
 	local bDebugLines = false
@@ -282,7 +282,8 @@ local function PushExecute(botBrain)
 				local tRoT = core.InventoryContains(tInventory, itemRoT:GetTypeName())
 				if not core.IsTableEmpty(tRoT) then
 					if bDebugEchos then BotEcho("Turning on RoTeacher") end
-					bActionTaken = core.OrderItemClamp(botBrain, unitSelf, core.itemRoT)
+					bActionTaken = core.OrderItemClamp(botBrain, unitSelf, 
+					core.itemRoT)
 				end
 			end
 		end
@@ -330,6 +331,108 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.PushBehavior)
 
 plaguerider.PushExecuteOld = plaguerider.PushExecute
 plaguerider.PushExecute = plaguerider.PushExecuteOverride
+
+---------------------------------------------------------
+--		AttackCreepUtility and Execute
+---------------------------------------------------------
+
+local function AttackCreepsUtilityOverride(botBrain)	
+	local nDenyVal = 21
+	local nLastHitVal = 24
+
+	local nUtility = 0
+
+--we don't want to deny if we are pushing
+	local unitDenyTarget = core.unitAllyCreepTarget
+	if core.GetCurrentBehaviorName(botBrain) == "Push" then
+		unitDenyTarget = nil
+	end
+
+	local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
+
+	if unitTarget and core.unitSelf:IsAttackReady() then
+		if unitTarget:GetTeam() == core.myTeam then
+			nUtility = nDenyVal
+		else
+			nUtility = nLastHitVal
+		end
+	core.unitCreepTarget = unitTarget
+	end
+
+		if botBrain.bDebugUtility == true and nUtility ~= 0 then
+			BotEcho(format(" AttackCreepsUtility: %g", nUtility))
+		end
+
+	return nUtility
+end
+
+behaviorLib.AttackCreepsUtility = AttackCreepsUtilityOverride
+
+
+local function AttackCreepsExecute(botBrain)
+	local unitSelf = core.unitSelf
+	local currentTarget = core.unitCreepTarget
+
+	if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then	
+	local vecTargetPos = currentTarget:GetPosition()
+	local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
+	local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+
+		if currentTarget ~= nil then
+			if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
+--only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
+				core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
+			else
+--BotEcho("MOVIN OUT")
+		local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
+		core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
+			end
+		end
+	else
+	return false
+	end
+end
+
+behaviorLib.AttackCreepsBehavior = {}
+behaviorLib.AttackCreepsBehavior["Utility"] = behaviorLib.AttackCreepsUtility
+behaviorLib.AttackCreepsBehavior["Execute"] = behaviorLib.AttackCreepsExecute
+behaviorLib.AttackCreepsBehavior["Name"] = "AttackCreeps"
+tinsert(behaviorLib.tBehaviors, behaviorLib.AttackCreepsBehavior)
+
+behaviorLib.AttackCreepsExecute = AttackCreepsExecuteOverride
+
+------------------------------------------------------------------
+--		ProxToTower
+------------------------------------------------------------------
+
+
+local function ProxToEnemyTowerUtilityOverride(unit, unitClosestEnemyTower)
+	local bDebugEchos = false
+
+	local nUtility = 0
+
+	if unitClosestEnemyTower then
+		local nDist = Vector3.Distance2D(unitClosestEnemyTower:GetPosition(), unit:GetPosition())
+		local nTowerRange = core.GetAbsoluteAttackRangeToUnit(unitClosestEnemyTower, unit)
+		local nBuffers = unit:GetBoundsRadius() + unitClosestEnemyTower:GetBoundsRadius()
+
+		nUtility = -1 * core.ExpDecay((nDist - nBuffers), 100, nTowerRange, 2)
+
+		nUtility = nUtility * 0.32
+
+		if bDebugEchos then BotEcho(format("util: %d nDistance: %d nTowerRange: %d", nUtility, (nDist - 
+		nBuffers), nTowerRange)) 
+		end
+	end
+
+	nUtility = Clamp(nUtility, -100, 0)
+
+	return nUtility
+end
+
+behaviorLib.ProxToEnemyTowerUtility = ProxToEnemyTowerUtilityOverride
+
+
 
 
 
