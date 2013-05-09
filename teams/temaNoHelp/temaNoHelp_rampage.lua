@@ -151,7 +151,7 @@ function rampage:SkillBuildOverride()
     skills.abilSlow = unitSelf:GetAbility(1)
     skills.abilBash = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)local tinsert = _G.table.insert
+    skills.stats = unitSelf:GetAbility(4)
   end
   self:SkillBuildOld()
 end
