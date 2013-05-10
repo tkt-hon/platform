@@ -9,7 +9,7 @@ runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_PretendersCrown", "Item_RunesOfTheBlight", "Item_MinorTotem",  "Item_TrinketOfRestoration" }
+behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_PretendersCrown"}
 behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
