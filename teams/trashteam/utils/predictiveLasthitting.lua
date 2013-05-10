@@ -6,8 +6,9 @@ local core, behaviorLib = lastHitter.core, lastHitter.behaviorLib
 local BotEcho = core.BotEcho
 
 lastHitter.trackedCreeps = lastHitter.trackedCreeps or {}
+lastHitter.focusCreeps = lastHitter.focusCreeps or {}
 
-DmgInfo = {d = 0.0, hpList = {}, timeList = {}, lastUpdateTime = 0}
+DmgInfo = {m = 0.0, c = 0.0, hpList = {}, timeList = {}, lastUpdateTime = 0}
 
 function DmgInfo:new(o)
   o = o or {}
@@ -18,37 +19,35 @@ end
 																    
 function DmgInfo:update(hp)
 	local timeNow = HoN.GetMatchTime()
---	local deltaTimeS = (timeNow - self.lastUpdateTime)/1000.0
 	
-	if #self.hpList - hp > 0 then
---	  self.d = (self.lastHp - hp)/deltaTimeS
---		self.lastUpdateTime = timeNow
-		self.hpList.insert(hp)
-		self.timeList.insert(timeNow)
+	if self.hpList and self.hpList[#self.hpList] - hp > 0 then
+		table.insert(self.hpList, hp)
+		table.insert(self.timeList, timeNow)
 	end
-
---	self.lastHp = hp
 end
 
-function DmgInfo:least_squares_fit(xx,yy)
-	local xsum,ysum,xxsum,yysum,xysum = 0,0,0,0,0
-	local m,c,d
-	local n = #xx
-
-	for i = 1,n do
-		local x,y = xx[i],yy[i]
-		xsum = xsum + x
-		ysum = ysum + y
-		xxsum = xxsum + x*x
-		yysum = yysum + y*y
-		xysum = xysum + x*y
-	end
-
-	d = n*xxsum - xsum*xsum
-	m = (n*xysum - xsum*ysum)/d
-	c = (xxsum*ysum - xysum*xsum)/d
-
-	return m,c
+function DmgInfo:LeastSquaresFit()
+  if #self.timeList > 1 then
+  	local xsum,ysum,xxsum,yysum,xysum = 0.0,0.0,0.0,0.0,0.0
+  	local m,c,d
+  	local n = #self.timeList
+  
+  	for i = 1,n do
+  		local x,y = self.timeList[i],self.hpList[i]
+  		xsum = xsum + x
+  		ysum = ysum + y
+  		xxsum = xxsum + x*x
+  		yysum = yysum + y*y
+  		xysum = xysum + x*y
+  	end
+  
+  	d = n*xxsum - xsum*xsum
+  	m = (n*xysum - xsum*ysum)/d
+  	c = (xxsum*ysum - xysum*xsum)/d
+  
+  	self.m = m
+    self.c = c
+  end
 end
 
 local onthinkOld = lastHitter.onthink 
@@ -67,9 +66,21 @@ function lastHitter:onthink(tGameVariables)
 	  end
 
 		for unit, v in pairs(self.trackedCreeps) do
-			if unit:GetHealth() == 0 then
+			local dmgInfo = self.trackedCreeps[unit]
+      if unit:GetHealth() == 0 then
 				self.trackedCreeps[unit] = nil
-			end
+			else
+        dmgInfo:LeastSquaresFit()
+      end
+
+      if dmgInfo.m ~= 0.0 and dmgInfo.c ~= 0.0 then
+        BotEcho(string.format("		- %s dead in: %g", tostring(unit), -dmgInfo.c/dmgInfo.m-HoN.GetMatchTime()))
+        local lifeExpectancy = -dmgInfo.c/dmgInfo.m-HoN.GetMatchTime()
+        if lifeExpectancy < 2100 then
+          self.focusCreeps[unit] = lifeExpectancy
+        end
+      end
+
 		end
 	end
 	
@@ -86,9 +97,12 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 
   core.FindItems(botBrain)
 
-	BotEcho("Tracked creeps: ")
-	for i,v in pairs(lastHitter.trackedCreeps) do
-		BotEcho(string.format("		- %s, %g", tostring(i), v.d))
+	BotEcho("Focused creeps: ")
+	for i,v in pairs(lastHitter.focusCreeps) do
+		BotEcho(string.format("		- %s", tostring(i)))
+    if unit:GetHealth() == 0 then
+				self.focusCreeps[unit] = nil
+	  end	
 	end
 
   local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
