@@ -41,6 +41,29 @@ end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 
+function moonqueen.CustomHarassHeroUtilityOverride(botBrain)
+  local nUtil = behaviorLib.HarassHeroUtility(botBrain)
+
+  local unitSelf = core.unitSelf
+  local selfPos = unitSelf:GetPosition()
+  local selfHealth = unitSelf:GetHealth()
+  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
+
+  if tLocalUnits.EnemyHeroes then
+    local tEnemies = tLocalUnits.EnemyHeroes
+    local nTotalEnemyHealth = nil
+    for k,v in pairs(tEnemies) do
+      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
+    end
+    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
+      nUtil = nUtil + (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
+    end
+  end
+
+  return nUtil
+end
+behaviorLib.HarassHeroBehavior["Utility"] = moonqueen.CustomHarassHeroUtilityOverride
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --

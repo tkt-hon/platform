@@ -121,8 +121,6 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 function rampage:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
-  print("EventType: ", EventData.Type, " Inflictor: ", EventData.InflictorName, " State: ", EventData.StateName, "\n")
-
   if EventData.Type == "Ability" and EventData.InflictorName == "Ability_Rampage1" then
     self.charged = CHARGE_STARTED
   elseif EventData.Type == "State_End" and EventData.StateName == "State_Rampage_Ability1_Timer" then

@@ -105,7 +105,7 @@ plaguerider.nExtinguishUp = 5
 plaguerider.nExtinguishUse = 10
 plaguerider.nContagionUse = 20
 plaguerider.nPlagueCarrierUse = 55
- 
+
 --These are thresholds of aggression the bot must reach to use these abilities
 plaguerider.nContagionThreshold = 10
 plaguerider.nPlagueCarrierThreshold = 50
@@ -125,7 +125,7 @@ local function CustomHarassUtilityFnOverride(hero)
     local unitSelf = core.unitSelf
     local myPos = unitSelf:GetPosition()
     local distanceToClosestEnemy = 99999
---    for _,unit in pairs(enemies) do 
+--    for _,unit in pairs(enemies) do
 --    	if Vector3.Distance2DSq(myPos, unit:GetPosition()) < distanceToClosestEnemy then
 --    		distanceToClosestEnemy = Vector3.Distance2DSq(myPos, unit:GetPosition())
 --		closestEnemy = unit
@@ -136,16 +136,16 @@ local function CustomHarassUtilityFnOverride(hero)
 	core.AllChat("ebin nuke")
         nUtil = nUtil + plaguerider.nContagionUp
     end
- 
+
     if skills.abilCursedShield:CanActivate() then
         nUtil = nUtil + plaguerider.nCursedShieldUp
     end
-	
- 
+
+
     if skills.abilPlagueCarrier:CanActivate() then
         nUtil = nUtil + plaguerider.nPlagueCarrierUp
     end
-    
+
     if unitSelf:GetHealthPercent() < 0.15 then
     core.allChat("Minä kuolenkin itse, tämä on perseestä")
     end
@@ -173,7 +173,7 @@ function plaguerider:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
 local nAddBonus = 0
- 
+
     if EventData.Type == "Ability" then
         if EventData.InflictorName == "Ability_DiseasedRider1" then
             nAddBonus = nAddBonus + plaguerider.nContagionUse
@@ -183,12 +183,12 @@ local nAddBonus = 0
             nAddBonus = nAddBonus + plaguerider.nPlagueCarrierUse
         end
     end
- 
+
    if nAddBonus > 0 then
         core.DecayBonus(self)
         core.nHarassBonus = core.nHarassBonus + nAddBonus
     end
- 
+
 end
 -- override combat event trigger function.
 plaguerider.oncombateventOld = plaguerider.oncombatevent
@@ -240,3 +240,37 @@ end
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
+function plaguerider.CustomHarassHeroUtilityOverride(botBrain)
+  local nUtil = behaviorLib.HarassHeroUtility(botBrain)
+
+  local unitSelf = core.unitSelf
+  local selfPos = unitSelf:GetPosition()
+  local selfHealth = unitSelf:GetHealth()
+  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
+
+  if tLocalUnits.EnemyHeroes then
+    local tEnemies = tLocalUnits.EnemyHeroes
+    local nTotalEnemyHealth = nil
+    for k,v in pairs(tEnemies) do
+      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
+    end
+    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
+      nUtil = nUtil + (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
+    end
+  end
+
+  if skills.abilBash:IsReady() then
+    nUtil = nUtil + 10
+  end
+
+  if skills.abilCharge:CanActivate() then
+    nUtil = nUtil + 20
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 50
+  end
+
+  return nUtil
+end
+behaviorLib.HarassHeroBehavior["Utility"] = plaguerider.CustomHarassHeroUtilityOverride
