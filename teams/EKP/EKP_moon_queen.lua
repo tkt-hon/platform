@@ -7,7 +7,7 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "2 Item_HealthPotion", "Item_PretendersCrown", "2 Item_MinorTotem" }
 behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
@@ -84,7 +84,7 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
+    nUtil = nUtil + 10*skills.abilNuke:GetLevel()
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)

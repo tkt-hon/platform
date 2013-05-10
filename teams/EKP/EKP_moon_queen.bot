@@ -4,6 +4,6 @@
   description="EKP Moon Queen"
   heroname="Hero_Krixi"
   rootlua="EKP_moon_queen.lua"
-  defaultplayername="EKPMQBot"
+  defaultplayername="EiKaupallistaPotentiaalia Moon Queen"
   precachepath="/heroes/krixi/"
 />

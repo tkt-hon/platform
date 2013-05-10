@@ -4,6 +4,6 @@
   description="Default Rampage"
   heroname="Hero_Rampage"
   rootlua="EKP_rampage.lua"
-  defaultplayername="DefaultRampageBot"
+  defaultplayername="EiKaupallistaPotentiaalia RampageBot"
   precachepath="/heroes/rampage/"
 />

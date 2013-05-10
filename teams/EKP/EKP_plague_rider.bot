@@ -4,6 +4,6 @@
   description="Default Plague Rider"
   heroname="Hero_DiseasedRider"
   rootlua="EKP_plague_rider.lua"
-  defaultplayername="DefaultPlagueBot"
+  defaultplayername="EiKaupallistaPotentiaalia PlagueBot"
   precachepath="/heroes/diseasedrider/"
 />
