@@ -9,8 +9,8 @@ local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_ManaPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_ManaPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_MysticVestments", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
@@ -23,8 +23,8 @@ local skills = moonqueen.skills
 core.itemGeoBane = nil
 
 moonqueen.tSkills = {
-  0, 0, 4, 1, 0,
-  3, 0, 2, 2, 1,
+  0, 4, 0, 4, 0,
+  3, 0, 1, 2, 1,
   3, 1, 1, 1, 2,
   3, 2, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -90,16 +90,18 @@ end
 local function CustomHarassUtilityFnOverride(hero, botBrain)
   local level = core.unitSelf:GetLevel()
   local mana = core.unitSelf:GetMana()
-  local nUtil = 9 + (level*0.5)
-
+  local nUtil = 0
+   
+  nUtil = 9 + (level*0.3)
+  
   if skills.abilNuke:CanActivate() then
   -- vaihdettu 5->5.5 JH
-    nUtil = nUtil + 5.0*skills.abilNuke:GetLevel()
+    nUtil = nUtil + 5.5*skills.abilNuke:GetLevel()
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps <= 3 then
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
     moonqueen:Chat("Current nUtil: " .. nUtil)
@@ -134,7 +136,7 @@ local function HarassHeroExecuteOverride(botBrain)
     local abilUltimate = skills.abilUltimate
     if not bActionTaken and nLastHarassUtility > 50 then
       if abilUltimate:CanActivate() then
-        local nRange = 600
+        local nRange = 700
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
         else
@@ -145,7 +147,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
     local abilNuke = skills.abilNuke
     if abilNuke:CanActivate() then
-      local nRange = abilNuke:GetRange()
+      local nRange = abilNuke:GetRange() + 50
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
       else
@@ -162,7 +164,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.2
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*2
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
@@ -202,12 +204,12 @@ function behaviorLib.bigPurseUtility(botBrain)
     
     local level = core.unitSelf:GetLevel()
     local multiplier = level*0.18
-    if level < 5 then
-    moonqueen.purseMax = 1000
-    moonqueen.purseMin = 600
+    if level < 6 then
+    moonqueen.purseMax = 650
+    moonqueen.purseMin = 500
     elseif level >= 5 then
     moonqueen.purseMax = 1650*multiplier
-    moonqueen.purseMin = 700*multiplier
+    moonqueen.purseMin = 600*multiplier
 end
     local bDebugEchos = false
      
@@ -223,9 +225,12 @@ end
  
 -- Execute
 function behaviorLib.bigPurseExecute(botBrain)
+	local mana = core.unitSelf:GetManaPercent()
     local unitSelf = core.unitSelf
  
+	
     local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+	
     core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
 end
       
@@ -243,7 +248,7 @@ function behaviorLib.useManaGenUtility(botBrain)
 	local tInventory = core.unitSelf:GetInventory()
 	local idefManaPotion = HoN.GetItemDefinition("Item_ManaPotion")
 	local tManaPots = core.InventoryContains(tInventory, idefManaPotion:GetName())
-	if #tManaPots > 0 and nOwnMana < 120 then
+	if #tManaPots > 0 and nOwnMana < 120  then 
 	nUtil = 99
 	--moonqueen:Chat("ManaUtility" .. nUtil)
 	return nUtil
