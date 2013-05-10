@@ -98,8 +98,8 @@ plaguerider.oncombatevent = plaguerider.oncombateventOverride
 -- 4 = Attribute boost
 
 -- skill bases
-local nContagionUp = 20
-local nPlagueUp    = 10
+local nContagionUp = 30
+local nPlagueUp    = 15
 
 -- creep amount modifier
 local nContagionCreepMod = 0 -- single target
