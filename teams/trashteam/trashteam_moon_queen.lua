@@ -64,12 +64,16 @@ function ShopUtilityOverride(botBrain)
     --Determine where in the pattern we are (mostly for reloads)
     behaviorLib.DetermineBuyState(botBrain)
   end
-  
+
   local nextItemDef = behaviorLib.DetermineNextItemDef(botBrain)
-  local nextitemCost = nextItemDef:GetCost()
-  local gold = botBrain:GetGold()
-  if gold > nextitemCost then
-    behaviorLib.finishedBuying = false
+  local components = core.unitSelf:GetItemComponentsRemaining(nextItemDef)
+  if components[1] then
+    local nextitemCost = components[1]:GetCost()
+    local gold = botBrain:GetGold()
+    if gold > nextitemCost and components then
+    core.BotEcho("gold: " .. tostring(gold) .. ", nextitem" .. tostring(nextitemCost))
+      behaviorLib.finishedBuying = false
+    end
   end
 
   local utility = 0

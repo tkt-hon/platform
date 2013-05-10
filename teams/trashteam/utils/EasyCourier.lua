@@ -81,9 +81,16 @@ local function GetItemsFromStash(botBrain) -- DONE(?)
   for slot = 7,12,1 do
     local current = stash[slot]
     if current then
-      courier:SwapItems(slot, slot-6)
+      easyCourier.courier:SwapItems(slot, slot-6)
     end
   end
+end
+
+local function getDeliverLoc(botBrain) -- DONE
+  if botBrain:GetTeam() == 1 then
+    return deliverLocationLegion
+  end
+  return deliverLocationHell
 end
 
 local function closeToDeliveryLoc(botBrain) -- DONE(?)
@@ -98,16 +105,20 @@ local function closeToDeliveryLoc(botBrain) -- DONE(?)
   return false
 end
 
-local function getDeliverLoc(botBrain) -- DONE
-  if botBrain:GetTeam() == 1 then
-    return deliverLocationHell
+local function drawAround(botBrain)
+  local courierPos = easyCourier.courier:GetPosition()
+  local asd = HoN.GetUnitsInRadius(courierPos, 900, 0x0000004 + 0x0000020)
+  for uid, unit in pairs(asd) do
+    local unitPos = unit:GetPosition()
+    HoN.DrawDebugLine(courierPos, unitPos, true, "Red")
   end
-  return deliverLocationLegion
 end
 
 local function heroIsClose(botBrain) -- DONE(?)
-  local HeroesInProx = HoN.GetUnitsInRadius(easyCourier.courier:GetPosition(), 400, HERO)
-  for uid, unit in pairs(HeroesInProx) do
+  local courierPos = easyCourier.courier:GetPosition()
+  local asd = HoN.GetUnitsInRadius(courierPos, 800,  0x0000004 + 0x0000020)
+  for uid, unit in pairs(asd) do
+    local unitPos = unit:GetPosition()
     if unit:GetTeam() == botBrain:GetTeam() then
       return true
     end
@@ -122,9 +133,11 @@ local function CourierTick(botBrain)
       return false
     end
   end
+  drawAround(botBrain)
   local curBeha = easyCourier.courier:GetBehavior()
   if curBeha then
     local jobType = curBeha:GetType()
+    botBrain.core.BotEcho("type of action on courier: " .. tostring(jobType))
     if idle then -- DONE(?) -- buggy if buying is slow and all items end up on silly pos
       -- check for job, hero has items to be delivered.
       if hasDeliverableItems(botBrain) or hasItems() then
@@ -148,26 +161,36 @@ local function CourierTick(botBrain)
         end
       end
     elseif waitingForHero then -- DONE(?)
-      if heroWasClose and not (jobType == "Move") then
+      if heroWasClose and not hasItems()  then
         heroWasClose = false
         waitingForHero = false
         returning = true
         easyCourier.waitingHero = false
-      elseif not (jobType == "Move") then
+      elseif not heroWasClose then
         if heroIsClose(botBrain) then
+        botBrain.core.BotEcho("Is hero close:" ..  tostring(heroIsClose(botBrain)))
           local deliver = easyCourier.courier:GetAbility(2)
           botBrain:OrderAbility(deliver)
           heroWasClose = true
           return true
         end
+      elseif hasItems() then
+        heroWasClose = false
+        returning = false
+        delivering = true
+        waitingForHero = false
       end
     elseif returning then -- DONE(?)
       if easyCourier.courier:CanAccessStash() then
         returning = false
         idle = true
         return true
-      elseif not (jobType == "Move") then
+      elseif not hasItems() then
         botBrain:OrderAbility(easyCourier.courier:GetAbility(3))
+      else
+        delivering = true
+        idle = false
+        returning = false
       end
     end
     return true
