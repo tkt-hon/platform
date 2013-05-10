@@ -114,7 +114,7 @@ local function CustomHarassUtilityFnOverride(hero, botBrain)
   if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
-    moonqueen:Chat("Current nUtil: " .. nUtil)
+  --moonqueen:Chat("Current nUtil: " .. nUtil)
 
   return nUtil
 end
@@ -274,7 +274,7 @@ function behaviorLib.useManaGenExecute(botBrain)
 	local idefManaPotion = HoN.GetItemDefinition("Item_ManaPotion")
 	local tManaPots = core.InventoryContains(tInventory, idefManaPotion:GetName())
 	core.OrderItemEntityClamp(botBrain, core.unitSelf, tManaPots[1], core.unitSelf)
-	moonqueen:Chat("Trying to execute...")
+	--moonqueen:Chat("Trying to execute...")
 	core.BotEcho("Used ManaGen!")
 	return
 	end
