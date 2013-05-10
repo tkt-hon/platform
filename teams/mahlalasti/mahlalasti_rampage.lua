@@ -5,6 +5,7 @@ rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
+runfile 'bots/teams/mahlalasti/banter.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
 local BotEcho = core.BotEcho
@@ -60,9 +61,15 @@ function rampage:onthinkOverride(tGameVariables)
   if matchtime ~= 0 and matchtime % 2000 == 0 then
     self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
   end
+
+  if matchtime == 1000 then
+    self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
+  end
 end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
+
+
 
 ----------------------------------------------
 --            oncombatevent override        --
@@ -94,11 +101,13 @@ local function CustomHarassUtilityFnOverride(hero)
   local unitSelf = core.unitSelf
   local nUtil = 0
   -- Onko vihu oman tornin rangella (ts. löytyykö 600 unitin radiukselta vihun ympärillä allyTower)
-  local EnemyInsideAlliedTowerRange = core.GetClosestAllyTower(hero:GetPosition(), 600)
+  local enemyInsideAlliedTowerRange = core.GetClosestAllyTower(hero:GetPosition(), 700)
   -- Ollaanko itse vihollistornin rangella (:---D)
-  local SelfInsideEnemyTowerRange = core.GetClosestEnemyTower(unitSelf:GetPosition(),600)
+  local selfInsideEnemyTowerRange = core.GetClosestEnemyTower(unitSelf:GetPosition(), 700)
 
-  if EnemyInsideAlliedTowerRange then 
+  if enemyInsideAlliedTowerRange then 
+   -- nuoli debuggausta varten
+   core.DrawDebugArrow(hero:GetPosition(), enemyInsideAlliedTowerRange:GetPosition(), "green")
    nUtil = nUtil + 60
   end
   
@@ -114,7 +123,9 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + 50
   end
 
-  if SelfInsideEnemyTowerRange then
+  if selfInsideEnemyTowerRange then
+    -- nuoli debuggausta varten
+    core.DrawDebugArrow(unitSelf:GetPosition(), selfInsideEnemyTowerRange:GetPosition(), "red")
     nUtil = nUtil - 50
   end  
 
