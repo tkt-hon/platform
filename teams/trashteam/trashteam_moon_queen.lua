@@ -4,9 +4,9 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
 
 local tinsert = _G.table.insert
+runfile 'bots/teams/trashteam/utils/predictiveLasthittingMQ.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
@@ -50,6 +50,7 @@ end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
@@ -75,13 +76,13 @@ function moonqueen:oncombateventOverride(EventData)
 
   -- custom code here
 local nAddBonus = 0
- 
+
     if EventData.Type == "Ability" then
         if EventData.InflictorName == "Ability_Krixi4" then
-            nAddBonus = nAddBonus + 100
+            nAddBonus = nAddBonus + 75
         end
     end
- 
+
    if nAddBonus > 0 then
         core.DecayBonus(self)
         core.nHarassBonus = core.nHarassBonus + nAddBonus
@@ -96,14 +97,14 @@ end
 local function GetHeroToUlti(botBrain, myPos, radius)
   local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
   local vihunmq = nil
-  
+
   for key,unit in pairs(vihu) do
     if unit ~= nil then
       vihunmq = unit
     end
   end
-  
-  if not vihunmq then 
+
+  if not vihunmq then
     return nil
   end
   return vihunmq
@@ -111,13 +112,13 @@ end
 
 local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
   local unitsLocal = core.AssessLocalUnits(botBrain, myPos, range).EnemyCreeps
-  
+
   for _,unit in pairs(unitsLocal) do
     if IsSiege(unit) then
       return core.NumberElements(unitsLocal) <= 3
     end
   end
-  
+
   return core.NumberElements(unitsLocal) <= 2
 end
 
@@ -126,8 +127,14 @@ local function UltimateBehaviorUtility(botBrain)
   local abilUlti = unitSelf:GetAbility(3)
   local myPos = unitSelf:GetPosition()
   local vihu = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange())
-  if abilUlti:CanActivate() and vihu and AreThereMaxTwoEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange()) then
-    return 90
+  if vihu then
+    local canUlti = AreThereMaxTwoEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange())
+    if abilUlti:CanActivate() and vihu and canUlti  then
+      return 90
+    end
+    if abilUlti:CanActivate() and vihu and vihu:GetHealth() < 200 then
+      return 95
+    end
   end
   return 0
 end
@@ -135,11 +142,8 @@ end
 local function UltimateBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilUlti = unitSelf:GetAbility(3)
-  if target then
-    return core.OrderAbility(botBrain, abilUlti, false)
-  end
-  return false
-end 
+  return core.OrderAbility(botBrain, abilUlti, false)
+end
 
 local UltimateBehavior = {}
 UltimateBehavior["Utility"] = UltimateBehaviorUtility

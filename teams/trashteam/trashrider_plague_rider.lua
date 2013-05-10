@@ -4,6 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
 
 local tinsert = _G.table.insert
 
@@ -89,14 +90,14 @@ end
 local function GetUltiTarget(botBrain, myPos, radius)
   local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
   local vihunplague = nil
-  
+
   for key,unit in pairs(vihu) do
     if unit ~= nil then
       vihunplague = unit
     end
   end
-  
-  if not vihunplague then 
+
+  if not vihunplague then
     return nil
   end
   return vihunplague
@@ -136,7 +137,7 @@ local function UltimateBehaviorExecute(botBrain)
     return core.OrderAbilityEntity(botBrain, abilUlti, target, false)
   end
   return false
-end 
+end
 
 local UltimateBehavior = {}
 UltimateBehavior["Utility"] = UltimateBehaviorUtility
@@ -184,7 +185,7 @@ local function DenyBehaviorExecute(botBrain)
     return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
   end
   return false
-end 
+end
 
 local DenyBehavior = {}
 DenyBehavior["Utility"] = DenyBehaviorUtility
@@ -202,13 +203,13 @@ local function GetShieldingUnit(botBrain, myPos, radius)
 	local vihunplague = nil
 
 	for key,unit in pairs(vihu) do
-  	if unit ~= nil then
-  		vihunplague = unit
-  	end
+if unit ~= nil then
+	vihunplague = unit
+end
 	end
 
-	if not vihunplague then 
-  	return nil
+	if not vihunplague then
+return nil
 	end
 
 	local vihundamage = core.GetFinalAttackDamageAverage(vihunplague)
@@ -217,7 +218,7 @@ local function GetShieldingUnit(botBrain, myPos, radius)
 	for key,unit in pairs(kriipit) do
 		local armor = unit:GetArmor()
 		local reduction = 1 - (armor*0.06)/(1+0.06*armor)
-    	if unit:GetHealth() < vihundamage+30*reduction and not core.IsCourier(unit) then
+if unit:GetHealth() < vihundamage+30*reduction and not core.IsCourier(unit) then
 				return unit
 			else return nil
 		end
@@ -229,9 +230,9 @@ local function ShieldBehaviorUtility(botBrain)
   local abilShield = unitSelf:GetAbility(1)
   local myPos = unitSelf:GetPosition()
   local shieldingUnit = GetShieldingUnit(botBrain, myPos, abilShield:GetRange())
-	if abilShield:CanActivate() and shieldingUnit  then	
+	if abilShield:CanActivate() and shieldingUnit  then
 		return 70
-	end	
+	end
 		return 0
 end
 
@@ -244,7 +245,7 @@ local function ShieldExecute(botBrain)
 	local targetpos = shieldingUnit:GetPosition()
 	HoN.DrawDebugLine(myPos, targetpos, true, "Red")
     return core.OrderAbilityEntity(botBrain, abilShield, shieldingUnit, false)
-  else 
+  else
 	return core.OrderAbilityEntity(botBrain, abilShield, unitSelf, false)
   end
   return false
@@ -261,31 +262,31 @@ tinsert(behaviorLib.tBehaviors, ShieldingBehavior)
 local function HarrassBehaUtility(botBrain)
 	local unitSelf = core.unitSelf
 	local kriipit = core.AssessLocalUnits(botBrain, mypos, radius).EnemyUnits
-	
+
 	for key,unit in pairs(kriipit) do
-    	if unit:GetAttackTarget() ~= core.unitSelf and not core.IsCourier(unit) and not unit:IsHero() then
+if unit:GetAttackTarget() ~= core.unitSelf and not core.IsCourier(unit) and not unit:IsHero() then
 			return 100
 		end
 	end
 		return 0
 end
-	
+
 local function HarrassExecute(botBrain)
 	local unitSelf = botBrain.core.unitSelf
 	local myPos = unitSelf:GetPosition()
- 	local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
+local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
 	local vihunplague = nil
-	
+
 	for key,unit in pairs(vihu) do
 		if unit ~= nil then
 			vihunplague = unit
 		end
 	end
 
-	if not vihunplague then 
+	if not vihunplague then
 		return nil
 	end
-	
+
 	if vihunplague ~= nil and unitSelf:GetHealthPercent() > 60 then
 		core.BotEcho("vittuu")
 		local targetpos = vihunplague:GetPosition()
@@ -312,7 +313,7 @@ local function CustomHarassUtilityFnOverride(hero)
   if core.unitSelf:GetAbility(0):CanActivate() then
     nUtil = nUtil + 70
   end
-  
+
   if hero:GetHealth() < 100 then
 	  nUtil = nUtil + 100
   end
@@ -320,7 +321,7 @@ local function CustomHarassUtilityFnOverride(hero)
   if core.unitSelf:GetAbility(3):CanActivate() then
     nUtil = nUtil + 100
   end
-  
+
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
@@ -343,9 +344,9 @@ local function HarassHeroExecuteOverride(botBrain)
 
 	if core.GetTowersThreateningUnit(core.unitSelf, false) == nil then
 	for key,unit in pairs(kriipit) do
-    	if unit:GetAttackTarget() ~= core.unitSelf and not core.IsCourier(unit) and not unit:IsHero() then
+if unit:GetAttackTarget() ~= core.unitSelf and not core.IsCourier(unit) and not unit:IsHero() then
 			bActionTaken = core.OrderAttack(botBrain, unitSelf, unitTarget)
-			
+
 		else
 			bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
 			end

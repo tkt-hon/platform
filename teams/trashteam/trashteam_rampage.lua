@@ -4,6 +4,7 @@ local rampage = _G.object
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
