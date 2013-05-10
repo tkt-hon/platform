@@ -4,7 +4,7 @@ local tinsert = _G.table.insert
 
 plaguerider.heroName = "Hero_DiseasedRider"
 
-runfile 'bots/core_kiinalainen_herobot.lua'
+runfile 'bots/teams/kiinalainen/core_kiinalainen_herobot.lua'
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --

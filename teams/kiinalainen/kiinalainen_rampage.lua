@@ -4,7 +4,7 @@ local tinsert = _G.table.insert
 
 rampage.heroName = "Hero_Rampage"
 
-runfile 'bots/core_kiinalainen_herobot.lua'
+runfile 'bots/teams/kiinalainen/core_kiinalainen_herobot.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
 
