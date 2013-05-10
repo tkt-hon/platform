@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <file>
+    <filename>..\resources0\bots\behaviorlib.lua</filename>
+  </file>
+  <file>
+    <filename>..\resources0\bots\botbraincore.lua</filename>
+  </file>
+  <file>
+    <filename>..\resources0\bots\core.lua</filename>
+  </file>
+  <file>
+    <filename>core_herobot.lua</filename>
+  </file>
+  <file>
+    <filename>core_teambot.lua</filename>
+  </file>
+  <file>
+    <filename>..\resources0\bots\eventslib.lua</filename>
+  </file>
+  <file>
+    <filename>..\resources0\bots\metadata.lua</filename>
+  </file>
+  <file>
+    <filename>teams\vidyanmetamindgames\teambot.lua</filename>
+  </file>
+  <file>
+    <filename>teams\vidyanmetamindgames\vidyanmetamindgames_moon_queen.lua</filename>
+  </file>
+  <file>
+    <filename>teams\vidyanmetamindgames\vidyanmetamindgames_plague_rider.lua</filename>
+  </file>
+  <file>
+    <filename>teams\vidyanmetamindgames\vidyanmetamindgames_rampage.lua</filename>
+  </file>
+</project>
