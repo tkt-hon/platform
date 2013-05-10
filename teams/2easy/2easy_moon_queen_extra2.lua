@@ -12,10 +12,10 @@ local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 --behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 --behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems  = {"2 Item_DuckBoots", "2 Item_MinorTotem", "Item_HealthPotion", "Item_RunesOfTheBlight"}
+behaviorLib.LaneItems  = {"Item_Marchers", "Item_HelmOfTheVictim", "Item_Steamboots"}
+behaviorLib.MidItems  = {"Item_Sicarius", "Item_WhisperingHelm", "Item_Immunity"}
+behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -201,6 +201,35 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
+local function UseAbilitiesWhenThreatenedUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local health = unitSelf:GetHealthPercent()
+  local abilNuke = skills.abilNuke
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return 0
+  end
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  if abilNuke:CanActivate() and health < 0.25 and nTargetDistanceSq < (abilNuke:GetRange()) then
+    return 100
+  end
+  return 0
+end
+
+local function UseAbilitiesWhenThreatenedExecute(botBrain)
+  core.AllChat("Using abilities to defend myself",10)
+  local abilNuke = skills.abilNuke
+  local unitTarget = behaviorLib.heroTarget
+  core.AllChat("BAM!",10)
+  return core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+end
+
+local ThreatenedBehavior = {}
+ThreatenedBehavior["Utility"] = UseAbilitiesWhenThreatenedUtility
+ThreatenedBehavior["Execute"] = UseAbilitiesWhenThreatenedExecute
+ThreatenedBehavior["Name"] = "Saving myself with spells"
+tinsert(behaviorLib.tBehaviors, ThreatenedBehavior)
+
 function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
 	local bDebugEchos = false
 	-- no predictive last hitting, just wait and react when they have 1 hit left
@@ -260,7 +289,7 @@ function AttackCreepsUtilityOverride(botBrain)
 			local nTargetHealth = unitTarget:GetHealth()
 			local unitSelf = core.unitSelf
 			--local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
-			if 60 >= nTargetHealth then
+			if 70 >= nTargetHealth then
 				core.AllChat("Last Hit",10)
 				nUtility = nLastHitVal
 			else 
