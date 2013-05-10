@@ -3,8 +3,8 @@ local moonqueen = _G.object
 
 moonqueen.heroName = "Hero_Krixi"
 
-runfile 'bots/core_herobot.lua'
-runfile 'bots/libhon/utils.lua'
+runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
+runfile 'bots/teams/drop-table-bots/libhon.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
