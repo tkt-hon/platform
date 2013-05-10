@@ -1,13 +1,6 @@
 # TKT-HoN - AI for Games III platform
 
-# Initialising repo:
+## How to create own team
 
-Update/pull submodules:
-
-  git submodule update --init
-
-# 1 vs 1
-  in game console do:
-
-  set teambotmanager\_mode 1v1
-  ReloatTeamBots
+Step 1: Fork this repository.
+Step 2: Copy teams/template to teams/nameOfTeam
