@@ -24,6 +24,19 @@ local deliverLocationLegion = Vector3.Create(6479,6533,0) -- these are fine?
 local deliverLocationHell = Vector3.Create(8950, 8197,0) -- these are fine?
 local deliverLoc = nil
 
+local function currentState()
+  if delivering then
+    return "delivering"
+  elseif idle then
+    return "idling"
+  elseif returning then
+    return "returning"
+  elseif waitingForHero then
+    return "waitingForHero"
+  end
+  return "lol"
+end
+
 local function GetCourier(teamId) -- DONE(berb)
   local allUnits = HoN.GetUnitsInRadius(Vector3.Create(), 99999, ALIVE + UNIT)
   for key, unit in pairs(allUnits) do
@@ -107,7 +120,7 @@ local function CourierTick(botBrain)
     easyCourier.courier = GetCourier(botBrain:GetTeam())
     if not easyCourier.courier then
       return false
-    end 
+    end
   end
   local curBeha = easyCourier.courier:GetBehavior()
   if curBeha then
@@ -121,7 +134,7 @@ local function CourierTick(botBrain)
         return true
       end
     elseif delivering then -- DONE(?)
-      if closeToDeliveryLoc(botBrain) or heroIsClose(botBrain) then   
+      if closeToDeliveryLoc(botBrain) or heroIsClose(botBrain) then
         delivering = false
         waitingForHero = true
         easyCourier.waitingHero = true
@@ -159,16 +172,18 @@ local function CourierTick(botBrain)
     end
     return true
   else
-  return false
+    return false
+  end
 end
 
 
 easyCourier.waitingHero = false
 
 function CourierUtils()
-  local func = ()
+  local func = {}
   func.tick = CourierTick
   func.waitingHero = false
+  func.GetState = currentState
   return func
 end
 

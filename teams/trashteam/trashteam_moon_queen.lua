@@ -93,6 +93,7 @@ behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   courier.tick(self)
+  core.BotEcho(courier.GetState())
 
   -- custom code here
 end
