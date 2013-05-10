@@ -22,15 +22,11 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
     local nDistSq = Vector3.Distance2DSq(vecSelfPos, vecTargetPos)
     local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
     local nTargetHealth = unitCreepTarget:GetHealth()
-    local nDamageMin = unitSelf:GetFinalAttackDamageMin()
       local armor = unitCreepTarget:GetArmor()
       local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
-      nDamageMin = nDamageMin*dmgReduc
-
 
     --Get projectile info
-    local nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
-    local nProjectileTravelTime = Vector3.Distance2D(vecSelfPos, vecTargetPos) / nProjectileSpeed
+    local nProjectileTravelTime = 0.5
     if bDebugEchos then BotEcho ("Projectile travel time: " .. nProjectileTravelTime ) end
 
     local nExpectedCreepDamage = 0
@@ -59,7 +55,7 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
     end
 
 
-    --Determine the damage expected on the creep by other tower
+    --Determine the damage expected on the creep by other towers
     for i, unitTower in pairs(tNearbyAttackingTowers) do
         if unitTower:GetAttackTarget() == unitCreepTarget then
             local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
@@ -78,18 +74,22 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 
     --Get info about self
     local unitSelf = core.unitSelf
-    local nDamageMin = unitSelf:GetFinalAttackDamageMin() + 2
+    local hornedDmg = {0, 60, 80, 100, 120}
+    local nDamageMin = unitSelf:GetFinalAttackDamageMin()
+    local horned = hornedDmg[unitSelf:GetAbility(2):GetLevel()+1]
+
 
 
     if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-        local nTargetHealth = unitEnemyCreep:GetHealth()
+      local nTargetHealth = unitEnemyCreep:GetHealth()
       local armor = unitEnemyCreep:GetArmor() -- 5
       local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
       nDamageMin = nDamageMin*dmgReduc
+      horned = horned*dmgReduc
         --Only attack if, by the time our attack reaches the target
         -- the damage done by other sources brings the target's health
         -- below our minimum damage
-        if nDamageMin >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitEnemyCreep)) then
+        if nDamageMin+horned >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitEnemyCreep)) then
             if bDebugEchos then BotEcho("Returning an enemy") end
             return unitEnemyCreep
         end
@@ -143,14 +143,20 @@ function AttackCreepsExecuteOverride(botBrain)
         local nDistSq = Vector3.Distance2DSq(vecSelfPos, vecTargetPos)
         local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
         local nTargetHealth = unitCreepTarget:GetHealth()
-        local nDamageMin = unitSelf:GetFinalAttackDamageMin() * (1 + 0.01*unitSelf:GetAbility(2):GetLevel())
+        local hornedDmg = {0,60, 80, 100, 120}
+        local nDamageMin = unitSelf:GetFinalAttackDamageMin()
+        local horned = hornedDmg[unitSelf:GetAbility(2):GetLevel()+1]
         local armor = unitCreepTarget:GetArmor()
         local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
         nDamageMin = nDamageMin*dmgReduc
+        horned = horned * dmgReduc
 
         --Only attack if, by the time our attack reaches the target
         -- the damage done by other sources brings the target's health
         -- below our minimum damage, and we are in range and can attack right now
+        if not (unitCreepTarget:GetTeam() == botBrain:GetTeam()) then
+          nDamageMin = nDamageMin + horned
+        end
         if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and nDamageMin >= (nTargetHealth - GetAttackDamageOnCreep(botBrain, unitCreepTarget)) then
             core.OrderAttackClamp(botBrain, unitSelf, unitCreepTarget)
 
