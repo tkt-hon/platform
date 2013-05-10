@@ -7,6 +7,8 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
 runfile 'bots/teams/trashteam/utils/EasyCourier.lua'
 
+local courier = CourierUtils()
+
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 
@@ -90,7 +92,7 @@ behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
 -- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
-  easyCourier.tick(self)
+  courier.tick(self)
 
   -- custom code here
 end
