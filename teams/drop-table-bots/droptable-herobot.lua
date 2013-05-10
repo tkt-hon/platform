@@ -19,6 +19,7 @@ herobot.bOtherCommands = true
 object.bDebugUtility = debug
 object.bReportBehavior = debug
 object.bDebugLines = debug
+object.bDebugPositioning = debug
 
 herobot.logger = {}
 herobot.logger.bWriteLog = false
@@ -30,13 +31,18 @@ herobot.metadata = {}
 herobot.behaviorLib = {}
 herobot.skills = {}
 
-runfile "bots/core.lua"
-runfile "bots/botbraincore.lua"
-runfile "bots/eventslib.lua"
-runfile "bots/metadata.lua"
-runfile "bots/behaviorlib.lua"
+runfile "bots/teams/drop-table-bots/builtin/core.lua"
+runfile "bots/teams/drop-table-bots/builtin/botbraincore.lua"
+runfile "bots/teams/drop-table-bots/builtin/eventslib.lua"
+runfile "bots/teams/drop-table-bots/builtin/metadata.lua"
+runfile "bots/teams/drop-table-bots/builtin/behaviorlib.lua"
+
+object.behaviorLib.nBehaviorAssessInterval = 50 -- MORE APM!!!! default 250
+object.behaviorLib.nPositionSelfAllySeparation = 250 -- Useful for team AI
+object.behaviorLib.nCreepPushbackMul = 0.2 -- Stay closer to creep wave, default 1
 
 local core = herobot.core
+core.nDifficulty = core.nHARD_DIFFICULTY
 
 object.tSkills = {
   0, 1, 0, 1, 0,
