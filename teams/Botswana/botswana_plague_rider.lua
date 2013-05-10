@@ -10,7 +10,7 @@ local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 
 
-behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight",  }
+behaviorLib.StartingItems = { "Item_MinorTotem", "Item_PretendersCrown", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_RunesOfTheBlight"  }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_ManaBattery", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_Striders", "Item_SpellShards", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
@@ -24,8 +24,8 @@ core.itemWard = nil
 
 plaguerider.tSkills = {
   2, 0, 0, 2, 0,
-  3, 0, 4, 2, 1,
-  4, 3, 1, 2, 4,
+  3, 0, 4, 2, 4,
+  3, 4, 4, 2, 4,
   3, 2, 4, 4, 4,
   3, 4, 4, 4, 4
 }
@@ -62,22 +62,22 @@ plaguerider.onthink = plaguerider.onthinkOverride
 plaguerider.nNukeUp = 10
 plaguerider.nArmorUp = 0
 plaguerider.nManaUp = 0
-plaguerider.nUltUp = 30
+plaguerider.nUltUp = 25
  
  
 -- These are bonus agression points that are applied to the bot upon successfully using a skill/item
 plaguerider.nNukeUse = 15
 plaguerider.nArmorUse = 5
 plaguerider.nManaUse = 0
-plaguerider.nUltUse = 50
+plaguerider.nUltUse = 35
  
  
 --These are thresholds of aggression the bot must reach to use these abilities
 
-plaguerider.nNukeThreshold = 15
-plaguerider.nArmorThreshold = 35
-plaguerider.nManaThreshold = 12
-plaguerider.nUltThreshold = 55
+plaguerider.nNukeThreshold = 10
+plaguerider.nArmorThreshold = 5
+plaguerider.nManaThreshold = 11
+plaguerider.nUltThreshold = 35
 
 
 ----------------------------------------------
@@ -123,7 +123,7 @@ plaguerider.oncombatevent = plaguerider.oncombateventOverride
 -------------------------------------------------------------
 
 local function CustomHarassUtilityFnOverride(hero)
-	local nUtil = 40
+	local nUtil = 30
 
 	if skills.abilNuke:CanActivate() then
 	  nUtil = nUtil + plaguerider.nNukeUp
@@ -253,9 +253,101 @@ end
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
+
+
+
 ---------------------------------------------------------------
---           PushExecuteOverride
+--           Push Utilityt ja push execute
 ---------------------------------------------------------------
+
+local function Clamp(val, low, high)
+	local retVal = val
+	if low <= high then
+		if low ~= nil and retVal < low then
+		retVal = low
+		end	
+
+		if high ~= nil and retVal > high then
+		retVal = high
+		end
+	end
+
+	return retVal
+end
+
+
+
+
+behaviorLib.enemiesDeadUtilMul = 0.5
+behaviorLib.pushingStrUtilMul = 0.3
+behaviorLib.nDPSPushWeight = 0.7
+behaviorLib.pushingCap = 14
+
+local function EnemiesDeadPushUtility(enemyTeam)
+	local enemyHeroes = HoN.GetHeroes(enemyTeam)
+	local bHeroesAlive = false
+	for id, hero in pairs(enemyHeroes) do
+--BotEcho(hero:GetTypeName()..": "..tostring(hero:IsAlive()))
+		if hero:IsAlive() then
+		bHeroesAlive = true
+		break
+		end
+	end
+
+	local util = 0
+
+	if not bHeroesAlive and core.NumberElements(enemyHeroes) > 0 then
+	util = 100
+	end
+
+--BotEcho("enemiesDead: "..heroesDead.." totalEnemies: "..core.NumberElements(enemyHeroes))
+
+	return util
+end
+
+
+local function PushingStrengthUtility(myHero)
+	local nUtility = 0
+
+	nUtility = behaviorLib.DPSPushingUtility(myHero) * behaviorLib.nDPSPushWeight
+
+	nUtility = Clamp(nUtility, 0, 100)
+
+	return nUtility
+end
+
+
+-------- Behavior Fns --------
+local function PushUtility(botBrain)
+--TODO: factor in:
+--how strong are we here? (allies close, pushing ability, hp/mana)
+--what defenses can they mount (potential enemies close, threat, anti-push, time until response)
+--how effective/how much can we hope to acomplish (time cost, weakness of target)
+
+--For now: push when they have dudes down and as I grow stronger
+
+	local utility = 0
+	local enemiesDeadUtil = behaviorLib.EnemiesDeadPushUtility(core.enemyTeam)
+	local pushingStrUtil = behaviorLib.PushingStrengthUtility(core.unitSelf)
+	local nTeamPushUtility = behaviorLib.TeamPushUtility()
+
+	enemiesDeadUtil = enemiesDeadUtil * behaviorLib.enemiesDeadUtilMul
+	pushingStrUtil = pushingStrUtil * behaviorLib.pushingStrUtilMul
+	nTeamPushUtility = nTeamPushUtility * behaviorLib.nTeamPushUtilityMul
+
+	utility = enemiesDeadUtil + pushingStrUtil + nTeamPushUtility
+	utility = Clamp(utility, 0, behaviorLib.pushingCap)
+
+--BotEcho(format("PushUtil: %g enemyDeadUtil: %g pushingStrUtil: %g", utility, enemiesDeadUtil, pushingStrUtil))
+
+	if botBrain.bDebugUtility == true and utility ~= 0 then
+	BotEcho(format(" PushUtility: %g", utility))
+	end
+
+	return utility
+end
+
+
 
 
 local function PushExecuteOverride(botBrain)
@@ -297,7 +389,7 @@ local function PushExecuteOverride(botBrain)
 			local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
 			if unitSelf:GetAttackType() == "melee" then
 			--override melee so they don't stand *just* out of range
-				nRange = 250
+				nRange = 220
 			end
 
 			if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
@@ -337,8 +429,8 @@ plaguerider.PushExecute = plaguerider.PushExecuteOverride
 ---------------------------------------------------------
 
 local function AttackCreepsUtilityOverride(botBrain)	
-	local nDenyVal = 21
-	local nLastHitVal = 24
+	local nDenyVal = 15
+	local nLastHitVal = 20
 
 	local nUtility = 0
 
@@ -409,7 +501,7 @@ behaviorLib.AttackCreepsExecute = AttackCreepsExecuteOverride
 local function ProxToEnemyTowerUtilityOverride(unit, unitClosestEnemyTower)
 	local bDebugEchos = false
 
-	local nUtility = 0
+	local nUtility = 20
 
 	if unitClosestEnemyTower then
 		local nDist = Vector3.Distance2D(unitClosestEnemyTower:GetPosition(), unit:GetPosition())
