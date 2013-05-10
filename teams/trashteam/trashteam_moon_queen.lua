@@ -5,6 +5,7 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
+runfile 'bots/teams/trashteam/utils/EasyCourier.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
@@ -48,6 +49,39 @@ end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 
+---------------------------------------------------------------
+--            ShopUtility override                           --
+---------------------------------------------------------------
+-- @param: none
+-- @return: none
+function ShopUtilityOverride(botBrain)
+  --BotEcho('CanAccessStash: '..tostring(core.unitSelf:CanAccessStash()))
+
+  --just got into shop access, try buying
+  if not behaviorLib.canAccessShopLast then
+    --BotEcho("Open for shopping!")
+    behaviorLib.finishedBuying = false
+  end
+
+  behaviorLib.canAccessShopLast = bCanAccessShop
+
+  local utility = 0
+  if not behaviorLib.finishedBuying then
+    if not core.teamBotBrain.bPurchasedThisFrame then
+      utility = 99
+    end
+  end
+
+  if botBrain.bDebugUtility == true and utility ~= 0 then
+    BotEcho(format("  ShopUtility: %g", utility))
+  end
+
+  return utility
+end
+
+ShopUtilityOverrideOld = behaviorLib.ShopBehavior["Utility"]
+behaviorLib.ShopBehavior["Utility"] = ShopUtilityOverride
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
@@ -56,6 +90,7 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
+  easyCourier.tick(self)
 
   -- custom code here
 end
