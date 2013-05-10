@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="2easy_PlagueRiderCOB"
+  description="2easy Plague RiderCOB"
+  heroname="Hero_DiseasedRider"
+  rootlua=""2easy_plague_rider.luaCOB"
+  defaultplayername="2eazyPlagueBotCOB"
+  precachepath="/heroes/diseasedrider/"
+/>
