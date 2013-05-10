@@ -86,7 +86,7 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilBash:IsReady() then
-    nUtil = nUtil + 20
+    nUtil = nUtil + 30
   end
 
   if skills.abilCharge:CanActivate() then
