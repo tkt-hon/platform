@@ -56,8 +56,12 @@ function moonqueen:onthinkOverride(tGameVariables)
 
   -- custom code here
   local matchtime = HoN.GetMatchTime()
-  if matchtime ~= 0 and matchtime % 2000 == 0 then
-    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
+  --if matchtime ~= 0 and matchtime % 2000 == 0 then
+  --  self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
+  --end
+
+  if matchtime == 1000 then
+    self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
   end
 end
 moonqueen.onthinkOld = moonqueen.onthink
