@@ -354,7 +354,7 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
-    if time > nuketime + 15000 then
+    if time > nuketime + 30000 then
       local nuke = skills.abilNuke
       local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
       if unitsLocal ~= nil then

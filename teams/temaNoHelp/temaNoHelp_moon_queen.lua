@@ -10,6 +10,7 @@ runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 
+
 local core, behaviorLib, shopping, courier = moonqueen.core, moonqueen.behaviorLib, moonqueen.shopping, moonqueen.courier
 
 local ultDuration = HoN.GetMatchTime()-500
@@ -214,6 +215,9 @@ local function CustomHarassUtilityFnOverride(hero)
   local time = HoN.GetMatchTime()
   local counter = HoN.GetMatchTime()-ultDuration
 
+  if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
+    return -10000
+  end
 
   --jos tornin rangella ni ei mennä
   if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 950) then
@@ -228,13 +232,13 @@ local function CustomHarassUtilityFnOverride(hero)
     return 200
   end
 
-  if skills.abilNuke:CanActivate() then
+  if skills.abilNuke:CanActivate() and core.unitSelf:GetMana() > 200 then
     nUtil = nUtil + 20
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 3 then
+  if skills.abilUltimate:CanActivate() and creeps < 2 and core.unitSelf:GetMana() > 200  then
     nUtil = nUtil + 300
   end
 
@@ -271,7 +275,7 @@ local function HarassHeroExecuteOverride(botBrain)
     end
 
     local abilNuke = skills.abilNuke
-    if abilNuke:CanActivate() and core.unitSelf:GetLevel() > 2 then
+    if abilNuke:CanActivate() and core.unitSelf:GetLevel() > 2 and core.unitSelf:GetMana() > 270 then
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
