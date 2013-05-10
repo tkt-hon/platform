@@ -462,7 +462,7 @@ behaviorLib.PositionSelfBehavior["Execute"] = behaviorLib.PositionSelfExecute
 function behaviorLib.HealthPotUtilFn(nHealthMissing)
   --Roughly 20+ when we are down 400 hp
   --  Fn which crosses 20 at x=400 and 40 at x=650, convex down
-  if nHealthMissing > 300 then
+  if nHealthMissing > 225 then
     return 100
   end
   return 0
