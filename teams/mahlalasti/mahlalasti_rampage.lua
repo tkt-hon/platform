@@ -6,6 +6,7 @@ rampage.heroName = "Hero_Rampage"
 runfile 'bots/core_herobot.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 runfile 'bots/teams/mahlalasti/banter.lua'
+runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
 local BotEcho = core.BotEcho
@@ -56,15 +57,18 @@ rampage.SkillBuild = rampage.SkillBuildOverride
 function rampage:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-  -- Tämänhetkisen Behaviorin tulostus All-chattiin
   local matchtime = HoN.GetMatchTime()
-  --if matchtime ~= 0 and matchtime % 2000 == 0 then
-  --  self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
-  --end
-
   if matchtime == 1000 then
     self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
   end
+  if matchtime ~= 0 and matchtime % 2000 == 0 then
+    --self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
+  end
+
+  if matchtime > 0 and matchtime % 5000 == 0 then
+    behaviorLib.ShopExecute(self)
+  end
+  self:onthinkCourier()
 end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
