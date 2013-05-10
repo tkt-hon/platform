@@ -4,7 +4,7 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
+runfile 'bots/teams/trashteam/utils/predictiveLasthittingMQ.lua'
 runfile 'bots/teams/trashteam/utils/EasyCourier.lua'
 
 local courier = CourierUtils()

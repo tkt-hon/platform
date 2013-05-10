@@ -75,7 +75,7 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 
     --Get info about self
     local unitSelf = core.unitSelf
-    local nDamageMin = unitSelf:GetFinalAttackDamageMin() + 2
+    local nDamageMin = unitSelf:GetFinalAttackDamageMin()
 
 
     if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
@@ -106,15 +106,6 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
         if nDamageMin >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitAllyCreep)) then
             local bActuallyDeny = true
 
-            --[Difficulty: Easy] Don't deny
-            if core.nDifficulty == core.nEASY_DIFFICULTY then
-                bActuallyDeny = false
-            end
-
-            -- [Tutorial] Hellbourne *will* deny creeps after **** gets real
-            if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
-                bActuallyDeny = true
-            end
 
             if bActuallyDeny then
                 if bDebugEchos then BotEcho("Returning an ally") end
@@ -140,8 +131,8 @@ function AttackCreepsExecuteOverride(botBrain)
         local nDistSq = Vector3.Distance2DSq(vecSelfPos, vecTargetPos)
         local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
         local nTargetHealth = unitCreepTarget:GetHealth()
-        local nDamageMin = unitSelf:GetFinalAttackDamageMin() 
-        local armor = unitCreepTarget:GetArmor() -- 5
+        local nDamageMin = unitSelf:GetFinalAttackDamageMin()
+        local armor = unitCreepTarget:GetArmor()
         local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
         nDamageMin = nDamageMin*dmgReduc
 
