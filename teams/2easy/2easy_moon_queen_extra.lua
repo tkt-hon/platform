@@ -8,10 +8,15 @@ runfile 'bots/core_moonbot.lua'
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_LifeSteal5", "Item_Marchers", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+--behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem" }
+--behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_Marchers", "Item_LifeSteal5",  "Item_WhisperingHelm" }
+--behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+--behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
+behaviorLib.StartingItems  = {"2 Item_DuckBoots", "2 Item_MinorTotem", "Item_HealthPotion", "Item_RunesOfTheBlight"}
+behaviorLib.LaneItems  = {"Item_Marchers", "Item_LifeSteal5", "Item_Steamboots"}
+behaviorLib.MidItems  = {"Item_Sicarius", "Item_WhisperingHelm", "Item_Immunity"}
+behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -97,8 +102,17 @@ local function CustomHarassUtilityFnOverride(hero)
   local unitSelf = core.unitSelf
   local mana = unitSelf:GetMana()
 
-  if skills.abilNuke:CanActivate() and mana > 370 then
+  if skills.abilNuke:CanActivate() and (mana > 370) then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 15
+  end
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    nUtil = nUtil + 0
+  else
+    if skills.abilNuke:CanActivate() and unitTarget:GetHealth() < 200 then
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 40
+    end
   end
 
   local creeps = NearbyEnemyCreepCount(moonqueen, hero:GetPosition(), 700)
@@ -233,5 +247,37 @@ ThreatenedBehavior["Name"] = "Saving myself with spells"
 tinsert(behaviorLib.tBehaviors, ThreatenedBehavior)
 
 
+local function GetCourier(teamId)
+  local allUnits = HoN.GetUnitsInRadius(Vector3.Create(), 99999, core.UNIT_MASK_ALIVE + core.UNIT_MASK_UNIT)
+  for key, unit in pairs(allUnits) do
+    if unit:GetTeam() == teamId and
+       (core.IsCourier(unit)) and
+        unit:IsValid() then
+      return unit
+    end
+  end
+  return nil
+end
+
+local function CourierUtility(botBrain)
+  local courier = GetCourier(core.myTeam)
+  if courier == nil then
+    return 0
+  end
+  local deliver = courier:GetAbility(2)
+ -- core.OrderAbility(botBrain, deliver)
+ -- core.OrderFollow(botBrain, courier, core.unitSelf)
+  return 0
+end
+
+local function CourierExecute(botBrain)
+  
+end
+
+local CourierBehavior = {}
+CourierBehavior["Utility"] = CourierUtility
+CourierBehavior["Execute"] = CourierExecute
+CourierBehavior["Name"] = "Playing with courier"
+tinsert(behaviorLib.tBehaviors, CourierBehavior)
 
 

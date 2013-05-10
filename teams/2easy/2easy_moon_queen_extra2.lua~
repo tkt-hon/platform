@@ -3,20 +3,19 @@ local moonqueen = _G.object
 
 moonqueen.heroName = "Hero_Krixi"
 
-runfile 'bots/core_moonbot.lua'
+runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
-local tinsert = _G.table.insert
 
---behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem" }
---behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_Marchers", "Item_LifeSteal5",  "Item_WhisperingHelm" }
+behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_Marchers", "Item_LifeSteal5",  "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
+--behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+--behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 --behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 --behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
-
-behaviorLib.StartingItems  = {"2 Item_DuckBoots", "2 Item_MinorTotem", "Item_HealthPotion", "Item_RunesOfTheBlight"}
-behaviorLib.LaneItems  = {"Item_Marchers", "Item_HelmOfTheVictim", "Item_Steamboots"}
-behaviorLib.MidItems  = {"Item_Sicarius", "Item_WhisperingHelm", "Item_Immunity"}
-behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -76,20 +75,10 @@ end
 moonqueen.oncombateventOld = moonqueen.oncombatevent
 moonqueen.oncombatevent = moonqueen.oncombateventOverride
 
-local function NearbyEnemyCreepCount(botBrain, center, radius)
+local function NearbyCreepCount(botBrain, center, radius)
   local count = 0
   local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
   local enemies = unitsLocal.EnemyCreeps
-  for _,unit in pairs(enemies) do
-    count = count + 1
-  end
-  return count
-end
-
-local function NearbyAllyCreepCount(botBrain, center, radius)
-  local count = 0
-  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
-  local enemies = unitsLocal.AllyCreeps
   for _,unit in pairs(enemies) do
     count = count + 1
   end
@@ -111,13 +100,13 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + 0
   else
     if skills.abilNuke:CanActivate() and unitTarget:GetHealth() < 200 then
-    nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 40
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 50
     end
   end
 
-  local creeps = NearbyEnemyCreepCount(moonqueen, hero:GetPosition(), 700)
+  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 2 then
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
 
@@ -154,7 +143,6 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = 600
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-	  core.AllChat("get owned!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
@@ -166,7 +154,6 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-	core.AllChat("BAM!",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -181,10 +168,7 @@ moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 local function DPSPushingUtilityOverride(myHero)
-  local unitSelf = core.unitSelf
-  local modifier = 1 + (NearbyAllyCreepCount(moonqueen, unitSelf:GetPosition(), 700) - NearbyEnemyCreepCount(moonqueen, unitSelf:GetPosition(), 700))  + myHero:GetAbility(1):GetLevel()*0.7
-  if(modifier < 0) then modifier = 0
-  end
+  local modifier = 3 + myHero:GetAbility(1):GetLevel()*0.7
   return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
 moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
@@ -217,67 +201,80 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
-local function UseAbilitiesWhenThreatenedUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local health = unitSelf:GetHealthPercent()
-  local abilNuke = skills.abilNuke
-  local unitTarget = behaviorLib.heroTarget
-  if unitTarget == nil then
-    return 0
-  end
-  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
-  if abilNuke:CanActivate() and health < 0.25 and nTargetDistanceSq < (abilNuke:GetRange()) then
-    return 100
-  end
-  return 0
+function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
+	local bDebugEchos = false
+	-- no predictive last hitting, just wait and react when they have 1 hit left
+	-- prefers LH over deny
+
+	local unitSelf = core.unitSelf
+	local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
+
+	if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+
+		local nTargetHealth = unitEnemyCreep:GetHealth()
+		if nDamageAverage >= nTargetHealth then
+			return unitEnemyCreep
+		end
+	end
+
+	if unitAllyCreep then
+		local nTargetHealth = unitAllyCreep:GetHealth()
+		if nDamageAverage >= nTargetHealth then
+			local bActuallyDeny = true	
+
+			-- [Tutorial] Hellbourne *will* deny creeps after shit gets real
+			if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
+				bActuallyDeny = true
+			end
+
+			if bActuallyDeny then
+				if bDebugEchos then BotEcho("Returning an ally") end
+				return unitAllyCreep
+			end
+		end
+	end
+
+	return nil
 end
 
-local function UseAbilitiesWhenThreatenedExecute(botBrain)
-  core.AllChat("Using abilities to defend myself",10)
-  local abilNuke = skills.abilNuke
-  local unitTarget = behaviorLib.heroTarget
-  core.AllChat("BAM!",10)
-  return core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+-------- Behavior Fns --------
+function AttackCreepsUtilityOverride(botBrain)	
+	local nDenyVal = 21
+	local nLastHitVal = 24
+	local nPushHitVal = 23
+	local nUtility = 0
+
+	--we don't want to deny if we are pushing
+	local unitDenyTarget = core.unitAllyCreepTarget
+	if core.GetCurrentBehaviorName(botBrain) == "Push" then
+		unitDenyTarget = nil
+	end
+
+	local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
+
+
+	if unitTarget and core.unitSelf:IsAttackReady() then
+		if unitTarget:GetTeam() == core.myTeam then
+			nUtility = nDenyVal
+		else
+			local nTargetHealth = unitTarget:GetHealth()
+			local unitSelf = core.unitSelf
+			--local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
+			if 60 >= nTargetHealth then
+				core.AllChat("Last Hit",10)
+				nUtility = nLastHitVal
+			else 
+				core.AllChat("Push Hit",10)
+				nUtility = nPushHitVal
+			end
+		end
+		
+		core.unitCreepTarget = unitTarget
+	end
+
+	return nUtility
 end
 
-local ThreatenedBehavior = {}
-ThreatenedBehavior["Utility"] = UseAbilitiesWhenThreatenedUtility
-ThreatenedBehavior["Execute"] = UseAbilitiesWhenThreatenedExecute
-ThreatenedBehavior["Name"] = "Saving myself with spells"
-tinsert(behaviorLib.tBehaviors, ThreatenedBehavior)
-
-
-local function GetCourier(teamId)
-  local allUnits = HoN.GetUnitsInRadius(Vector3.Create(), 99999, core.UNIT_MASK_ALIVE + core.UNIT_MASK_UNIT)
-  for key, unit in pairs(allUnits) do
-    if unit:GetTeam() == teamId and
-       (core.IsCourier(unit)) and
-        unit:IsValid() then
-      return unit
-    end
-  end
-  return nil
-end
-
-local function CourierUtility(botBrain)
-  local courier = GetCourier(core.myTeam)
-  if courier == nil then
-    return 0
-  end
-  local deliver = courier:GetAbility(2)
- -- core.OrderAbility(botBrain, deliver)
- -- core.OrderFollow(botBrain, courier, core.unitSelf)
-  return 0
-end
-
-local function CourierExecute(botBrain)
-  
-end
-
-local CourierBehavior = {}
-CourierBehavior["Utility"] = CourierUtility
-CourierBehavior["Execute"] = CourierExecute
-CourierBehavior["Name"] = "Playing with courier"
-tinsert(behaviorLib.tBehaviors, CourierBehavior)
+behaviorLib.AttackCreepsBehavior["Utility"] = AttackCreepsUtilityOverride
 
 

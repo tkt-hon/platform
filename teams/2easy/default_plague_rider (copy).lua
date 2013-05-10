@@ -7,8 +7,7 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
---behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_FlamingEye" }
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem" }
+behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_FlamingEye" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
@@ -88,7 +87,7 @@ local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
   local nDistance = 0
   for _,unit in pairs(allies) do
     local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
-    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) and unit:GetHealthPercent() == 1 then
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
       unitTarget = unit
       nDistance = nNewDistance
     end
