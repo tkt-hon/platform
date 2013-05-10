@@ -126,6 +126,10 @@ local function CustomHarassUtilityFnOverride(hero)
   if skills.abilUltimate:CanActivate() then
     nUtil = nUtil + 50
   end
+  -- tässä pyritään ottamaan huomioon level-ero
+  if hero:GetLevel() < unitSelf:GetLevel() then
+    nUtil = nUtil + 10
+  end
 
   if selfInsideEnemyTowerRange then
     -- nuoli debuggausta varten
