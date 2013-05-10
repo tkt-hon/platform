@@ -112,7 +112,7 @@ local function CourierTick(botBrain)
   local curBeha = easyCourier.courier:GetBehavior()
   if curBeha then
     local jobType = curBeha:GetType()
-    if idle then -- DONE(?)
+    if idle then -- DONE(?) -- buggy if buying is slow and all items end up on silly pos
       -- check for job, hero has items to be delivered.
       if hasDeliverableItems(botBrain) or hasItems() then
         idle = false
@@ -162,6 +162,13 @@ local function CourierTick(botBrain)
   return false
 end
 
+
 easyCourier.waitingHero = false
-easyCourier.tick = CourierTick
+
+function CourierUtils()
+  local func = ()
+  func.tick = CourierTick
+  func.waitingHero = false
+  return func
+end
 
