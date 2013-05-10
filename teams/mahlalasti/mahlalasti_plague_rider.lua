@@ -5,6 +5,7 @@ plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/mahlalasti/banter.lua'
+runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
@@ -61,7 +62,11 @@ local matchtime = HoN.GetMatchTime()
   if matchtime == 1000 then
     self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
   end
-  -- custom code here
+
+  if matchtime > 0 and matchtime % 5000 == 0 then
+    behaviorLib.ShopExecute(self)
+  end
+  self:onthinkCourier()
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride

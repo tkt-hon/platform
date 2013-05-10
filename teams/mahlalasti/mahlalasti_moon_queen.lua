@@ -5,6 +5,7 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/mahlalasti/banter.lua'
+runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
@@ -63,6 +64,10 @@ function moonqueen:onthinkOverride(tGameVariables)
   if matchtime == 1000 then
     self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
   end
+  if matchtime > 0 and matchtime % 5000 == 0 then
+    behaviorLib.ShopExecute(self)
+  end
+  self:onthinkCourier()
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
