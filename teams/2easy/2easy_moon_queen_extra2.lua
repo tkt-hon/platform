@@ -143,6 +143,7 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = 600
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+	  core.AllChat("get owned!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
@@ -154,6 +155,7 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+	core.AllChat("BAM!",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -290,10 +292,8 @@ function AttackCreepsUtilityOverride(botBrain)
 			local unitSelf = core.unitSelf
 			--local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
 			if 70 >= nTargetHealth then
-				core.AllChat("Last Hit",10)
 				nUtility = nLastHitVal
 			else 
-				core.AllChat("Push Hit",10)
 				nUtility = nPushHitVal
 			end
 		end
