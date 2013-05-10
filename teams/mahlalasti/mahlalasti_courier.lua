@@ -5,8 +5,10 @@ local object = _G.object
 local core = object.core
 local BotEcho = object.core.BotEcho
 
-local M = {}
+local tinsert = _G.table.insert
 
+
+local M = {}
 M.UNIT = 0x0000001
 M.BUILDING = 0x0000002
 M.HERO = 0x0000004
@@ -16,6 +18,26 @@ M.ALIVE = 0x0000020
 M.CORPSE = 0x0000040
 
 MASKS = M
+
+
+local function ComeToCourierUtility(botBrain)
+  local matchTime = HoN.GetMatchTime()
+  if botBrain.bCourierOnWay and matchTime > botBrain.nCourierMeetupTime then 
+    return 65
+  end
+  return 0
+end
+
+local function ComeToCourierExecute(botBrain) 
+  local safePos = core.GetClosestAllyTower(core.unitSelf:GetPosition()):GetPosition()
+  object.behaviorLib.MoveExecute(botBrain, safePos)
+end
+
+local CourierBehavior = {}
+CourierBehavior["Utility"] = ComeToCourierUtility
+CourierBehavior["Execute"] = ComeToCourierExecute
+CourierBehavior["Name"] = "My people need me"
+tinsert(object.behaviorLib.tBehaviors, CourierBehavior)
 
 -- https://github.com/samitheberber/honbotstack/blob/master/utils/courier_controlling/selector.lua
 local function GetCourier(bot)
@@ -32,11 +54,14 @@ end
 
 local function ReturnHome(bot, courier)
   bot:OrderAbility(courier:GetAbility(3))
+  bot.bCourierOnWay = false
 end
 
 local function DeliverItems(bot, courier)
   local deliver = courier:GetAbility(2)
   bot:OrderAbility(deliver)
+  bot.bCourierOnWay = true
+  bot.nCourierMeetupTime = HoN.GetMatchTime() + 10000
 end
 
 
@@ -137,7 +162,9 @@ local function onthinkCourier(bot)
 
   if not courier:GetStashAccess() then 
     if ItemsInInventory(courier:GetInventory()) == 0 then
-      ReturnHome(bot, courier)
+      if courier:GetBehavior() and courier:GetBehavior():GetType() ~= "Move" then
+        ReturnHome(bot, courier)
+      end
     end
     return 
   end

@@ -59,7 +59,7 @@ function rampage:onthinkOverride(tGameVariables)
   -- Tämänhetkisen Behaviorin tulostus All-chattiin
   local matchtime = HoN.GetMatchTime()
   if matchtime ~= 0 and matchtime % 2000 == 0 then
-    self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
+    --self:Chat("Current behavior: " .. core.GetCurrentBehaviorName(self))
   end
 
   if matchtime > 0 and matchtime % 5000 == 0 then
