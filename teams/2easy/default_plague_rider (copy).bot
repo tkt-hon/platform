@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Plague Plague"
+  description="Plague Rider 2_Easy"
+  heroname="Hero_DiseasedRider"
+  rootlua="2easy_plague_plague.lua"
+  defaultplayername="Plague Plague"
+  precachepath="/heroes/diseasedrider/"
+/>
