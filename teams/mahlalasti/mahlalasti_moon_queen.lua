@@ -4,6 +4,7 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/mahlalasti/banter.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 

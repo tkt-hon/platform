@@ -4,6 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/mahlalasti/banter.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
