@@ -4,6 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/mahlalasti/banter.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
@@ -55,6 +56,11 @@ plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
+local matchtime = HoN.GetMatchTime()
+
+  if matchtime == 1000 then
+    self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")
+  end
   -- custom code here
 end
 plaguerider.onthinkOld = plaguerider.onthink
