@@ -77,7 +77,6 @@ moonqueen.onthink = moonqueen.onthinkOverride
 function moonqueen:oncombateventOverride(EventData)
 	self:oncombateventOld(EventData)
 
-	BotEcho("EVENT! Type: " .. EventData.Type)
 	-- custom code here
 end
 -- override combat event trigger function.
