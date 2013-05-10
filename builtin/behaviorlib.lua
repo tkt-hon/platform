@@ -44,7 +44,7 @@ behaviorLib.nPositionSelfAllySeparation = 250
 behaviorLib.nAllyInfluenceMul = 1.5
 function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 	local bDebugLines = object.bDebugLines
-	local bDebugEchos = false
+	local bDebugEchos = true
 	local nLineLen = 150
 
 	--if botBrain.myName == "ShamanBot" then bDebugLines = object.bDebugLines bDebugEchos = true end
@@ -104,7 +104,9 @@ function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 		local vecTheirRange = funcGetAbsoluteAttackRangeToUnit(unitEnemy, unitSelf)
 		local vecTowardsMe, nEnemyDist = funcV3Normalize(vecMyPos - vecEnemyPos)
 		
-		local nDistanceMul = funcDistanceThreatUtility(nEnemyDist, vecTheirRange, unitEnemy:GetMoveSpeed(), false) / 100
+		local threatDivisor = 300 -- default 100
+		local nDistanceMul = funcDistanceThreatUtility(nEnemyDist, vecTheirRange, unitEnemy:GetMoveSpeed(), false) / threatDivisor
+		local rangedThreatMul = 3.1
 		
 		local vecEnemyInfluence = Vector3.Create()
 		StopProfile()
@@ -113,8 +115,13 @@ function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 			StartProfile('Creep')
 			
 			--stand away from creeps
-			if bDebugEchos then BotEcho('  creep unit: ' .. unitEnemy:GetTypeName()) end
+			if bDebugEchos then BotEcho('  creep unit: ' .. unitEnemy:GetTypeName() .. ' attack type: ' .. unitEnemy:GetAttackType()) end
 			vecEnemyInfluence = vecTowardsMe * (nDistanceMul + nExtraThreat)
+
+			-- especially ranged ones
+			if unitEnemy:GetAttackType() == 'ranged' then
+				vecEnemyInfluence = vecEnemyInfluence * rangedThreatMul
+			end
 
 			StopProfile()
 		else
@@ -184,18 +191,19 @@ function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 			--vecTotalAllyInfluence.AddAssign(vecCurrentAllyInfluence)
 			vecTotalAllyInfluence = vecTotalAllyInfluence + vecCurrentAllyInfluence
 			
-			if bDebugLines then core.DrawDebugArrow(vecMyPos, vecMyPos + vecCurrentAllyInfluence * nLineLen, 'white') end
+			if bDebugLines then core.DrawDebugArrow(vecMyPos, vecMyPos + vecCurrentAllyInfluence * nLineLen, 'red') end
 		end
 	end
 	StopProfile()
 
 	--stand near your target
 	StartProfile('Target')
+	local vecTargetPosition
 	local vecTargetInfluence = Vector3.Create()
 	local nTargetMul = behaviorLib.nTargetPositioningMul
 	if unitCurrentTarget ~= nil and botBrain:CanSeeUnit(unitCurrentTarget) then
 		local nMyRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitCurrentTarget)
-		local vecTargetPosition = unitCurrentTarget:GetPosition()
+		vecTargetPosition = unitCurrentTarget:GetPosition()
 		local vecToTarget, nTargetDist = funcV3Normalize(vecTargetPosition - vecMyPos)
 		local nLength = 1
 		if not unitCurrentTarget:IsHero() then
@@ -222,7 +230,7 @@ function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 	local vecDesired = vecTotalEnemyInfluence + vecTargetInfluence + vecTotalAllyInfluence
 	local vecMove = vecDesired * core.moveVecMultiplier
 
-	if bDebugEchos then BotEcho('vecDesiredPos: '..tostring(vecDesiredPos)..'  vCreepInfluence: '..tostring(vecTotalEnemyInfluence)..'  vecTargetInfluence: '..tostring(vecTargetInfluence)) end
+	if bDebugEchos then BotEcho('vecDesiredPos: '..tostring(vecDesiredPos)..'  vCreepInfluence: '..tostring(vecTotalEnemyInfluence)..'	vecTargetInfluence: '..tostring(vecTargetInfluence)) end
 
 	--minimum move distance threshold
 	if Vector3.LengthSq(vecMove) >= core.distSqTolerance then
@@ -243,14 +251,11 @@ function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 		core.DrawDebugArrow(vecMyPos, vecMyPos + vecTotalEnemyInfluence * nLineLen, 'cyan')
 
 		if unitCurrentTarget ~= nil and botBrain:CanSeeUnit(unitCurrentTarget) then
-			local color = 'cyan'
-			if nTargetMul ~= behaviorLib.nTargetPositioningMul then
-				color = 'orange'
-			end
-			core.DrawDebugArrow(vecMyPos, vecMyPos + vecTargetInfluence * nLineLen, color)
+			core.DrawDebugArrow(vecMyPos, vecMyPos + vecTargetInfluence * nLineLen, 'orange')
 		end
 
 		core.DrawXPosition(vecDesiredPos, 'blue')
+		-- if vecTargetPosition ~= nil then core.DrawDebugArrow(vecMyPos, vecTargetPosition, 'red') end
 
 		core.DrawDebugArrow(vecMyPos, vecMyPos + vecDesired * nLineLen, 'blue')
 		--core.DrawDebugArrow(vecMyPos, vecMyPos + vProjection * nLineLen)
@@ -391,7 +396,7 @@ end
 function behaviorLib.PositionSelfLogic(botBrain)
 	StartProfile("PositionSelfLogic")
 
-	local bDebugEchos = false
+	local bDebugEchos = object.bDebugPositioning
 	
 	--if botBrain.myName == 'ShamanBot' then bDebugEchos = true end
 
@@ -939,50 +944,31 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 		nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
 	end	
 	
-	-- [Difficulty: Easy] Make bots worse at last hitting
-	if core.nDifficulty == core.nEASY_DIFFICULTY then
-		nDamageAverage = nDamageAverage + 120
-	end
-
 	if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
 		local nTargetHealth = unitEnemyCreep:GetHealth()
 		if nDamageAverage >= nTargetHealth then
-			local bActuallyLH = true
-			
-			-- [Tutorial] Make DS not mess with your last hitting before shit gets real
-			if core.bIsTutorial and core.bTutorialBehaviorReset == false and core.unitSelf:GetTypeName() == "Hero_Shaman" then
-				bActuallyLH = false
-			end
-			
-			if bActuallyLH then
-				if bDebugEchos then BotEcho("Returning an enemy") end
-				return unitEnemyCreep
-			end
+			if bDebugEchos then BotEcho("Returning an enemy") end
+			return unitEnemyCreep
 		end
 	end
 
 	if unitAllyCreep then
 		local nTargetHealth = unitAllyCreep:GetHealth()
 		if nDamageAverage >= nTargetHealth then
-			local bActuallyDeny = true
-			
-			--[Difficulty: Easy] Don't deny
-			if core.nDifficulty == core.nEASY_DIFFICULTY then
-				bActuallyDeny = false
-			end			
-			
-			-- [Tutorial] Hellbourne *will* deny creeps after shit gets real
-			if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
-				bActuallyDeny = true
-			end
-			
-			if bActuallyDeny then
-				if bDebugEchos then BotEcho("Returning an ally") end
-				return unitAllyCreep
-			end
+			if bDebugEchos then BotEcho("Returning an ally") end
+			return unitAllyCreep
 		end
 	end
 
+	if core.unitClosestFullHpCreep then
+        local target = core.unitClosestFullHpCreep
+		local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), target:GetPosition())
+		local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, target, true)
+
+        if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
+            return target
+        end
+    end
 	return nil
 end
 

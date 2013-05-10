@@ -755,8 +755,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 		bCanEnterRange = true
 	end
 
-	local bDebugEchos = false
-	local bDebugLines = false
+	local bDebugEchos = true
+	local bDebugLines = true
 	local lineLen = 150
 
 	--if object.myName == 'ShamanBot' then bDebugEchos = true bDebugLines = true end
@@ -816,6 +816,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 				end
 			
 				local nAlliesInRange = 0
+				local nHighHpAlliesInRange = 0
+				local highHpPercent = 0.4
 				if bCanEnterRange then
 					--check for ally creeps
 					if bDebugEchos then BotEcho("Checkin for allies in tower range. #allies: "..core.NumberElements(tAllies)) end
@@ -824,6 +826,9 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 							local nCreepDistanceSq = Vector3.Distance2DSq(vecTowerPosition, unitAlly:GetPosition())
 							if nCreepDistanceSq < nTowerRangeSq then
 								nAlliesInRange = nAlliesInRange + 1
+								if unitAlly:GetHealthPercent() > highHpPercent then
+									nHighHpAlliesInRange = nHighHpAlliesInRange + 1
+								end
 								if nCreepDistanceSq < nClosestAllyDistSq then
 									nClosestAllyDistSq = nCreepDistanceSq
 									unitClosestAlly = unitAlly
@@ -841,7 +846,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 				end
 					
 				local vecToDesiredFromTower = Vector3.Normalize(vecNewDesiredPos - vecTowerPosition)
-				if nAlliesInRange <= 0 or not bCanEnterRange or bWellDiving then
+				local safeNumberOfAllies = 0 -- default: 0, changed to HighHP here
+				if nHighHpAlliesInRange <= safeNumberOfAllies or not bCanEnterRange or bWellDiving then
 					--BotEcho("  NotDivin")
 					--don't be in tower range
 					if nTowerDistanceSq < nTowerRadiusSq then 

@@ -667,7 +667,7 @@ function core.UpdateCreepTargets(botBrain)
 	local enemyCreeps = core.localUnits["EnemyCreeps"]
 	local allyCreeps = 	core.localUnits["AllyCreeps"]
 
-	local unitSelf = core.unitSelf;
+	local unitSelf = core.unitSelf
 	local myPos = unitSelf:GetPosition()
 
 	local curHP = 0
@@ -675,12 +675,20 @@ function core.UpdateCreepTargets(botBrain)
 	--consider lasthits
 	local lowestEnemyHP = 9999
 	local lowestEnemyCreep = nil
+    -- consider nearby full-HP enemies for small XP boost
+	local highestEnemyDist = 99999999
+	local highestEnemyCreep = nil
 	for id, creep in pairs(enemyCreeps) do
 		curHP = creep:GetHealth()
 		--BotEcho('creepHealth '..curHP)
 		if curHP < lowestEnemyHP then
 			lowestEnemyHP = curHP
 			lowestEnemyCreep = creep
+		end
+        local dist = Vector3.Distance2DSq(myPos, creep:GetPosition())
+		if dist < highestEnemyDist and creep:GetHealthPercent() > 0.9 then
+			highestEnemyDist = dist
+			highestEnemyCreep = creep
 		end
 	end
 
@@ -710,6 +718,7 @@ function core.UpdateCreepTargets(botBrain)
 	
 	core.unitEnemyCreepTarget = lowestEnemyCreep
 	core.unitAllyCreepTarget = lowestHPAlly	
+    core.unitClosestFullHpCreep = highestEnemyCreep
 	core.unitCreepTarget = unitTarget
 	
 	if bDebugLines then
