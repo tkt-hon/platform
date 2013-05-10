@@ -142,7 +142,7 @@ local function CheckForFriendlies()
 
 	local AllyCreeps = core.localUnits["AllyCreeps"]
 	local size = core.NumberElements(AllyCreeps)	
-	if size > 3 then
+	if size > 2 then
 	return true
 	end
 	return false
