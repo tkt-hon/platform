@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Botswana_PlagueRider"
+  description="Botswana Plague Rider"
+  heroname="Hero_DiseasedRider"
+  rootlua="botswana_plague_rider.lua"
+  defaultplayername="BotswanaPlagueBot"
+  precachepath="/heroes/diseasedrider/"
+/>

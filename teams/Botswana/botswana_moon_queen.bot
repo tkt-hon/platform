@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Botswana_MoonQueen"
+  description="Botswana Moon Queen"
+  heroname="Hero_Krixi"
+  rootlua="botswana_moon_queen.lua"
+  defaultplayername="BotswanaMQBot"
+  precachepath="/heroes/krixi/"
+/>
