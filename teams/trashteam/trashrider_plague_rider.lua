@@ -26,7 +26,7 @@ local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 object.tSkills = {
   2, 1, 2, 1, 2,
-  2, 3, 0, 0, 1,
+  3, 2, 0, 0, 1,
   0, 1, 0, 3, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -85,6 +85,64 @@ local function IsSiege(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
+
+local function GetUltiTarget(botBrain, myPos, radius)
+  local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
+  local vihunplague = nil
+  
+  for key,unit in pairs(vihu) do
+    if unit ~= nil then
+      vihunplague = unit
+    end
+  end
+  
+  if not vihunplague then 
+    return nil
+  end
+  return vihunplague
+end
+
+local function AreThereOneToThreeEnemyUnitsClose(botBrain, myPos, range)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, range).EnemyCreeps
+  local vihucreeps = 0
+  for _,unit in pairs(unitsLocal) do
+    if not IsSiege(unit) then
+      vihucreeps = vihucreeps + 1
+    end
+  end
+  return vihucreeps < 4 and vihucreeps > 0
+end
+
+local function UltimateBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilUlti = unitSelf:GetAbility(3)
+  local myPos = unitSelf:GetPosition()
+  local vihu = GetUltiTarget(botBrain, myPos, abilUlti:GetRange())
+  if not vihu then
+    return 0
+  end
+  if abilUlti:CanActivate() and AreThereOneToThreeEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange()) then
+    plaguerider.ultiTarget = vihu
+    return 100
+  end
+  return 0
+end
+
+local function UltimateBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilUlti = unitSelf:GetAbility(3)
+  local target = plaguerider.ultiTarget
+  if target then
+    return core.OrderAbilityEntity(botBrain, abilUlti, target, false)
+  end
+  return false
+end 
+
+local UltimateBehavior = {}
+UltimateBehavior["Utility"] = UltimateBehaviorUtility
+UltimateBehavior["Execute"] = UltimateBehaviorExecute
+UltimateBehavior["Name"] = "Using ultimate properly"
+tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
   local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
@@ -303,17 +361,6 @@ local function HarassHeroExecuteOverride(botBrain)
       end
     end
 
-    local abilUltimate = unitSelf:GetAbility(3)
-    if not bActionTaken then
-      if abilUltimate:CanActivate() then
-        local nRange = abilUltimate:GetRange()
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
-      end
-    end
   end
 
   if not bActionTaken then
