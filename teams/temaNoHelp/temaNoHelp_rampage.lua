@@ -7,7 +7,7 @@ rampage.heroName = "Hero_Rampage"
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
-runfile 'bots/teams/temaNoHelp/rampage_lasthit.lua'
+runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 
 local core, behaviorLib, shopping = rampage.core, rampage.behaviorLib, rampage.shopping
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_IronBuckler" }
@@ -56,7 +56,7 @@ function shopping.GetNextItemToBuy()
     return "Item_HealthPotion"
   elseif not HasBoots(inventory) then
     return "Item_Marchers"
-  elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
+  elseif NumberInInventory(inventory, "Item_LifeSteal5") + NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
     if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
       return "Item_GuardianRing"
     elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
@@ -77,7 +77,13 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
     return "Item_SolsBulwark"
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-    return "Item_DaemonicBreastplate"
+    if NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
+      return "Item_Warpcleft"
+    elseif NumberInInventory(inventory, "Item_Ringmail") <= 0 then
+      return "Item_Ringmail"
+    elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+      return "Item_DaemonicBreastplate"
+    end
   end
 
 end

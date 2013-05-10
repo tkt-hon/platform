@@ -8,7 +8,7 @@ moonqueen.heroName = "Hero_Krixi"
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
-runfile 'bots/teams/temaNoHelp/mq_lasthit.lua'
+runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 
 local core, behaviorLib, shopping, courier = moonqueen.core, moonqueen.behaviorLib, moonqueen.shopping, moonqueen.courier
 
@@ -47,7 +47,7 @@ function shopping.GetNextItemToBuy()
   local inventory = core.unitSelf:GetInventory(true)
   if NumberInInventory(inventory, "Item_HealthPotion") < 3 then
     return "Item_HealthPotion"
-  elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
+  elseif NumberInInventory(inventory, "Item_LifeSteal5") + NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
     if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
       return "Item_GuardianRing"
     elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
@@ -72,7 +72,13 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
     return "Item_SolsBulwark"
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-    return "Item_DaemonicBreastplate"
+    if NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
+      return "Item_Warpcleft"
+    elseif NumberInInventory(inventory, "Item_Ringmail") <= 0 then
+      return "Item_Ringmail"
+    elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+      return "Item_DaemonicBreastplate"
+    end
   end
 end
 
@@ -133,15 +139,12 @@ end
 
 behaviorLib.pushingStrUtilMul = 1
 
-moonqueen.bReportBehavior = true
-moonqueen.bDebugUtility = true
-
 moonqueen.skills = {}
 local skills = moonqueen.skills
 
 moonqueen.tSkills = {
   4, 0, 0, 4, 0,
-  3, 0, 4, 0, 4,
+  3, 0, 4, 1, 4,
   3, 1, 1, 1, 2,
   3, 2, 2, 2, 4,
   4, 4, 4, 4, 4

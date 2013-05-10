@@ -8,10 +8,9 @@ local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/temaNoHelp/plague_lasthit.lua'
-
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
+runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 
 local core, behaviorLib, shopping, courier = plaguerider.core, plaguerider.behaviorLib, plaguerider.shopping, plaguerider.courier
 
@@ -50,7 +49,7 @@ function shopping.GetNextItemToBuy()
     return "Item_HealthPotion"
   elseif not HasBoots(inventory) then
     return "Item_Marchers"
-  elseif NumberInInventory(inventory, "Item_MysticVestments") <= 0 then
+  elseif NumberInInventory(inventory, "Item_MagicArmor2") + NumberInInventory(inventory, "Item_MysticVestments") <= 0 then
     return "Item_MysticVestments"
   elseif NumberInInventory(inventory, "Item_Steamboots") <= 0 then
     if NumberInInventory(inventory, "Item_BlessedArmband") <= 0 then
@@ -81,7 +80,13 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
     return "Item_SolsBulwark"
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-    return "Item_DaemonicBreastplate"
+    if NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
+      return "Item_Warpcleft"
+    elseif NumberInInventory(inventory, "Item_Ringmail") <= 0 then
+      return "Item_Ringmail"
+    elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
+      return "Item_DaemonicBreastplate"
+    end
   end
 
 end
