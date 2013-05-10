@@ -1,35 +1,37 @@
 local _G = getfenv(0)
 local rampage = _G.object
+local tinsert = _G.table.insert
 
 rampage.heroName = "Hero_Rampage"
 
-runfile 'bots/core_herobot.lua'
-runfile 'bots/lib/rune_controlling/init.lua'
+runfile 'bots/teams/kiinalainen/core_kiinalainen_herobot.lua'
 
 local core, behaviorLib = rampage.core, rampage.behaviorLib
 
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_LoggersHatchet", "Item_IronBuckler"}
-behaviorLib.LaneItems = {"Item_Marchers", "Item_Lifetube"}
-behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2"}
-behaviorLib.LateItems = {"Item_DaemonicBreastplate"}
-
 local CHARGE_NONE, CHARGE_STARTED, CHARGE_TIMER, CHARGE_WARP = 0, 1, 2, 3
-
 rampage.charged = CHARGE_NONE
+
+local ULTI_NONE, ULTI_ON = 0, 1
+rampage.ulti = ULTI_NONE
 
 rampage.skills = {}
 local skills = rampage.skills
 
-rampage.tSkills = {
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
+behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
-  2, 1, 0, 2, 2,
-  3, 2, 1, 1, 1,
+rampage.tSkills = {
+  1, 2, 1, 0, 1,
+  3, 1, 2, 2, 2,
   3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
+
 function rampage:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
   if skills.abilCharge == nil then
@@ -44,123 +46,78 @@ end
 rampage.SkillBuildOld = rampage.SkillBuild
 rampage.SkillBuild = rampage.SkillBuildOverride
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
-function rampage:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
+rampage.tSkills = {
+  1, 2, 1, 0, 1,
+  3, 1, 2, 2, 2,
+  3, 0, 0, 0, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
 
-  -- custom code here
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
+behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
+
+function rampage.CustomHarassHeroUtilityOverride(botBrain)
+  local nUtil = behaviorLib.HarassHeroUtility(botBrain)
+
+  local unitSelf = core.unitSelf
+  local selfPos = unitSelf:GetPosition()
+  local selfHealth = unitSelf:GetHealth()
+  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
+
+  if tLocalUnits.EnemyHeroes then
+    local tEnemies = tLocalUnits.EnemyHeroes
+    local nTotalEnemyHealth = nil
+    for k,v in pairs(tEnemies) do
+      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
+    end
+    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
+      nUtil = nUtil + (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
+    end
+  end
+
+  if skills.abilBash:IsReady() then
+    nUtil = nUtil + 10
+  end
+
+  if skills.abilCharge:CanActivate() then
+    nUtil = nUtil + 20
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 50
+  end
+
+  return nUtil
 end
-rampage.onthinkOld = rampage.onthink
-rampage.onthink = rampage.onthinkOverride
+behaviorLib.HarassHeroBehavior["Utility"] = rampage.CustomHarassHeroUtilityOverride
 
-----------------------------------------------
---joku
-----------------------------------------------
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
 
-local function advancedThinkUtility(botBrain)				--## HATCHET TOSS
-        return 95; --always ridiculously important. Though, this rarly returns true.
+  if skills.abilBash:IsReady() then
+    nUtil = nUtil + 10
+  end
+
+  if skills.abilCharge:CanActivate() then
+    nUtil = nUtil + 20
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 50
+  end
+
+  return nUtil
 end
- 
-local function advancedThinkExecute(botBrain)
-        local unitSelf = core.unitSelf
-        local vecSelfPos = unitSelf:GetPosition()
-        local vecWellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-        local distToWellSq=Vector3.Distance2DSq(vecSelfPos, vecWellPos)
-        local bActionTaken=false
-
-  if core.itemHatchet ~= nil and not core.itemHatchet:IsValid() then
-                core.itemHatchet = nil
-        end
-        --hatchet
-        if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() and --can activate
-          Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600 and --in range of hatchet.
-          unitSelf:GetBaseDamage()*(1-core.unitCreepTarget:GetPhysicalResistance())>(core.unitCreepTarget:GetHealth()) and --low enough hp, 10 hp marginal for projectile
-          string.find(core.unitCreepTarget:GetTypeName(), "Creep") then-- viable creep (this makes it ignore minions etc, some of which aren't hatchetable.)
-                bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, core.unitCreepTarget.object or core.unitCreepTarget, false)--use hatchet.
-        end
-       
-        return bActionTaken
-end
-behaviorLib.advancedThink = {}
-behaviorLib.advancedThink["Utility"] = advancedThinkUtility
-behaviorLib.advancedThink["Execute"] = advancedThinkExecute
-behaviorLib.advancedThink["Name"] = "advancedThink"
-tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
- 
-
-
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
 ----------------------------------------------
 -- @param: eventdata
 -- @return: none
-
-
---function BashLasthitOverrideUtility(botBrain)
---	local unitSelf = core.unitSelf
---	local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) --behaviorlib.1388
---	
---	if core.itemHatchet then
---		nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
---	end
---
---	if skills.abilBash:isReady() then
---		nDamageAverage = nDamageAverage + 40 + 20*(skills.abilBash:GetLevel())
---	end
---
---	if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) and skills.abilBash:IsReady() then
---		local nTargetHealth = unitEnemyCreep:GetHealth()
---		if nDamageAverage >= nTargetHealth-25 then
---			local bActuallyLH = true
---			
---			
---		end
---	end
---end
-
---function BashLasthitOverrideExecute(botBrain)					##################################################################
---	local unitSelf = core.unitSelf						EI TOIMI, KORJAA ENS VIIKOLLA
---	local currentTarget = core.unitCreepTarget				##################################################################
---	local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf)
---	if core.itemHatchet then
---		nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
---	end
---
---	if skills.abilBash:isReady() then
---		nDamageAverage = nDamageAverage + 40 + 20*(skills.abilBash:GetLevel())
---	end
---
---	if currentTarget and core.CanSeeUnit(botBrain, currentTarget) and skills.abilBash:IsReady() and unitEnemyCreep:GetHealth()<nDamageAverage+25 then	
---		local vecTargetPos = currentTarget:GetPosition()
---		local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
---		local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
---
---		if currentTarget ~= nil then
---			if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
---				--only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
---				core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
---			else
---				local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
---				core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
---			end
---		end
---	else
---		return false
---	end
---end
---
---behaviorLib.BashLasthitOverride = {}
---behaviorLib.BashLasthitOverride["Execute"] = behaviorLib.BashLasthitOverrideExecute
---behaviorLib.BashLasthitOverride["Name"] = "BashLasthitOverride"
---tinsert(behaviorLib.tBehaviors, behaviorLib.BashLasthitOverride)
-
-
 function rampage:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
@@ -177,28 +134,10 @@ function rampage:oncombateventOverride(EventData)
   elseif EventData.Type == "Death" then
     self.charged = CHARGE_NONE
   end
+
 end
 rampage.oncombateventOld = rampage.oncombatevent
 rampage.oncombatevent = rampage.oncombateventOverride
-
-local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 0
-
-  if skills.abilBash:IsReady() then
-    nUtil = nUtil + 40
-  end
-
-  if skills.abilCharge:CanActivate() then
-    nUtil = nUtil + 20
-  end
-
-  if skills.abilUltimate:CanActivate() then
-    nUtil = nUtil + 50
-  end
-
-  return nUtil
-end
-behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function HarassHeroExecuteOverride(botBrain)
   local abilCharge = skills.abilCharge

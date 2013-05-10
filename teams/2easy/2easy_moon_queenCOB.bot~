@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="Default_MoonQueen"
-  description="Default Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="default_moon_queen.lua"
-  defaultplayername="DefaultMQBot"
-  precachepath="/heroes/krixi/"
-/>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="Default_Rhapsody"
-  description="Default Rhapsody (extended Fane's bot)"
-  heroname="Hero_Rhapsody"
-  rootlua="default_rhapsody.lua"
-  defaultplayername="DefaultRhapsodyBot"
-  precachepath="/heroes/rhapsody/"
-/>

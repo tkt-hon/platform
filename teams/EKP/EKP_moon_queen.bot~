@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="EKP_MoonQueen"
-  description="EKP Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="EKP_moon_queen.lua"
-  defaultplayername="EKPMQBot"
-  precachepath="/heroes/krixi/"
-/>
