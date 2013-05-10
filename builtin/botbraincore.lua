@@ -689,7 +689,10 @@ function core.UpdateCreepTargets(botBrain)
 		if dist < highestEnemyDist and creep:GetHealthPercent() > 0.9 then
 			highestEnemyDist = dist
 			highestEnemyCreep = creep
-		end
+        elseif creep:GetAttackType() == 'ranged' then
+			highestEnemyDist = 0.001 -- die fuckers
+			highestEnemyCreep = creep
+        end
 	end
 
 	--consider denies

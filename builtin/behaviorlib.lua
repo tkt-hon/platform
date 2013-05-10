@@ -44,7 +44,7 @@ behaviorLib.nPositionSelfAllySeparation = 250
 behaviorLib.nAllyInfluenceMul = 1.5
 function behaviorLib.PositionSelfCreepWave(botBrain, unitCurrentTarget)
 	local bDebugLines = object.bDebugLines
-	local bDebugEchos = true
+	local bDebugEchos = false
 	local nLineLen = 150
 
 	--if botBrain.myName == "ShamanBot" then bDebugLines = object.bDebugLines bDebugEchos = true end
@@ -1071,7 +1071,7 @@ function behaviorLib.LethalityDifferenceUtility(nLethalityDifference)
 end
 
 function behaviorLib.ProxToEnemyTowerUtility(unit, unitClosestEnemyTower)
-	local bDebugEchos = false
+	local bDebugEchos = true
 	
 	local nUtility = 0
 
@@ -1082,9 +1082,11 @@ function behaviorLib.ProxToEnemyTowerUtility(unit, unitClosestEnemyTower)
 
 		nUtility = -1 * core.ExpDecay((nDist - nBuffers), 100, nTowerRange, 2)
 		
-		nUtility = nUtility * 0.32
+		local divisor = 1 + core.CountAlliesNearTower(unitClosestEnemyTower)
+		nUtility = nUtility * 0.32 / divisor
 		
-		if bDebugEchos then BotEcho(format("util: %d  nDistance: %d  nTowerRange: %d", nUtility, (nDist - nBuffers), nTowerRange)) end
+		if bDebugEchos then BotEcho(format("util: %d  nDistance: %d  nTowerRange: %d divisor: %d",
+			nUtility, (nDist - nBuffers), nTowerRange, divisor)) end
 	end
 	
 	nUtility = Clamp(nUtility, -100, 0)
@@ -1180,7 +1182,7 @@ behaviorLib.rangedHarassBuffer = 300
 behaviorLib.harassUtilityWeight = 1.0
 
 function behaviorLib.HarassHeroUtility(botBrain)
-	local bDebugEchos = false
+	local bDebugEchos = true
 	
 	--if core.unitSelf:GetTypeName() == "Hero_Predator" then bDebugEchos = true end
 		
@@ -1245,7 +1247,7 @@ function behaviorLib.HarassHeroUtility(botBrain)
 				unitWeakestEnemy = unitEnemy
 			end
 			
-			if bDebugEchos then BotEcho(nID..": "..unitEnemy:GetTypeName().."  threat: "..Round(nThreat).."  defense: "..Round(nDefense)) end
+			if bDebugEchos then BotEcho("Enemy: "..nID..": "..unitEnemy:GetTypeName().."  threat: "..Round(nThreat).."  defense: "..Round(nDefense)) end
 		end
 		
 		--Aquire a target
@@ -1278,7 +1280,7 @@ function behaviorLib.HarassHeroUtility(botBrain)
 				end
 				
 				nTotalAllyThreat = nTotalAllyThreat + nThreat
-				if bDebugEchos then BotEcho(nID..": "..unitAlly:GetTypeName().."  threat: "..Round(nThreat)) end
+				if bDebugEchos then BotEcho("Ally: "..nID..": "..unitAlly:GetTypeName().."  threat: "..Round(nThreat)) end
 			end			
 		end
 		--if bDebugEchos then BotEcho("totalAllyThreat: "..Round(nTotalAllyThreat)) end

@@ -750,6 +750,34 @@ function core.GetClosestAllyTower(vecPos, nMaxDist)
 	return unitClosestTower
 end
 
+local towerCreepHighHpPercent = 0.4
+
+function core.CountAlliesNearTower(tower)
+	local unitSelf = core.unitSelf
+	local nMyID = unitSelf:GetUniqueID()
+	local vecMyPos = unitSelf:GetPosition()
+	local vecTowerPosition = tower:GetPosition()
+
+	local nTowerRange = core.GetAbsoluteAttackRangeToUnit(tower, core.unitSelf)
+	local nTowerRangeSq = nTowerRange * nTowerRange
+	
+	local tAllies = core.localUnits["AllyUnits"]
+	local nAlliesInRange = 0
+	local nHighHpAlliesInRange = 0
+	for id, unitAlly in pairs(tAllies) do
+		if id ~= nMyID then
+			local nCreepDistanceSq = Vector3.Distance2DSq(vecTowerPosition, unitAlly:GetPosition())
+			if nCreepDistanceSq < nTowerRangeSq then
+				nAlliesInRange = nAlliesInRange + 1
+				if unitAlly:GetHealthPercent() > towerCreepHighHpPercent then
+					nHighHpAlliesInRange = nHighHpAlliesInRange + 1
+				end
+			end
+		end
+	end
+	return nHighHpAlliesInRange
+end
+
 function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 	if bCanEnterRange == nil then
 		bCanEnterRange = true
@@ -817,7 +845,6 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 			
 				local nAlliesInRange = 0
 				local nHighHpAlliesInRange = 0
-				local highHpPercent = 0.4
 				if bCanEnterRange then
 					--check for ally creeps
 					if bDebugEchos then BotEcho("Checkin for allies in tower range. #allies: "..core.NumberElements(tAllies)) end
@@ -826,7 +853,7 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 							local nCreepDistanceSq = Vector3.Distance2DSq(vecTowerPosition, unitAlly:GetPosition())
 							if nCreepDistanceSq < nTowerRangeSq then
 								nAlliesInRange = nAlliesInRange + 1
-								if unitAlly:GetHealthPercent() > highHpPercent then
+								if unitAlly:GetHealthPercent() > towerCreepHighHpPercent then
 									nHighHpAlliesInRange = nHighHpAlliesInRange + 1
 								end
 								if nCreepDistanceSq < nClosestAllyDistSq then
@@ -859,7 +886,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 						--Stay outside
 						vecCurDesiredPos = vecTowerPosition + vecToDesiredFromTower * (nTowerRange + nTowerBuffer)
 					end
-				elseif nClosestAllyDistSq > nDesiredDistanceSq then
+				-- add a small multiplier so we have some chance of ever running through...
+				elseif nClosestAllyDistSq > 0.8 * nDesiredDistanceSq then
 					--move to be further away from ally creep(as tower takes closest target)
 					local vecAllyDistance = Vector3.Distance2D(vecTowerPosition, unitClosestAlly:GetPosition())
 					vecCurDesiredPos = vecTowerPosition + vecToDesiredFromTower * (vecAllyDistance + nStandBuffer)

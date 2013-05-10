@@ -8,6 +8,7 @@ runfile 'bots/libhon/utils.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
+--[[
 -- empty spaces filled with Minor Totems
 -- game adds Homecoming Stones to list at some point
 behaviorLib.StartingItems = { "6 Item_MinorTotem", "Item_Fleetfeet", "Item_Quickblade", "Item_Sicarius", "Item_BrainOfMaliken", "Item_ApprenticesRobe" }
@@ -20,6 +21,12 @@ behaviorLib.MidItems = { "Item_BlessedArmband", "Item_MightyBlade", "Item_Dawnbr
 behaviorLib.LateItems = { "Item_Protect", "Item_Quickblade", "Item_Glowstone", "Item_MightyBlade", "Item_Intelligence7" }
 -- {Dawnbringer, Null Stone, Pickled Brain} -> {Dawnbringer, Null Stone, Quickblade, Pickled Brain} -> {Dawnbringer, Null Stone, Quickblade, Glowstone, Pickled Brain}
 -- {Dawnbringer, Null Stone, Quickblade, Mighty Blade, Glowstone, Pickled Brain} -> {Dawnbringer, Null Stone, Staff of the Master, Pickled Brain}
+]]
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -29,11 +36,11 @@ local skills = moonqueen.skills
 core.itemGeoBane = nil
 
 moonqueen.tSkills = {
-  1, 0, 0, 1, 4,
-  3, 0, 1, 1, 4,
-  3, 2, 2, 4, 4,
-  3, 4, 0, 4, 4,
-  2, 2, 4, 4, 4
+  4, 0, 2, 0, 0,
+  3, 2, 4, 4, 0,
+  3, 1, 1, 1, 2,
+  3, 2, 4, 4, 4,
+  4, 4, 4, 4, 4
 }
 
 ---------------------------------------------------------------
@@ -45,12 +52,10 @@ moonqueen.tSkills = {
 -- default
 function moonqueen:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilNuke == nil then
-    skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilBounce = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)
+  if skills.abilMoonbeam == nil then
+    skills.abilMoonbeam = unitSelf:GetAbility(0)
+    skills.abilUlti = unitSelf:GetAbility(3)
+    skills.abilStats = unitSelf:GetAbility(4)
   end
   self:SkillBuildOld()
 end
@@ -62,8 +67,29 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 ---------------------------------------------------------------
 -- @param: hero
 -- @return: utility
-function behaviorLib.CustomHarassUtility(hero)
-    return 0 -- Default
+function behaviorLib.CustomHarassUtility(heroTarget)
+    -- Default 0
+    local t = core.AssessLocalUnits(moonqueen, nil, 400)
+    local numCreeps = core.NumberElements(t.EnemyUnits)
+	local util = 20 - numCreeps*2
+  	local unitSelf = core.unitSelf
+
+	local moonbeanMult = 3
+	local ultiMult = 6
+	util = util + moonbeanMult * skills.abilMoonbeam:GetLevel()
+	util = util + ultiMult * skills.abilUlti:GetLevel()
+
+	if heroTarget then
+		if skills.abilMoonbeam:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
+			util = util + 1000 -- Moonbeam
+		end
+		p(numCreeps)
+		p(Vector3.Distance2D(unitSelf:GetPosition(), heroTarget:GetPosition()))
+		if skills.abilUlti:CanActivate() and numCreeps < 3 then
+			util = util + 10000 -- Ulti
+		end
+	end
+	return util
 end
 
 --------------------------------------------------------------
@@ -74,7 +100,37 @@ end
 -- @return: none
 local oldExecute = behaviorLib.HarassHeroBehavior["Execute"]
 local function executeBehavior(botBrain)
-    return oldExecute(botBrain)
+  	local unitTarget = behaviorLib.heroTarget
+  	if unitTarget == nil then
+    	return oldExecute(botBrain)
+  	end
+
+  	local unitSelf = core.unitSelf
+  	local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  	local success = false
+	local ultiRange = 600
+    if behaviorLib.lastHarassUtil >= 5000 then
+    	if nTargetDistanceSq < ultiRange * ultiRange then
+			success = core.OrderAbility(botBrain, skills.abilUlti)
+        else
+        	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+    end
+
+	if not success and behaviorLib.lastHarassUtil >= 500 then
+		local range = skills.abilMoonbeam:GetRange()
+		if nTargetDistanceSq < range * range then
+			success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
+		else
+			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+		end
+	end
+
+	if not success then
+		return oldExecute(botBrain)
+	end
+	return success
 end
 behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 
