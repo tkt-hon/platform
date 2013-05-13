@@ -5,14 +5,14 @@ aluna.heroName = "Hero_Aluna"
 
 runfile "bots/teams/kiinalainen/core_kiinalainen_herobot.lua"
 runfile "bots/teams/kiinalainen/helpers.lua" -- TODO
-runfile "bots/teams/kiinalainen/advancedShopping.lua" -- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
-runfile "bots/teams/kiinalainen/bottle.lua" -- Bottlen käyttö
+--runfile "bots/teams/kiinalainen/advancedShopping.lua" -- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
+--runfile "bots/teams/kiinalainen/bottle.lua" -- Bottlen käyttö
 runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = aluna.core, aluna.behaviorLib
 
-local itemHandler = object.itemHandler
-local shopping = object.shoppingHandler
+--local itemHandler = object.itemHandler
+--local shopping = object.shoppingHandler
 
 behaviorLib.StartingItems = { "Item_HealthPotion", "2 Item_MinorTotem", "Item_RunesOfTheBlight"}
 behaviorLib.LaneItems = { "Item_Bottle", "Item_PowerSupply", "Item_Weapon1"}
@@ -22,7 +22,7 @@ behaviorLib.LateItems = { "Item_Silence", "Item_Nuke" }
 aluna.skills = {}
 local skills = aluna.skills
 
-shopping.Setup(false, false, true, false)
+--shopping.Setup(false, false, true, false)
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -79,6 +79,21 @@ function aluna:oncombateventOverride(EventData)
   -- custom code here
 end
 
+local function CustomHarassUtilityFnOverride(hero)
+  return 100
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function RetreatFromThreatExecuteOverride(botBrain)
+    local abilWall = skills.abilSpeed
+
+    return abilWall:CanActivate() and core.OrderAbility(botBrain, abilWall) or behaviorLib.RetreatFromThreatExecute
+end
+    
+behaviorLib.RetreatFromThreatBehavior["Execute"] = RetreatFromThreatExecuteOverride
+
+
+
 local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
@@ -92,43 +107,34 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local bActionTaken = false
 
+  core.BotEcho(tostring(unitTarget))
   if core.CanSeeUnit(botBrain, unitTarget) then
-    local itemGeoBane = core.itemGeoBane
-    if not bActionTaken then
-      if itemGeoBane then
-        if itemGeoBane:CanActivate() then
-          bActionTaken = core.OrderItemClamp(botBrain, unitSelf, itemGeoBane)
-        end
-      end
-    end
+    core.BotEcho("FOOO!")
 
     local abilUltimate = skills.abilUltimate
-    if not bActionTaken and nLastHarassUtility > 50 then
-      if abilUltimate:CanActivate() then
-        local nRange = 600
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
-      end
+    local nRange = skills.abilStun:GetRange()
+    if abilUltimate:CanActivate() and nTargetDistanceSq < (nRange * nRange) then
+      bActionTaken = core.OrderAbility(botBrain, abilUltimate)
     end
-
-    local abilThrow = skills.abilThrow
-    if abilThrow:CanActivate() then
-      local nRange = abilThrow:GetRange()
-      if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilThrow, unitTarget)
-      else
-        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-      end
+    local abilHell = skills.abilStun
+    nRange = abilHell:GetRange()
+    if nTargetDistanceSq < (nRange * nRange) and abilHell:CanActivate() then
+      bActionTaken = core.OrderAbilityEntity(botBrain, abilHell, unitTarget)
+    end
+    local abilNuke = skills.abilThrow
+    if abilNuke:CanActivate() then
+      bActionTaken = core.OrderAbilityPosition(botBrain, abilNuke, unitTarget:GetPosition())
     end
   end
-
   if not bActionTaken then
     return aluna.harassExecuteOld(botBrain)
   end
 end
+
+
+aluna.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 -- override combat event trigger function.
 aluna.oncombateventOld = aluna.oncombatevent
 aluna.oncombatevent = aluna.oncombateventOverride
+

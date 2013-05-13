@@ -36,7 +36,7 @@ sand.tSkills = {
   4, 4, 4, 4, 4
 }
 
-function sand.CustomHarassHeroUtilityOverride(botBrain)
+local function CustomHarassUtilityFnOverride(botBrain)
   local nUtil = 0
   local unitSelf = core.unitSelf
   local selfPos = unitSelf:GetPosition()
@@ -55,7 +55,7 @@ function sand.CustomHarassHeroUtilityOverride(botBrain)
   end
   return nUtil
 end
-behaviorLib.CustomHarassUtility = sand.CustomHarassHeroUtilityOverride
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 function sand:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
