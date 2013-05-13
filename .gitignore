@@ -22,3 +22,5 @@ USEFUL
 teambot/teambotbrain.lua
 *.swp
 .DS_Store
+lib/
+*~

@@ -11,13 +11,18 @@ runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = aluna.core, aluna.behaviorLib
 
-behaviorLib.StartingItems = { "Item_Punchdagger", "Item_HealthPotion"}
-behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_HungrySpirit", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+local itemHandler = object.itemHandler
+local shopping = object.shoppingHandler
+
+behaviorLib.StartingItems = { "Item_HealthPotion", "2 Item_MinorTotem", "Item_RunesOfTheBlight"}
+behaviorLib.LaneItems = { "Item_Bottle", "Item_PowerSupply", "Item_Weapon1"}
+behaviorLib.MidItems = { "Item_Weapon1" }
+behaviorLib.LateItems = { "Item_Silence", "Item_Nuke" }
 
 aluna.skills = {}
 local skills = aluna.skills
+
+shopping.Setup(false, false, true, false)
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -78,7 +83,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
-    return moonqueen.harassExecuteOld(botBrain)
+    return aluna.harassExecuteOld(botBrain)
   end
 
   local unitSelf = core.unitSelf
@@ -121,7 +126,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return moonqueen.harassExecuteOld(botBrain)
+    return aluna.harassExecuteOld(botBrain)
   end
 end
 -- override combat event trigger function.
