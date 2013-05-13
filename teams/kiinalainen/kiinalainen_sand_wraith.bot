@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Kiinalainen_Sand_Wraith"
+  description="Kiinalainen Sand Wraith"
+  heroname="Hero_SandWraith"
+  rootlua="kiinalainen_sand_wraith.lua"
+  defaultplayername="KiinalainenSandWraith"
+  precachepath="/heroes/sand_wraith/"
+/>
