@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+    name="Kiinalainen_SoulReaper"
+    description="Kiinalainen Soulreaper"
+    heroname="Hero_HellDemon"
+    rootlua="kiinalainen_soulreaper.lua"
+    defaultplayername="KiinalainenSoulReaper"
+    precachepath="/heroes/helldemon/"
+/>
