@@ -3,7 +3,7 @@ local pharao = _G.object
 
 pharao.heroName = "Hero_Mumra"
 
-runfile 'bots/core_herobot.lua'
+runfile "bots/teams/kiinalainen/core_kiinalainen_herobot.lua"
 runfile "bots/teams/kiinalainen/helpers.lua" -- TODO
 runfile "bots/teams/kiinalainen/advancedShopping.lua" -- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
 runfile "bots/teams/kiinalainen/bottle.lua" -- Bottlen käyttö
