@@ -4,6 +4,10 @@ local pharao = _G.object
 pharao.heroName = "Hero_Mumra"
 
 runfile 'bots/core_herobot.lua'
+runfile "bots/teams/kiinalainen/helpers.lua" -- TODO
+runfile "bots/teams/kiinalainen/advancedShopping.lua" -- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
+runfile "bots/teams/kiinalainen/bottle.lua" -- Bottlen käyttö
+runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = pharao.core, pharao.behaviorLib
 
@@ -16,6 +20,8 @@ behaviorLib.pushingStrUtilMul = 1
 
 pharao.skills = {}
 local skills = pharao.skills
+
+shopping.Setup(false, false, false, false)
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
@@ -24,19 +30,19 @@ local skills = pharao.skills
 -- @return: none
 
 pharao.tSkills = {
-  1, 0, 1, 2, 1,
-  3, 1, 0, 0, 0,
-  3, 2, 2, 2, 4,
+  2, 0, 2, 1, 2,
+  3, 2, 1, 1, 1,
+  3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
 
 function pharao:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilStun == nil then
-    skills.abilStun = unitSelf:GetAbility(0)
-    skills.abilThrow = unitSelf:GetAbility(1)
-    skills.abilSpeed = unitSelf:GetAbility(2)
+  if skills.abilNuke == nil then
+    skills.abilHell = unitSelf:GetAbility(0)
+    skills.abilWall = unitSelf:GetAbility(1)
+    skills.abilNuke = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
@@ -97,9 +103,9 @@ local function HarassHeroExecuteOverride(botBrain)
     local abilUltimate = skills.abilUltimate
     if not bActionTaken and nLastHarassUtility > 50 then
       if abilUltimate:CanActivate() then
-        local nRange = 600
+        local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate, unitTarget)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
