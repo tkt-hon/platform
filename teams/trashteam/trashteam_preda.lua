@@ -1,12 +1,11 @@
 local _G = getfenv(0)
 local predator = _G.object
 
-predator.heroName = "Hero_Krixi"
+predator.heroName = "Hero_Predator"
 
 runfile 'bots/core_herobot.lua'
 
 local tinsert = _G.table.insert
-runfile 'bots/teams/trashteam/utils/predictiveLasthittingMQ.lua'
 
 local core, behaviorLib = predator.core, predator.behaviorLib
 

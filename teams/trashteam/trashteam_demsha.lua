@@ -1,7 +1,7 @@
 local _G = getfenv(0)
 local shaman = _G.object
 
-shaman.heroName = "Hero_Krixi"
+shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
 
