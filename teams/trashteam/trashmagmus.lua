@@ -76,14 +76,14 @@ function magmus:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
   -- custom code here
---self.eventsLib.printCombatEvent(EventData)
+self.eventsLib.printCombatEvent(EventData)
 
 end
 
 -- override combat event trigger function.
 local function CustomHarassUtilityFnOverride(hero)
 	local nUtil = 0
-	core.BotEcho(nUtil)
+	
   
 	if core.unitSelf:GetAbility(0):CanActivate() then
     nUtil = nUtil + (core.unitSelf:GetLevel() * 5) / 2
@@ -115,6 +115,10 @@ local function HarassHeroExecuteOverride(botBrain)
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
 
+	if core.unitSelf:IsChanneling() then
+		return
+	end
+
   local bActionTaken = false
 	local abilSurge = unitSelf:GetAbility(0)
   if core.CanSeeUnit(botBrain, unitTarget) then
@@ -128,17 +132,31 @@ local function HarassHeroExecuteOverride(botBrain)
     end
 
     local abilUltimate = unitSelf:GetAbility(3)
-    if not bActionTaken then
-      if abilUltimate:CanActivate() then
-        local nRange = abilUltimate:GetRange()
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
+    if not bActionTaken and abilUltimate:CanActivate() then
+      if abilUltimate:CanActivate() and unitTarget:IsStunned() then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+			else
+					bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
       end
     end
+
+		if not bActionTaken then
+			if unitTarget ~= nil then
+				bActionTaken = core.OrderAttack(botBrain, unitSelf, unitTarget)
+			else
+				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
+      end
+		end
   end
+
+	local abilBath = unitSelf:GetAbility(1)
+		if not bActionTaken then
+			if abilBath:CanActivate() and unitSelf:GetHealth() < 100 then
+				bActionTaken = core.OrderAbility(botBrain, abilBath)
+			else
+				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
+      end
+		end
 
   if not bActionTaken then
     return magmus.harassExecuteOld(botBrain)
