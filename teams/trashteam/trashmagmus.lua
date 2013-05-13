@@ -50,15 +50,16 @@ function magmus:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
 
-  -- custom code here
-
---local vihut = core.AssessLocalUnits(self).EnemyHeroes
---for key,unit in pairs(vihut) do
---local beha = unit:GetBehavior()
---if beha then core.BotEcho("Teki jotain: "..beha:GetType())
---end
---end
---core.BotEcho(tostring(vihunplague))
+	if core.unitSelf:GetManaPercent() < 90 then
+		core.FindItems(self)	
+		local itemRing = core.itemRing
+		if itemRing and itemRing:CanActivate() then
+			magmus.bRunCommands = true
+			core.OrderItemClamp(self, unitSelf, itemRing)
+		end
+	end
+	
+	core.nRange = 99999 * 99999
 
 end
 
@@ -88,12 +89,15 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + (core.unitSelf:GetLevel() * 5) / 2
   end
 
-	
+	if core.unitSelf:GetLevel() > 6 then
+		nUtil = nUtil + 10
+	end
+
   local damaget = {100, 160, 220, 280}
 
 	if hero:GetHealth() < damaget[core.unitSelf:GetAbility(0):GetLevel()] 
     and core.unitSelf:GetMana() > 130 then
-		nUtil = nUtil + 50
+		nUtil = nUtil + 60
 	end
   
   return nUtil
@@ -142,3 +146,37 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 magmus.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function funcFindItemsOverride(botBrain)
+	local bUpdated = magmus.FindItemsOld(botBrain)
+
+	if core.itemRing ~= nil and not core.itemRing:IsValid() then
+		core.itemRing = nil
+	end
+	if core.itemCodex ~= nil and not core.itemCodex:IsValid() then
+		core.itemCodex = nil
+	end
+
+	if bUpdated then
+		--only update if we need to
+		if core.itemRing and core.itemCodex then
+			return
+		end
+
+		local inventory = core.unitSelf:GetInventory(true)
+		for slot = 1, 12, 1 do
+			local curItem = inventory[slot]
+			if curItem then
+				if core.itemRing == nil and curItem:GetName() == "Item_Replenish" then
+					core.itemRing = core.WrapInTable(curItem)
+
+				elseif core.itemCodex == nil and curItem:GetName() == "Item_Nuke" then
+					core.itemCodex = core.WrapInTable(curItem)
+				end
+			end
+		end
+	end
+end
+magmus.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride
+
