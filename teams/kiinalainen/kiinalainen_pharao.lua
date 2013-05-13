@@ -11,10 +11,13 @@ runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, behaviorLib = pharao.core, pharao.behaviorLib
 
-behaviorLib.StartingItems = { "Item_Punchdagger", "Item_HealthPotion"}
-behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_HungrySpirit", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+local itemHandler = object.itemHandler
+local shopping = object.shoppingHandler
+
+behaviorLib.StartingItems = { "Item_LoggersHatchet", "Item_RunesOfTheBlight", "Item_IronBuckler"}
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_Steamboots", "Item_Shield2", "Item_HungrySpirit" }
+behaviorLib.MidItems = { "Item_Excruciator", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_BehemothsHeart"}
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -81,7 +84,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
-    return moonqueen.harassExecuteOld(botBrain)
+    return aluna.harassExecuteOld(botBrain)
   end
 
   local unitSelf = core.unitSelf
@@ -124,7 +127,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return moonqueen.harassExecuteOld(botBrain)
+    return aluna.harassExecuteOld(botBrain)
   end
 end
 -- override combat event trigger function.

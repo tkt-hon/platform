@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = sand.core, sand.behaviorLib
 
-behaviorLib.StartingItems = { "Item_Punchdagger", "Item_HealthPotion"}
-behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_HungrySpirit", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
+behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -27,8 +27,8 @@ local skills = sand.skills
 
 
 sand.tSkills = {
-  1, 0, 1, 2, 1,
-  3, 1, 0, 0, 0,
+  0, 1, 0, 1, 0,
+  3, 0, 1, 1, 2,
   3, 2, 2, 2, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -37,10 +37,10 @@ sand.tSkills = {
 function sand:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
   if skills.abilStun == nil then
-    skills.abilStun = unitSelf:GetAbility(0)
-    skills.abilThrow = unitSelf:GetAbility(1)
-    skills.abilSpeed = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.abilQ = unitSelf:GetAbility(0)
+    skills.abilW = unitSelf:GetAbility(1)
+    skills.abilE = unitSelf:GetAbility(2)
+    skills.abilR = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
   self:SkillBuildOld()
@@ -78,51 +78,16 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
-    return moonqueen.harassExecuteOld(botBrain)
+    return sand.harassExecuteOld(botBrain)
   end
+
+  print("HARASS")
 
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
-  local bActionTaken = false
-
-  if core.CanSeeUnit(botBrain, unitTarget) then
-    local itemGeoBane = core.itemGeoBane
-    if not bActionTaken then
-      if itemGeoBane then
-        if itemGeoBane:CanActivate() then
-          bActionTaken = core.OrderItemClamp(botBrain, unitSelf, itemGeoBane)
-        end
-      end
-    end
-
-    local abilUltimate = skills.abilUltimate
-    if not bActionTaken and nLastHarassUtility > 50 then
-      if abilUltimate:CanActivate() then
-        local nRange = 600
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
-      end
-    end
-
-    local abilNuke = skills.abilNuke
-    if abilNuke:CanActivate() then
-      local nRange = abilNuke:GetRange()
-      if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-      else
-        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-      end
-    end
-  end
-
-  if not bActionTaken then
-    return moonqueen.harassExecuteOld(botBrain)
-  end
+  core.OrderAbilityEntity(botBrain, skills.abilQ, unitTarget)
 end
 -- override combat event trigger function.
 sand.oncombateventOld = sand.oncombatevent
