@@ -2,8 +2,10 @@ local _G = getfenv(0)
 local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
+runfile 'bots/teams/temaNoHelp/lib/antimagmus.lua'
 
-teambot.myName = 'Template Team'
+teambot.myName = 'temaNoHelp Team'
+
 
 ------------------------------------------------------
 --            onthink override                      --
