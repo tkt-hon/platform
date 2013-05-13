@@ -10,10 +10,6 @@
 local _G = getfenv(0)
 local object = _G.object
 
-runfile "bots/teams/kiinalainen/helpers.lua"
-runfile "bots/teams/kiinalainen/advancedShopping.lua"
-runfile "bots/teams/kiinalainen/jungleLib.lua"
-
 object.myName = object:GetName()
 
 object.bReportBehavior = true -- DEBUG
@@ -48,6 +44,10 @@ runfile "bots/botbraincore.lua"
 runfile "bots/eventsLib.lua"
 runfile "bots/metadata.lua"
 runfile "bots/behaviorLib.lua"
+
+runfile "bots/teams/kiinalainen/advancedShopping.lua"
+runfile "bots/teams/kiinalainen/jungleLib.lua"
+
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
 
