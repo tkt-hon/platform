@@ -2,6 +2,7 @@ local _G = getfenv(0)
 local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
+runfile 'bots/lib/rune_controlling/init_team.lua'
 
 teambot.myName = 'Template Team'
 
