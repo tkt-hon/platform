@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="TrashTeam_WitchSlayer"
+  description="TrashTeam's WitchSlayer bot"
+  heroname="Hero_WitchSlayer"
+  rootlua="trashteam_witchslayer.lua"
+  defaultplayername="[TT] eimihinkaan"
+  precachepath="/heroes/witchslayer/"
+/>
