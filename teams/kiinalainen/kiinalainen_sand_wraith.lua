@@ -12,13 +12,13 @@ behaviorLib.LaneItems = { "Item_Marchers", "Item_Lifetube", "Item_ManaBattery" }
 behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_PowerSupply", "Item_MysticVestments" }
 behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
-behaviorLib.pushingStrUtilMul = 1
-
 sand.skills = {}
 local skills = sand.skills
 
---sand.bReportBehavior = true
---sand.bDebugUtility = true
+sand.bReportBehavior = true
+sand.bDebugUtility = true
+
+behaviorLib.nRecentDamageMul = 0.5
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -35,6 +35,27 @@ sand.tSkills = {
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
+
+function sand.CustomHarassHeroUtilityOverride(botBrain)
+  local nUtil = 0
+  local unitSelf = core.unitSelf
+  local selfPos = unitSelf:GetPosition()
+  local selfHealth = unitSelf:GetHealth()
+  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
+
+  if tLocalUnits.EnemyHeroes then
+    local tEnemies = tLocalUnits.EnemyHeroes
+    local nTotalEnemyHealth = nil
+    for k,v in pairs(tEnemies) do
+      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
+    end
+    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
+      nUtil = (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
+    end
+  end
+  return nUtil
+end
+behaviorLib.HarassHeroBehavior["Utility"] = sand.CustomHarassHeroUtilityOverride
 
 function sand:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
@@ -60,6 +81,7 @@ function sand:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   -- custom code here
+
 end
 sand.onthinkOld = sand.onthink
 sand.onthink = sand.onthinkOverride
@@ -82,21 +104,22 @@ local function HarassHeroExecuteOverride(botBrain)
   if unitTarget == nil then
     return sand.harassExecuteOld(botBrain)
   end
-
-  print("HARASS")
-
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   core.OrderAbilityEntity(botBrain, skills.abilQ, unitTarget)
 end
+sand.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
 -- override combat event trigger function.
 sand.oncombateventOld = sand.oncombatevent
 sand.oncombatevent = sand.oncombateventOverride
 
 function sand.RetreatFromThreatUtilityOverride(botbrain)
   local nUtil = sand.OldRetreatFromThreatUtility(botbrain)
+
   return nUtil
 end
 sand.OldRetreatFromThreatUtility = behaviorLib.RetreatFromThreatBehavior["Utility"]
