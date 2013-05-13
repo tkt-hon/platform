@@ -55,7 +55,7 @@ function sand.CustomHarassHeroUtilityOverride(botBrain)
   end
   return nUtil
 end
-behaviorLib.HarassHeroBehavior["Utility"] = sand.CustomHarassHeroUtilityOverride
+behaviorLib.CustomHarassUtility = sand.CustomHarassHeroUtilityOverride
 
 function sand:SkillBuildOverride()
   local unitSelf = self.core.unitSelf

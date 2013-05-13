@@ -80,11 +80,36 @@ function pharao:oncombateventOverride(EventData)
   -- custom code here
 end
 
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+  local unitSelf = core.unitSelf
+  local selfPos = unitSelf:GetPosition()
+  local selfHealth = unitSelf:GetHealth()
+  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
+
+  if tLocalUnits.EnemyHeroes then
+    local tEnemies = tLocalUnits.EnemyHeroes
+    local nTotalEnemyHealth = nil
+    for k,v in pairs(tEnemies) do
+      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
+    end
+    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
+      nUtil = (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
+    end
+  end
+
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 10
+  end
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
 local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
-    return aluna.harassExecuteOld(botBrain)
+    return pharao.harassExecuteOld(botBrain)
   end
 
   local unitSelf = core.unitSelf
@@ -127,7 +152,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return aluna.harassExecuteOld(botBrain)
+    return pharao.harassExecuteOld(botBrain)
   end
 end
 -- override combat event trigger function.
