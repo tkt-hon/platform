@@ -213,5 +213,5 @@ function AttackCreepsExecuteOverride(botBrain)
         return false
     end
 end
-object.AttackCreepsExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+object.AttackCreepsExecuteOld = behaviorLib.AttackCreepsBehavior["Execute"]
 behaviorLib.AttackCreepsBehavior["Execute"] = AttackCreepsExecuteOverride
