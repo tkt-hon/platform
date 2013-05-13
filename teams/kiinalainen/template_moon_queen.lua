@@ -5,9 +5,17 @@ local object = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
-runfile "bots/teams/kiinalainen/helpers.lua" -- TODO
-runfile "bots/teams/kiinalainen/advancedShopping.lua" -- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
-runfile "bots/teams/kiinalainen/bottle.lua" -- Bottlen käyttö
+
+-- TODO
+runfile "bots/teams/kiinalainen/helpers.lua" 
+
+-- Shoppailu ja itemHandler funktionaalisuus. ( local itemBottle = itemHandler:GetItem("Item_Bottle") etc)
+runfile "bots/teams/kiinalainen/advancedShopping.lua" 
+
+-- Bottlen käyttö
+runfile "bots/teams/kiinalainen/bottle.lua" 
+
+-- Tämä on runeja hakeva botti
 runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills

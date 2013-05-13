@@ -10,6 +10,10 @@
 local _G = getfenv(0)
 local object = _G.object
 
+runfile "bots/teams/kiinalainen/helpers.lua"
+runfile "bots/teams/kiinalainen/advancedShopping.lua"
+runfile "bots/teams/kiinalainen/jungleLib.lua"
+
 object.myName = object:GetName()
 
 object.bRunLogic         = true
@@ -68,7 +72,6 @@ BotEcho(object:GetName()..' loading Yogi_main...')
 
 -- hero_<hero>  to reference the internal hon name of a hero, Hero_Yogi ==wildsoul
 
-
 --   item buy order. internal names
 behaviorLib.StartingItems  = 	{"Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet"}
 behaviorLib.LaneItems  = 		{"Item_Lightning1", "Item_EnhancedMarchers", }
@@ -79,8 +82,8 @@ behaviorLib.LateItems  = 		{"Item_Lightning2", "Item_FrostfieldPlate", "Item_Beh
 -- skillbuild table, 0=q, 1=w, 2=e, 3=r, 4=attri
 object.tSkills ={
 	0, 2, 0, 2, 0,
-	2, 0, 1, 2, 1,
-	1, 1, 3, 3, 4,
+	2, 0, 3, 2, 1,
+	1, 1, 1, 3, 4,
 	3, 4, 4, 4, 4,
 	4, 4, 4, 4, 4,
 }
@@ -92,10 +95,6 @@ object.tSkills ={
 
 
 --thresholds of aggression the bot must reach to use these abilities
-
-
-
-
 
 --####################################################################
 --####################################################################
@@ -144,14 +143,9 @@ function object:onthinkOverride(tGameVariables)
     self:onthinkOld(tGameVariables)
 
     -- custom code here
-
---	BotEcho("Aaaaaaaaaaaaaaaaaaa")
 end
 object.onthinkOld = object.onthink
 object.onthink  = object.onthinkOverride
-
-
-
 
 ----------------------------------------------
 --            oncombatevent override        --
@@ -162,7 +156,6 @@ object.onthink  = object.onthinkOverride
 function object:oncombateventOverride(EventData)
 	self:oncombateventOld(EventData)
 
---	BotEcho("Bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 end
 -- override combat event trigger function.
 object.oncombateventOld = object.oncombatevent
@@ -182,16 +175,12 @@ end
 -- assisgn custom Harrass function to the behaviourLib object
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
-
-
-
 --------------------------------------------------------------
 --                    Harass Behavior                       --
 -- All code how to use abilities against enemies goes here  --
 --------------------------------------------------------------
 -- @param botBrain: CBotBrain
 -- @return: none
---
 local function HarassHeroExecuteOverride(botBrain)
 
     local unitTarget = behaviorLib.heroTarget
@@ -216,8 +205,6 @@ local function HarassHeroExecuteOverride(botBrain)
 
     --- Insert abilities code here, set bActionTaken to true
     --- if an ability command has been given successfully
-
-
 
 
     if not bActionTaken then
@@ -255,12 +242,6 @@ function HealAtWellExecuteOverride(botBrain)
 	if (skills.abilW:CanActivate()) then
 		core.OrderAbility(botBrain, skills.abilW)
 	end
---[[	if (skills.abilR:CanActivate()) then
-		core.OrderAbility(botBrain, skills.abilR)
-        skills.abilE = unitSelf:GetAbility(2)
-		core.OrderAbility(botBrain, skills.abilE)
-	end
---]]
 	return object.HealAtWellExecuteOld(botBrain)
 end
 object.HealAtWellExecuteOld = behaviorLib.HealAtWellBehavior["Execute"]
@@ -268,22 +249,11 @@ behaviorLib.HealAtWellBehavior["Execute"] = HealAtWellExecuteOverride
 
 
 local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
-
 	if not unitCreepTarget or not core.CanSeeUnit(botBrain, unitCreepTarget) then
 		return nil
 	end
 
 	local unitSelf = core.unitSelf
-
-	-- /Back to pool if rich
-	-- gold=botBrain:GetGold()
-	--	BotEcho(gold)
-	--if gold>maxgold then
-	--	BotEcho("Returning to well!")
-	--	local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-	--	core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false)
-	--end
-
 
 	--Get positioning information
 	local vecSelfPos = unitSelf:GetPosition()
@@ -334,53 +304,23 @@ function GetCreepAttackTargetOverride(botBrain, unitEnemyCreep, unitAllyCreep) -
 	--Get info about self
 	local unitSelf = core.unitSelf
 
-	-- /Back to pool if rich
-	--gold=botBrain:GetGold()
-	--	BotEcho(gold)
-	--if gold>maxgold then
-	--	BotEcho("Returning to well!")
-	--	local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-	--	core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false)
-	--end
-	-- passive, Booboo and second skill, always up
 	if skills.abilQ:CanActivate() then
 		actionTaken = core.OrderAbility(botBrain, skills.abilQ)
-	--	BotEcho("Booboo")
 	end
 	if skills.abilW:CanActivate() then
 		actionTaken = core.OrderAbility(botBrain, skills.abilW)
 	end
-
-
-
---------------------
---[[	local bDebugInfo = true
-	core.tControllableUnits = botBrain:GetControllableUnits()
-	if bDebugInfo then
-		BotEcho("ControllableUnits:")
-		Echo("AllControllableUnits\n{")	core.printGetTypeNameTable(core.tControllableUnits["AllUnits"]) Echo("}")
-		Echo("InventoryUnits\n{")	core.printGetTypeNameTable(core.tControllableUnits["InventoryUnits"]) Echo("}")
-	end
---]]
-
 
 	local Booboo={}
 	for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
 		if unit2:GetTypeName()=="Pet_Yogi_Ability1" then
 			Booboo=unit2
 		end
---[[		BotEcho(unit:GetTypeName())
-		if unit:GetTypeName()=="Pet_Yogi_Ability1" then
-			core.OrderMoveToPos(botBrain, unit, vecMoundMidTower, false)
-		end
---]]
 	end
---	local vecMoundMidTower = Vector3.Create(8650, 7950)
---	core.OrderMoveToPos(botBrain, Booboo, vecMoundMidTower, false)
 
 	local unitClosestHero = nil
 	local nClosestHeroDistSq = 1100*1100 -- Not concerned if more than 900, since Booboo can't attack then, and their range not enough to harm. But predictive running....
-	for id, unitHero in pairs(HoN.GetHeroes(core.enemyTeam)) do --HoN.GetHeroes(core.enemyTeam)
+	for id, unitHero in pairs(HoN.GetHeroes(core.enemyTeam)) do
 		if unitHero ~= nil then
 			if core.CanSeeUnit(botBrain, unitHero) and unitHero:GetTeam()~=team then
 				local nDistanceSq = Vector3.Distance2DSq(unitHero:GetPosition(), core.unitSelf:GetPosition())
@@ -392,8 +332,7 @@ function GetCreepAttackTargetOverride(botBrain, unitEnemyCreep, unitAllyCreep) -
 		end
 	end
 	local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-	if Booboo:GetHealthPercent()*100>35 then
---		BotEcho(Booboo:GetHealthPercent())
+	if Booboo:GetHealthPercent()>0.35 then
 --		core.OrderMoveToPosClamp(botBrain, Booboo, core.unitSelf:GetPosition(), false)
 		if unitClosestHero~=nil then
 			core.OrderAttack(botBrain, Booboo, unitClosestHero,false)
@@ -409,16 +348,6 @@ function GetCreepAttackTargetOverride(botBrain, unitEnemyCreep, unitAllyCreep) -
 	if Vector3.Distance2DSq(Booboo:GetPosition(), unitSelf:GetPosition())>10000*10000 and Booboo:GetHealthPercent()>0.9 then
 		core.OrderAbility(botBrain, Booboo:GetAbility(0))
 	end
---[[
-	if Booboo:GetHealthPercent()*100<35 then
-		core.OrderMoveToPosAndHoldClamp(botBrain, Booboo, wellPos, false)
-	elseif unitClosestHero~=nil then
---	if unitClosestHero~=nil then
-		core.OrderAttack(botBrain, Booboo, unitClosestHero,false)
-	else --lasthit. Now just move to character
-		core.OrderMoveToPosAndHoldClamp(botBrain, Booboo, core.unitSelf:GetPosition(), false)
-	end
---]]
 
 	local nDamageMin = unitSelf:GetFinalAttackDamageMin()
 
