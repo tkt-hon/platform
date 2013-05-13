@@ -23,8 +23,6 @@ aluna.skills = {}
 local skills = aluna.skills
 
 shopping.Setup(false, false, true, false)
-aluna.bReportBehavior = true -- DEBUG
-aluna.bDebugUtility = true -- DEBUG
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
