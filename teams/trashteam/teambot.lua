@@ -109,24 +109,24 @@ local function tfind(table, value)
 end
 
 local tGankers = {
-  "Hero_Magmar"
+  "Hero_Magmar",
   "Hero_Pyromancer"
 }
 local tCarries = {
-  ""
+  "Hero_Predator"
 }
 local tMidHeros = {
   "Hero_WitchSlayer"
 }
 local tSuiciders = {
   "Hero_Predator",
-  "Hero_shaman"
+  "Hero_Shaman"
 }
 local tSitters = {
-  "Hero_shaman"
+  "Hero_Shaman"
 }
 local tSupports = {
-  "Hero_Frosty"
+  "Hero_Shaman"
 }
 
 function teambot:CreateMemoryUnitOverride(unit)
