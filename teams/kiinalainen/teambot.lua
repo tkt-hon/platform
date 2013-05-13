@@ -83,6 +83,10 @@ function teambot:BuildLanesOverride()
   self.tTopLane = tTopLane
   self.tMiddleLane = tMiddleLane
   self.tBottomLane = tBottomLane
+
+  printLanes(self.tTopLane, "top")
+  printLanes(self.tMiddleLane, "middle")
+  printLanes(self.tBottomLane, "bottom")
 end
 teambot.BuildLanesOld = teambot.BuildLanes
 teambot.BuildLanes = teambot.BuildLanesOverride
@@ -150,3 +154,13 @@ function teambot:CreateMemoryUnitOverride(unit)
 end
 teambot.CreateMemoryUnitOld = teambot.CreateMemoryUnit
 teambot.CreateMemoryUnit = teambot.CreateMemoryUnitOverride
+
+function printLanes(t, lane) 
+	print(lane ..'{\n')
+	if t then    
+		for i,v in pairs(t) do
+			print(' '..tostring(i)..', '.. tostring(v:GetTypeName())..'\n')
+		end
+	end
+	print('}\n')
+end

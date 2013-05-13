@@ -1,4 +1,4 @@
--- wildsoul bot by Aleks_Dark
+-- original wildsoul bot by Aleks_Dark
 --####################################################################
 --####################################################################
 --#                                                                 ##
@@ -15,6 +15,9 @@ runfile "bots/teams/kiinalainen/advancedShopping.lua"
 runfile "bots/teams/kiinalainen/jungleLib.lua"
 
 object.myName = object:GetName()
+
+object.bReportBehavior = true -- DEBUG
+object.bDebugUtility = true -- DEBUG
 
 object.bRunLogic         = true
 object.bRunBehaviors    = true
