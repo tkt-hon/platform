@@ -3,7 +3,7 @@ local sand = _G.object
 
 sand.heroName = "Hero_SandWraith"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/kiinalainen/core_kiinalainen_herobot.lua'
 
 local core, behaviorLib = sand.core, sand.behaviorLib
 
@@ -17,6 +17,8 @@ behaviorLib.pushingStrUtilMul = 1
 sand.skills = {}
 local skills = sand.skills
 
+--sand.bReportBehavior = true
+--sand.bDebugUtility = true
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -92,3 +94,10 @@ end
 -- override combat event trigger function.
 sand.oncombateventOld = sand.oncombatevent
 sand.oncombatevent = sand.oncombateventOverride
+
+function sand.RetreatFromThreatUtilityOverride(botbrain)
+  local nUtil = sand.OldRetreatFromThreatUtility(botbrain)
+  return nUtil
+end
+sand.OldRetreatFromThreatUtility = behaviorLib.RetreatFromThreatBehavior["Utility"]
+behaviorLib.RetreatFromThreatBehavior["Utility"] = sand.RetreatFromThreatUtilityOverride
