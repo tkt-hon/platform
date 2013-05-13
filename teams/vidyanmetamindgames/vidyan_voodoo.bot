@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Vidyan_VoodooJester"
+  description="We be ganja, man."
+  heroname="Hero_Voodoo"
+  rootlua="vidyan_voodoojester.lua"
+  defaultplayername="Vidyan Voodoo Jester"
+  precachepath="/heroes/voodoo/"
+/>

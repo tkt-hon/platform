@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Vidyan_WitchSlayer"
+  description="You are the witch. I am the slayer."
+  heroname="Hero_WitchSlayer"
+  rootlua="vidyan_WitchSlayer.lua"
+  defaultplayername="Vidyan Witch Slayer"
+  precachepath="/heroes/witch_slayer/"
+/>

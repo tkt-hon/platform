@@ -22,6 +22,9 @@
     <filename>..\resources0\bots\metadata.lua</filename>
   </file>
   <file>
+    <filename>teams\vidyanmetamindgames\shoppinglib.lua</filename>
+  </file>
+  <file>
     <filename>teams\vidyanmetamindgames\teambot.lua</filename>
   </file>
   <file>
@@ -29,6 +32,9 @@
   </file>
   <file>
     <filename>teams\vidyanmetamindgames\vidyanmetamindgames_plague_rider.lua</filename>
+  </file>
+  <file>
+    <filename>teams\vidyanmetamindgames\vidyanmetamindgames_plague_rider_v2.lua</filename>
   </file>
   <file>
     <filename>teams\vidyanmetamindgames\vidyanmetamindgames_rampage.lua</filename>
