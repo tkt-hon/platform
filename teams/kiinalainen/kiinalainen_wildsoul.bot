@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Kiinalainen_Wildsoul"
+  description="Kiinalainen Wildsoul"
+  heroname="Hero_Yogi"
+  rootlua="kiinalainen_wildsoul.lua"
+  defaultplayername="KiinalainenWildsoul"
+  precachepath="/heroes/yogi/"
+/>
