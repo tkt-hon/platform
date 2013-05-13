@@ -122,21 +122,21 @@ object.nBlazingThreshold = 1
 local function AbilitiesUpUtility(hero)
 	local bDebugLines = false
 	local bDebugEchos = false
-	
+
 	local nUtility = 0
-	
+
 	if skills.abilDragon:CanActivate() then
 		nUtility = nUtility + object.nDragonUp
 	end
-	
+
 	if skills.abilPhoenix:CanActivate() then
 		nUtility = nUtility + object.nPhoenixUp
 	end
-	
+
 	if skills.abilBlazing:CanActivate() then
 		nUtility = nUtility + object.nBlazingUp
 	end
-	
+
 	if bDebugEchos then BotEcho(" HARASS - abilitiesUp: "..nUtility) end
 	if bDebugLines then
 		local lineLen = 150
@@ -145,7 +145,7 @@ local function AbilitiesUpUtility(hero)
 		local vOrtho = Vector3.Create(-vTowards.y, vTowards.x) --quick 90 rotate z
 		core.DrawDebugArrow(myPos - vOrtho * lineLen * 1.4, (myPos - vOrtho * lineLen * 1.4 ) + vTowards * nUtility * (lineLen/100), 'cyan')
 	end
-	
+
 	return nUtility
 end
 
@@ -200,9 +200,9 @@ end
 function object:onthinkOverride(tGameVariables)
     self:onthinkOld(tGameVariables)
 
-	
+
     -- custom code here
-	
+
 		if core.unitSelf:GetManaPercent() < 90 then
 		core.FindItems(self)	
 		local itemRing = core.itemRing
@@ -211,7 +211,7 @@ function object:onthinkOverride(tGameVariables)
 			core.OrderItemClamp(self, unitSelf, itemRing)
 		end
 	end
-	
+
 	core.nRange = 99999 * 99999
 
 end
@@ -234,22 +234,69 @@ function object:oncombateventOverride(EventData)
 
 	if core.unitSelf:GetLevel() < 3 then
 		core.nHarassBonus = 0
-	
+
 	elseif IsTowerThreateningUnit(core.unitSelf) then
 		core.nHarrasBonus = 0
-		
+
 	elseif core.unitSelf:GetLevel() < 6 and core.unitSelf:GetLevel() >= 3 then
 		core.nHarassBonus = 40
-	
+
 	elseif core.unitSelf:GetMana() < 240 then
 		core.nHarrasBonus = 10
-		
+
 	elseif core.unitSelf:GetLevel() > 11 then
 		core.nHarrasBonus = 100		
 	else 
 		core.nHarassBonus = 100
 	end
-	
+
+local function GetWaveTarget(botBrain, myPos, radius)
+  local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyCreeps
+  local target = nil
+
+  for key,unit in pairs(vihu) do
+    if unit ~= nil then
+      target = unit
+    end
+  end
+
+  if not target then
+    return nil
+  end
+  return target
+end
+
+
+local function WaveBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilWave = unitSelf:GetAbility(0)
+  local myPos = unitSelf:GetPosition()
+  local vihu = GetWaveTarget(botBrain, myPos, abilWave:GetRange())
+  if not vihu then
+    return 0
+  end
+  if abilWave:CanActivate() and unitSelf:GetLevel() > 14 then
+    return 100
+  end
+  return 0
+end
+
+local function WaveBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilWave = unitSelf:GetAbility(0)
+  local target = GetWaveTarget(botBrain, myPos, radius)
+  if target ~= nil then
+    return core.OrderAbilityEntity(botBrain, abilWave, target, false)
+  end
+  return false
+end
+
+local WaveBehavior = {}
+WaveBehavior["Utility"] = WaveBehaviorUtility
+WaveBehavior["Execute"] = WaveBehaviorExecute
+WaveBehavior["Name"] = "Using ultimate properly"
+tinsert(behaviorLib.tBehaviors, WaveBehavior)
+
 end
 object.oncombateventOld = object.oncombatevent
 object.oncombatevent 	= object.oncombateventOverride
@@ -268,7 +315,7 @@ local function CustomHarassUtilityFnOverride(hero)
 	if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
 		nUtil = nUtil + 100
 	end
-	
+
 	if core.unitSelf:GetLevel() > 11 then
 		nUtil = nUtil + 100
 	end
@@ -294,7 +341,7 @@ behaviorLib.CustomHarassUtilityFn = CustomHarassUtilityFnOverride
 	function IsTowerThreateningUnit(unit)
 	vecPosition = unit:GetPosition()
 	--TODO: switch to just iterate through the enemy towers instead of calling GetUnitsInRadius
-	
+
 	local nTowerRange = 821.6 --700 + (86 * sqrtTwo)
 	nTowerRange = nTowerRange
 	local tBuildings = HoN.GetUnitsInRadius(vecPosition, nTowerRange, core.UNIT_MASK_ALIVE + core.UNIT_MASK_BUILDING)
@@ -303,7 +350,7 @@ behaviorLib.CustomHarassUtilityFn = CustomHarassUtilityFnOverride
 			return true
 		end
 	end
-	
+
 	return false
 end
 
@@ -320,7 +367,7 @@ object.nDragonRangeBuffer = -100
 local function HarassHeroExecuteOverride(botBrain)
     
 	BotEcho("VITTUUU")
-	
+
     local unitTarget = behaviorLib.heroTarget
     if unitTarget == nil then
         return object.harassExecuteOld(botBrain) --Target is invalid, move on to the next behavior
@@ -332,11 +379,11 @@ local function HarassHeroExecuteOverride(botBrain)
     local nAttackRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
     local nMyExtraRange = core.GetExtraRange(unitSelf)
     
-	
+
 	local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
 	local normalisoitu = Vector3.Normalize(vektori)
 	local kerrottu =  normalisoitu * 40
-	
+
 	local stunnivektori = kerrottu + unitTarget:GetPosition()
     local vecTargetPosition = unitTarget:GetPosition()
     local nTargetExtraRange = core.GetExtraRange(unitTarget)
@@ -349,11 +396,11 @@ local function HarassHeroExecuteOverride(botBrain)
     
     --- Insert abilities code here, set bActionTaken to true 
     --- if an ability command has been given successfully
-	
+
 	if core.unitSelf:GetMana() < 100 and unitTarget:GetHealth() > 250 then
 		core.nHarassBonus = 0
 	end
-	
+
 	if IsTowerThreateningUnit(unitSelf) and core.unitSelf:GetLevel() < 6 then
 		core.nHarrasBonus = 0
 	end
@@ -449,8 +496,8 @@ local function HarassHeroExecuteOverride(botBrain)
     if not bActionTaken then
         return object.harassExecuteOld(botBrain)
     end 
-	
-	
+
+
 
 
 end
@@ -493,7 +540,6 @@ local function funcFindItemsOverride(botBrain)
 end
 object.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
-
 
 
 

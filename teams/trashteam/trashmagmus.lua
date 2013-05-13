@@ -76,6 +76,31 @@ function magmus:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
   -- custom code here
+
+local function SteamBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilSteam = unitSelf:GetAbility(1)
+  if unitSelf:GetHealth() < 50 and abilSteam:CanActivate() then
+    return 100
+  end
+  return 0
+end
+
+local function SteamBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilSteam = unitSelf:GetAbility(1)
+	if core.unitSelf:IsChanneling() then
+		return
+	end
+    return core.OrderAbility(botBrain, abilSteam, false)
+end
+
+local SteamBehavior = {}
+SteamBehavior["Utility"] = SteamBehaviorUtility
+SteamBehavior["Execute"] = SteamBehaviorExecute
+SteamBehavior["Name"] = "Steaming"
+tinsert(behaviorLib.tBehaviors, SteamBehavior)
+
 self.eventsLib.printCombatEvent(EventData)
 
 end
