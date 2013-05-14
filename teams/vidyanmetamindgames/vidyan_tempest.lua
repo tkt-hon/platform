@@ -6,6 +6,15 @@ local core, behaviorLib = tempest.core, tempest.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
+--------------------------------------------------------------
+-- Itembuild --
+--------------------------------------------------------------
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_PretendersCrown", "2 Item_ManaPotion" }
+behaviorLib.LaneItems = { "Item_Strength5", "Item_Marchers", "Item_MightyBlade", "Item_Warhammer", "Item_Immunity" }
+behaviorLib.MidItems = {}
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
+
 ---------------------------------------------------------------
 -- SkillBuild override --
 -- Handles hero skill building. To customize just write own --

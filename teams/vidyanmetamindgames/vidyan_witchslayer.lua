@@ -6,6 +6,15 @@ local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
+--------------------------------------------------------------
+-- Itembuild --
+--------------------------------------------------------------
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_PretendersCrown", "2 Item_ManaPotion" }
+behaviorLib.LaneItems = { "Item_Strength5", "Item_Intelligence5", "Item_Replenish", "Item_Marchers", "Item_MysticPotpourri", "Item_Astrolabe" }
+behaviorLib.MidItems = { }
+behaviorLib.LateItems = { "Item_Intelligence7", "Item_Protect" }
+
 ---------------------------------------------------------------
 -- SkillBuild override --
 -- Handles hero skill building. To customize just write own --

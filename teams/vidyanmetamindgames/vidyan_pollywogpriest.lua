@@ -6,6 +6,15 @@ local core, behaviorLib = pollywogpriest.core, pollywogpriest.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
+--------------------------------------------------------------
+-- Itembuild --
+--------------------------------------------------------------
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_PretendersCrown", "Item_Item_CrushingClaws", "Item_ManaPotion" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Strength5", "Item_Steamboots", "Item_Glowstone", "Item_MightyBlade", "Item_NeophytesBook", "Item_Quickblade" }
+behaviorLib.MidItems = {}
+behaviorLib.LateItems = { "Item_Intelligence7", "Item_Protect", "Item_Damage9" }
+
 ---------------------------------------------------------------
 -- SkillBuild override --
 -- Handles hero skill building. To customize just write own --

@@ -6,6 +6,17 @@ local core, behaviorLib = yogi.core, yogi.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
+--------------------------------------------------------------
+-- Itembuild - Loggers Hatchet, Iron Buckler, 		    -- 
+-- Sword of the high, Mockki (damage10), thunderclaw ja     --
+-- ekat bootsit menee nallelle, sen jälkeen loput herolle   --
+--------------------------------------------------------------
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_LoggersHatchet", "Item_IronBuckler" }
+behaviorLib.LaneItems = { "Item_SwordOfTheHigh", "Item_Damage10", "Item_Marchers",  "Item_Steamboots", "Item_Marchers", "Item_Steamboots", "Item_Warhammer", "Item_Lightning1" }
+behaviorLib.MidItems = {  }
+behaviorLib.LateItems = { "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
+
 ---------------------------------------------------------------
 -- SkillBuild override --
 -- Handles hero skill building. To customize just write own --
