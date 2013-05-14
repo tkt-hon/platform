@@ -2,10 +2,10 @@ local _G = getfenv(0)
 local yogi = _G.object
 
 yogi.heroName = "Hero_Yogi"
-local core, behaviorLib = yogi.core, yogi.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
+local core, behaviorLib = yogi.core, yogi.behaviorLib
 --------------------------------------------------------------
 -- Itembuild - Loggers Hatchet, Iron Buckler, 		    -- 
 -- Sword of the high, Mockki (damage10), thunderclaw ja     --
@@ -36,23 +36,23 @@ local skills = yogi.skills
 -----------------------------------------------------------------
 
 yogi.tSkills = {
-  0, 2, 0, 2, 0,
-  3, 0, 1, 1, 1,
-  3, 1, 2, 2, 4,
-  3, 4, 4, 4, 4,
-  4, 4, 4, 4, 4
+    0, 2, 0, 2, 0,
+    3, 0, 1, 1, 1,
+    3, 1, 2, 2, 4,
+    3, 4, 4, 4, 4,
+    4, 4, 4, 4, 4
 }
 
 function yogi:SkillBuildOverride()
- local unitSelf = self.core.unitSelf
-  if skills.abilBear == nil then
-    skills.abilBear = unitSelf:GetAbility(0)
-    skills.abilBuff = unitSelf:GetAbility(1)
-    skills.abilPassive = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
-    skills.stats = unitSelf:GetAbility(4)
-  end
-  self:SkillBuildOld()
+    local unitSelf = self.core.unitSelf
+    if skills.abilBear == nil then
+        skills.abilBear = unitSelf:GetAbility(0)
+        skills.abilBuff = unitSelf:GetAbility(1)
+        skills.abilPassive = unitSelf:GetAbility(2)
+        skills.abilUltimate = unitSelf:GetAbility(3)
+        skills.stats = unitSelf:GetAbility(4)
+    end
+    self:SkillBuildOld()
 end
 yogi.SkillBuildOld = yogi.SkillBuild
 yogi.SkillBuild = yogi.SkillBuildOverride
@@ -64,9 +64,16 @@ yogi.SkillBuild = yogi.SkillBuildOverride
 -- @param: tGameVariables
 -- @return: none
 function yogi:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
+    self:onthinkOld(tGameVariables)
 
-  -- custom code here
+    local abilBear = skills.abilBear
+    local canCast = abilBear:CanActivate()
+
+
+    if abilBear:CanActivate() then
+       core.OrderAbility(self, abilBear)
+    end
+
 end
 yogi.onthinkOld = yogi.onthink
 yogi.onthink = yogi.onthinkOverride
@@ -78,9 +85,16 @@ yogi.onthink = yogi.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function yogi:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
+    self:oncombateventOld(EventData)
 
-  -- custom code here
+    if EventData.Type == "Ability" then
+        if EventData.InflictorName == "Ability_Wildsoul1" then
+            core.BotEcho("ripuli")
+        end
+    end
+
+
+    -- custom code here
 end
 yogi.oncombateventOld = yogi.oncombatevent
-tempest.oncombatevent = tempest.oncombateventOverride
+yogi.oncombatevent = yogi.oncombateventOverride
