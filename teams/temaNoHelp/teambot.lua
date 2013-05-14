@@ -3,9 +3,14 @@ local teambot = _G.object
 
 runfile 'bots/core_teambot.lua'
 runfile 'bots/teams/temaNoHelp/lib/antimagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/antichronos.lua'
 
 teambot.myName = 'temaNoHelp Team'
 
+local metadata = teambot.metadata
+function teambot:GetDesiredLane()
+  return metadata.GetMiddleLane()
+end
 
 ------------------------------------------------------
 --            onthink override                      --

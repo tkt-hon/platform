@@ -6,9 +6,13 @@ ophelia.heroName = "Hero_Ophelia"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
+
+ophelia.bReportBehavior = true
+ophelia.bDebugUtility = true
 
 local core, behaviorLib, shopping, courier = ophelia.core, ophelia.behaviorLib, ophelia.shopping, ophelia.courier
 
