@@ -11,7 +11,27 @@ runfile 'bots/core_herobot.lua'
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
+
+pollywogpriest.skills = {}
+local skills = pollywogpriest.skills
+
+pollywogpriest.tSkills = {
+  2, 0, 0, 1, 0,
+  3, 0, 2, 2, 2,
+  3, 1, 1, 1, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function pollywogpriest:SkillBuildOverride()
+  local unitSelf = self.core.unitSelf
+  if skills.abilNuke == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilHex = unitSelf:GetAbility(1)
+    skills.abilTongue = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
   self:SkillBuildOld()
 end
 pollywogpriest.SkillBuildOld = pollywogpriest.SkillBuild
