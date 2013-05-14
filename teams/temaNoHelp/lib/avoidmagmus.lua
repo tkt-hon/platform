@@ -6,7 +6,16 @@ local core, behaviorLib, eventsLib = herobot.core, herobot.behaviorLib, herobot.
 local avoidMagmusPosition = nil
 
 local function CalculatedMovementTarget(vecCurrent, vecDanger)
-  avoidMagmusPosition = vecCurrent + Vector3.Normalize(vecCurrent - vecDanger) * 200
+  avoidMagmusPosition = vecCurrent + Vector3.Normalize(vecCurrent - vecDanger) * 450
+end
+
+local function FallBack(botBrain)
+  for _, unit in pairs(core.AssessLocalUnits(botBrain).EnemyHeroes) do
+    if unit:GetTypeName() == "Hero_Magmar" then
+      return false
+    end
+  end
+  return true
 end
 
 function herobot:oncombateventOverride(EventData)
@@ -37,9 +46,7 @@ herobot.oncombatevent = herobot.oncombateventOverride
 
 local PositionSelfLogicOld = behaviorLib.PositionSelfLogic
 function behaviorLib.PositionSelfLogic(botBrain)
-  if avoidMagmusPosition then
-    core.BotEcho(tostring(avoidMagmusPosition))
-    core.DrawXPosition(avoidMagmusPosition, "yellow")
+  if avoidMagmusPosition and FallBack(botBrain) then
     return avoidMagmusPosition, nil
   else
     return PositionSelfLogicOld(botBrain)
