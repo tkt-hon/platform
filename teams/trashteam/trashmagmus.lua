@@ -16,6 +16,7 @@ behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 
 local core, behaviorLib = magmus.core, magmus.behaviorLib
+local steam = false
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -49,18 +50,6 @@ magmus.SkillBuild = magmus.SkillBuildOverride
 function magmus:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-
-	if core.unitSelf:GetManaPercent() < 90 then
-		core.FindItems(self)	
-		local itemRing = core.itemRing
-		if itemRing and itemRing:CanActivate() then
-			magmus.bRunCommands = true
-			core.OrderItemClamp(self, unitSelf, itemRing)
-		end
-	end
-	
-	core.nRange = 99999 * 99999
-
 end
 
 magmus.onthinkOld = magmus.onthink
@@ -74,13 +63,20 @@ magmus.onthink = magmus.onthinkOverride
 -- @return: none
 function magmus:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
+	self.eventsLib.printCombatEvent(EventData)
 
+	if EventData.Type == "Projectile" then
+		steam = true
+	end
   -- custom code here
+
+end
 
 local function SteamBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
-  if unitSelf:GetHealth() < 50 and abilSteam:CanActivate() then
+
+  if steam and abilSteam:CanActivate() then
     return 100
   end
   return 0
@@ -89,9 +85,11 @@ end
 local function SteamBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
+	steam = false
 	if core.unitSelf:IsChanneling() then
 		return
 	end
+core.BotEcho("Trollliii")
     return core.OrderAbility(botBrain, abilSteam, false)
 end
 
@@ -101,17 +99,41 @@ SteamBehavior["Execute"] = SteamBehaviorExecute
 SteamBehavior["Name"] = "Steaming"
 tinsert(behaviorLib.tBehaviors, SteamBehavior)
 
-self.eventsLib.printCombatEvent(EventData)
+local function ManaRingBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  core.FindItems(botBrain)
+	local util = 0	
+	local itemRing = core.itemRing
 
+ 	if botBrain.bDebugUtility == true and utility ~= 0 then
+     core.BotEcho("  ManaRingBehaviorUtility: " .. tostring(util))
+  end
+  if itemRing and itemRing:CanActivate() and unitSelf:GetManaPercent() < 90 then
+    util = 100
+  end
+  	return util
 end
+
+local function ManaRingExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+	core.FindItems(botBrain)	
+	local itemRing = core.itemRing
+		magmus.bRunCommands = true
+		return core.OrderItemClamp(botBrain, unitSelf, itemRing)
+end
+
+local ManaRingBehavior = {}
+ManaRingBehavior["Utility"] = ManaRingBehaviorUtility
+ManaRingBehavior["Execute"] = ManaRingExecute
+ManaRingBehavior["Name"] = "ManaRing"
+tinsert(behaviorLib.tBehaviors, ManaRingBehavior)
 
 -- override combat event trigger function.
 local function CustomHarassUtilityFnOverride(hero)
 	local nUtil = 0
 	
-  
-	if core.unitSelf:GetAbility(0):CanActivate() then
-    nUtil = nUtil + (core.unitSelf:GetLevel() * 5) / 2
+	if core.unitSelf:GetLevel() >= 3 then
+    nUtil = 100
   end
 
 	if core.unitSelf:GetLevel() > 6 then
@@ -131,6 +153,10 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function HarassHeroExecuteOverride(botBrain)
 
+	if core.unitSelf:IsChanneling() then
+		return
+	end
+
   local unitTarget = behaviorLib.heroTarget
 
   if unitTarget == nil then
@@ -139,10 +165,6 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
-
-	if core.unitSelf:IsChanneling() then
-		return
-	end
 
   local bActionTaken = false
 	local abilSurge = unitSelf:GetAbility(0)
@@ -166,22 +188,13 @@ local function HarassHeroExecuteOverride(botBrain)
     end
 
 		if not bActionTaken then
-			if unitTarget ~= nil then
+			if unitTarget ~= nil and not core.unitSelf:IsChanneling() then
 				bActionTaken = core.OrderAttack(botBrain, unitSelf, unitTarget)
 			else
 				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
       end
 		end
   end
-
-	local abilBath = unitSelf:GetAbility(1)
-		if not bActionTaken then
-			if abilBath:CanActivate() and unitSelf:GetHealth() < 100 then
-				bActionTaken = core.OrderAbility(botBrain, abilBath)
-			else
-				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
-      end
-		end
 
   if not bActionTaken then
     return magmus.harassExecuteOld(botBrain)

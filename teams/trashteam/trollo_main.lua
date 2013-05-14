@@ -38,8 +38,8 @@ object.bAttackCommands     = true
 object.bAbilityCommands = true
 object.bOtherCommands     = true
 
-object.bReportBehavior = false
-object.bDebugUtility = false
+object.bReportBehavior = true
+object.bDebugUtility = true
 
 object.logger = {}
 object.logger.bWriteLog = false
@@ -408,7 +408,7 @@ local function HarassHeroExecuteOverride(botBrain)
 	if core.CanSeeUnit(botBrain, unitTarget) then
 		if bDebugEchos then BotEcho("  No action yet, checking dragon") end
 		local abilDragon = skills.abilW
-		if abilDragon:CanActivate() and not unitTarget:IsStunned() and (unitTarget:GetHealth() > 50) then
+		if abilDragon:CanActivate() and (unitTarget:GetHealth() > 50) then
 			local nRange = abilDragon:GetRange()
 			if nTargetDistanceSq < (nRange * nRange) then
 				--calculate a target since our range doesn't match the ability effective range
@@ -434,7 +434,7 @@ local function HarassHeroExecuteOverride(botBrain)
 	end
 
 
-	if not bActionTaken and (unitTarget:GetHealth() > 200) then
+	if not bActionTaken and unitTarget:GetHealth() > 200 then
 		if bDebugEchos then BotEcho("  No action yet, checking blaze") end
 		local abilBlaze = skills.abilR
 		if abilBlaze:CanActivate() then
