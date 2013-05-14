@@ -3,6 +3,7 @@ local pollywogpriest = _G.object
 
 pollywogpriest.heroName = "Hero_PollywogPriest"
 local core, behaviorLib = pollywogpriest.core, pollywogpriest.behaviorLib
+local tinsert = _G.table.insert
 
 runfile 'bots/core_herobot.lua'
 
@@ -83,4 +84,4 @@ function pollywogpriest:oncombateventOverride(EventData)
   -- custom code here
 end
 pollywogpriest.oncombateventOld = pollywogpriest.oncombatevent
-tempest.oncombatevent = tempest.oncombateventOverride
+pollywogpriest.oncombatevent = pollywogpriest.oncombateventOverride
