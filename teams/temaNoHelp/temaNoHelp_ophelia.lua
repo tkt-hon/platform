@@ -178,8 +178,9 @@ end
 
 local function RevealBehaviorExecute(botBrain)
   local vecAntiMagSpot = core.teamBotBrain.antimagmus.GetAntiMagmusWardSpot()
-  if vecAntiMagSpot then
-    return core.OrderItemPosition(botBrain, core.unitSelf, core.itemCounterWard, vecAntiMagSpot, false)
+  local ward = core.itemCounterWard
+  if vecAntiMagSpot and ward then
+    return core.OrderItemPosition(botBrain, core.unitSelf, ward, vecAntiMagSpot, false)
   end
   return false
 end
