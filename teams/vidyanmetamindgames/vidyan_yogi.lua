@@ -6,6 +6,10 @@ yogi.heroName = "Hero_Yogi"
 runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = yogi.core, yogi.behaviorLib
+
+local arrowPos = nil
+local booboo = nil
+
 --------------------------------------------------------------
 -- Itembuild - Loggers Hatchet, Iron Buckler, 		    -- 
 -- Sword of the high, Mockki (damage10), thunderclaw ja     --
@@ -57,6 +61,7 @@ end
 yogi.SkillBuildOld = yogi.SkillBuild
 yogi.SkillBuild = yogi.SkillBuildOverride
 
+
 ------------------------------------------------------
 -- onthink override --
 -- Called every bot tick, custom onthink code here --
@@ -65,19 +70,101 @@ yogi.SkillBuild = yogi.SkillBuildOverride
 -- @return: none
 function yogi:onthinkOverride(tGameVariables)
     self:onthinkOld(tGameVariables)
-
+    
+    if arrowPos ~= nil then
+        --core.BotEcho(tostring(arrowPos))
+        core.DrawDebugArrow(core.unitSelf:GetPosition(), arrowPos)
+    end
+    
     local abilBear = skills.abilBear
     local canCast = abilBear:CanActivate()
 
-    if HoN.GetMatchTime() > 0 then
-        if abilBear:CanActivate() then
-            core.OrderAbility(self, abilBear)
-        end
+    if abilBear:CanActivate() then
+        core.OrderAbility(self, abilBear)
     end
+    
+    
+    
+    booboo = getBooBoo()
+    
+    if booboo == nil then
+        return
+    end
+    
+    if not boobooAttack(self, booboo) then
+        core.OrderMoveToPos(self, booboo, core.unitSelf:GetPosition(), false)
+        --core.BotEcho(tostring(boobooUnit:GetPosition()))
+    end    
 end
 yogi.onthinkOld = yogi.onthink
 yogi.onthink = yogi.onthinkOverride
 
+
+function boobooAttack(botBrain, booboo)
+    local unitsLocal = core.AssessLocalUnits(botBrain, booboo:GetPosition(), 500000)
+    local enemyHeroes = unitsLocal.EnemyHeroes
+    
+    local boobooPos = booboo:GetPosition()
+    
+    local closestDistanceSq = 99999999999
+    local currentTargetHero = nil
+
+    local closestTower = core.GetClosestEnemyTower(booboo:GetPosition(), 100000)
+
+    if enemyHeroes ~= nil then
+    
+        for _, unit in pairs(enemyHeroes) do
+        
+            local unitPos = unit:GetPosition()
+            local distanceSq = Vector3.Distance2DSq(boobooPos, unitPos)
+            
+            
+            if  distanceSq < 1000000 then --aka closer than 1000 units (250 000 for 500 units)
+            
+                local distanceFromUnitToTowerSq = Vector3.Distance2DSq(unitPos, closestTower:GetPosition())
+                if distanceFromUnitToTowerSq > 490000 then --aka enemy hero is not within tower range
+                    if distanceSq < closestDistanceSq then
+                        currentTargetHero = unit
+                        closestDistanceSq = distanceSq
+                        
+                        local unitType = currentTargetHero:GetTypeName()
+                
+                        core.BotEcho(unitType)
+                    end
+                end
+            end
+            
+
+        end
+        
+        if currentTargetHero ~= nil then
+            core.OrderAttack(botBrain, booboo, currentTargetHero)
+        end
+    end
+    
+    if currentTargetHero == nil then
+        local enemyCreeps = unitsLocal.EnemyCreeps
+        --TODO: target creeps
+        return false
+    end
+    
+    return true
+end
+
+-- Vector3.Distance2DSq
+
+local function OverrideMoveExecute(botBrain, vecDesiredPosition)
+    --core.BotEcho("Overrided move executed")
+    --if booboo == nil then
+    --    booboo = getBooBoo()
+    --end
+    
+    --core.OrderMoveToPos(botBrain, booboo, vecDesiredPosition)
+    arrowPos = vecDesiredPosition
+    return behaviorLib.MoveExecuteOld(botBrain, vecDesiredPosition)
+end
+behaviorLib.MoveExecuteOld = behaviorLib.MoveExecute
+behaviorLib.MoveExecute = OverrideMoveExecute
 ----------------------------------------------
 -- oncombatevent override --
 -- use to check for infilictors (fe. buffs) --
@@ -86,20 +173,60 @@ yogi.onthink = yogi.onthinkOverride
 -- @return: none
 function yogi:oncombateventOverride(EventData)
     self:oncombateventOld(EventData)
-
-
-
-    --yogi.eventsLib.printCombatEvent(EventData)
-
+    
     if EventData.Type == "Ability" then
 
         core.BotEcho(EventData.InflictorName)
 
         if EventData.InflictorName == "Ability_Yogi1" then
-            core.BotEcho("ripuli1")
+            getBooBoo()
         end
     end
     -- custom code here
 end
 yogi.oncombateventOld = yogi.oncombatevent
 yogi.oncombatevent = yogi.oncombateventOverride
+
+
+function getBooBoo()
+    local units = core.localUnits["AllyUnits"]    
+    
+    for _, unit in pairs(units) do
+        
+        local unitType = unit:GetTypeName()
+        --core.BotEcho(unitType)
+        
+        if unitType == "Pet_Yogi_Ability1" then
+            --core.BotEcho("success")
+            return unit
+        end
+    end
+    
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
