@@ -2,6 +2,7 @@ local _G = getfenv(0)
 local witchslayer = _G.object
 
 witchslayer.heroName = "Hero_WitchSlayer"
+local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 

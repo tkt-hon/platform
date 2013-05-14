@@ -2,6 +2,7 @@ local _G = getfenv(0)
 local pollywogpriest = _G.object
 
 pollywogpriest.heroName = "Hero_PollywogPriest"
+local core, behaviorLib = pollywogpriest.core, pollywogpriest.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
