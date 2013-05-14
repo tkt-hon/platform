@@ -168,44 +168,6 @@ object.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 
-----------------------------------------------------------------------
---- Other  scripts
-----------------------------------------------------------------------
---3000 gold adds 5 to return utility, 0% mana adds 11.
-function HealAtWellUtilityOverride(botBrain)
-	return yogi.HealAtWellUtilityOld(botBrain)*1.75+(botBrain:GetGold()*8/3000)+ 11-(core.unitSelf:GetManaPercent()*11)
-end
-object.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
-behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellUtilityOverride
-function HealAtWellExecuteOverride(botBrain)
-	if (object.itemEnergizer and object.itemEnergizer:CanActivate())then --when heading to base, use energizer
-		core.OrderItemClamp(botBrain, unitSelf, object.itemEnergizer)
-	end
-	if (core.itemGhostMarchers and core.itemGhostMarchers:CanActivate())then --when heading to base, use boots
-		core.OrderItemClamp(botBrain, unitSelf, core.itemGhostMarchers)
-	end
-	if (core.itemGhostMarchers and core.itemGhostMarchers:CanActivate())then --when heading to base, use boots
-		core.OrderItemClamp(botBrain, unitSelf, core.itemGhostMarchers)
-	end
-	if (skills.abilQ:CanActivate()) then 
-		core.OrderAbility(botBrain, skills.abilQ)
-	end
-	if (skills.abilW:CanActivate()) then 
-		core.OrderAbility(botBrain, skills.abilW)
-	end
---[[	if (skills.abilR:CanActivate()) then 
-		core.OrderAbility(botBrain, skills.abilR)
-        skills.abilE = unitSelf:GetAbility(2)
-		core.OrderAbility(botBrain, skills.abilE)
-	end
---]]
-	return object.HealAtWellExecuteOld(botBrain)
-end
-object.HealAtWellExecuteOld = behaviorLib.HealAtWellBehavior["Execute"]
-behaviorLib.HealAtWellBehavior["Execute"] = HealAtWellExecuteOverride
-
-
-
 local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
 
 	if not unitCreepTarget or not core.CanSeeUnit(botBrain, unitCreepTarget) then
