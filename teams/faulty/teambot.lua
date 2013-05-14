@@ -5,7 +5,7 @@ runfile 'bots/core_teambot.lua'
 runfile 'bots/lib/rune_controlling/init_team.lua'
 
 local core = teambot.core
-local tinsert = _G.table.insert
+local print, tinsert = _G.print, _G.table.insert
 
 teambot.myName = 'Faulty'
 
@@ -23,6 +23,42 @@ local tSupports = {
 	"Hero_Shaman"
 }
 
+-- enemy unit
+local tPositionBuffer = {}
+local nPositionBufferSize = 4
+local function UpdatePositionBuffer(nUID, hero)
+	local nCount = 0
+	local tNewPositionBuffer = {}
+
+	if tPositionBuffer[nUID] then
+		for key, value in pairs(tPositionBuffer[nUID]) do
+			local nNewKey = key + 1
+			tNewPositionBuffer[nNewKey] = value
+
+			nCount = nCount + 1
+		end
+	end
+
+	tNewPositionBuffer[0] = hero:GetPosition()
+	if nCount > nPositionBufferSize then
+		tNewPositionBuffer[nCount] = nil
+	end
+
+	return tNewPositionBuffer
+end
+
+local function PrintPositionBuffers()
+	for nUID, array in pairs(tPositionBuffer) do
+		print('{')
+		for id, pos in pairs(array) do
+			print('['..id..']: {'..pos.x..', '..pos.y..'} ,')
+		end
+		print('}\n')
+	end
+end
+
+local nTicks = 0
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
@@ -33,6 +69,22 @@ function teambot:onthinkOverride(tGameVariables)
 	self:onthinkOld(tGameVariables)
 
 	-- custom code here
+	if self.teamBotBrainInitialized then
+		local tEnemyHeroes = self.tEnemyHeroes
+		for nUID, unitHero in pairs(tEnemyHeroes) do
+			if core.CanSeeUnit(self, unitHero) then
+				tPositionBuffer[nUID] = UpdatePositionBuffer(nUID, unitHero)
+			else
+				tPositionBuffer[nUID] = nil
+			end
+		end
+
+		nTicks = nTicks + 1
+		if (nTicks%10) == 0 then
+			--PrintPositionBuffers()
+		end
+	end
+
 end
 teambot.onthinkOld = teambot.onthink
 teambot.onthink = teambot.onthinkOverride
