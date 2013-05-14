@@ -11,7 +11,27 @@ runfile 'bots/core_herobot.lua'
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
+
+voodoo.skills = {}
+local skills = voodoo.skills
+
+voodoo.tSkills = {
+  0, 2, 0, 2, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function voodoo:SkillBuildOverride()
+  local unitSelf = self.core.unitSelf
+  if skills.abilStun == nil then
+    skills.abilStun = unitSelf:GetAbility(0)
+    skills.abilMojo = unitSelf:GetAbility(1)
+    skills.abilDebuff = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
   self:SkillBuildOld()
 end
 voodoo.SkillBuildOld = voodoo.SkillBuild
