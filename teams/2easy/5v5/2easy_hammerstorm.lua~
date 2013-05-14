@@ -114,7 +114,7 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilStun:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilStun, unitTarget)
-	core.AllChat("Hammertime!",10)
+	core.AllChat("Hammertime",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end

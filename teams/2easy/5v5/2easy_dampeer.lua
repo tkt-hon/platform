@@ -13,17 +13,19 @@ behaviorLib.LaneItems  = {"Item_Marchers", "Item_HelmOfTheVictim", "Item_Steambo
 behaviorLib.MidItems  = {"Item_Sicarius", "Item_WhisperingHelm", "Item_Immunity"}
 behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
 
+local tinsert = _G.table.insert
 
-dampeer.skills = {
+dampeer.skills = {}
+local skills = dampeer.skills
+
+dampeer.tSkills = {
   2, 1, 2, 1, 2,
   3, 1, 1, 2, 0,
   3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
-local skills = dampeer.skills
 
-local tinsert = _G.table.insert
 
 function dampeer:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
@@ -34,20 +36,7 @@ function dampeer:SkillBuildOverride()
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
-  if unitSelf:GetAbilityPointsAvailable() <= 0 then
-    return
-  end
-  if skills.abilUltimate:CanLevelUp() then
-    skills.abilUltimate:LevelUp()
-  elseif skills.abilAura:CanLevelUp() then
-    skills.abilAura:LevelUp()
-  elseif skills.abilScare:CanLevelUp() then
-    skills.abilScare:LevelUp()
-  elseif skills.abilFlight:CanLevelUp() then
-    skills.abilFlight:LevelUp()
-  else
-    skills.stats:LevelUp()
-  end
+    self:SkillBuildOld()
 end
 dampeer.SkillBuildOld = dampeer.SkillBuild
 dampeer.SkillBuild = dampeer.SkillBuildOverride
@@ -120,6 +109,7 @@ local function HarassHeroExecuteOverride(botBrain)
   if core.CanSeeUnit(botBrain, unitTarget) then
     local abilStun = skills.abilStun
 
+    local abilFlight = skills.abilFlight
     if abilFlight:CanActivate() then
       local nRange = abilFlight:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
@@ -146,6 +136,6 @@ local function HarassHeroExecuteOverride(botBrain)
     return dampeer.harassExecuteOld(botBrain)
   end
 end
-andromeda.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+dampeer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
