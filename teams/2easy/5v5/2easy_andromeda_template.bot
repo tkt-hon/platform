@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="2easy_Andromeda_Template"
+  description="2easy Andromeda template"
+  heroname="Hero_Andromeda"
+  rootlua="2easy_andromeda_template.lua"
+  defaultplayername="Andro Temp"
+  precachepath="/heroes/andromeda/"
+/>

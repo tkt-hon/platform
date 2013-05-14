@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="2easy_Hammer_Template"
+  description="2easy Hammer"
+  heroname="Hero_Hammerstorm"
+  rootlua="2easy_hammerstorm_template.lua"
+  defaultplayername="Hammer Hammer"
+  precachepath="/heroes/dampeer/"
+/>
