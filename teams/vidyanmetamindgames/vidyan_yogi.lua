@@ -1,6 +1,8 @@
 local _G = getfenv(0)
 local yogi = _G.object
 
+local tinsert = _G.table.insert
+
 yogi.heroName = "Hero_Yogi"
 
 runfile 'bots/core_herobot.lua'
@@ -30,6 +32,8 @@ behaviorLib.LateItems = { "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_S
 
 yogi.skills = {}
 local skills = yogi.skills
+
+
 
 -----------------------------------------------------------------
 -- Selitys buildin takana: Nallen maksimointi alkuun, tällöin  --
@@ -92,7 +96,7 @@ function yogi:onthinkOverride(tGameVariables)
     end
     
     if not boobooAttack(self, booboo) then
-        core.OrderMoveToPos(self, booboo, core.unitSelf:GetPosition(), false)
+        core.OrderMoveToPos(self, booboo, core.unitSelf:GetPosition(), true)
         --core.BotEcho(tostring(boobooUnit:GetPosition()))
     end    
 end
@@ -129,7 +133,7 @@ function boobooAttack(botBrain, booboo)
                         
                         local unitType = currentTargetHero:GetTypeName()
                 
-                        core.BotEcho(unitType)
+                        --core.BotEcho(unitType)
                     end
                 end
             end
@@ -205,8 +209,55 @@ function getBooBoo()
 end
 
 
+------- Auto Attack Harrass Behavior ----------
 
+local heroTarget
 
+local function AutoAttackHarrassUtility(botBrain)
+    local unitSelf = core.unitSelf
+    local unitSelfPos = unitSelf:GetPosition()
+    local unitSelfAARange = unitSelf:GetAttackRange() + 50
+    local closestTower = core.GetClosestEnemyTower(unitSelf:GetPosition(), 100000)
+    
+    local selfDistanceToTower = Vector3.Distance2DSq(unitSelfPos, closestTower:GetPosition())
+    
+    if selfDistanceToTower < 490000 then
+        return 1 -- Don't attack when within tower range to avoid getting targeted
+    end
+    
+    local enemyHeroes = core.localUnits["EnemyHeroes"]
+    
+    
+    if enemyHeroes ~= nil then
+        local lowestHealth = 1000000
+        for _, enemy in pairs(enemyHeroes) do
+            local distanceSq = Vector3.Distance2DSq(unitSelfPos, enemy:GetPosition())
+            
+            if distanceSq < (unitSelfAARange * unitSelfAARange) then
+                local enemyHealth = enemy:GetHealth()
+                --is in AA range, let's attack the one with least health
+                if enemyHealth < lowestHealth then
+                    lowestHealth = enemyHealth
+                    heroTarget = enemy
+                    return 20
+                end
+            end
+        end
+    end
+    
+    return 0
+
+end
+
+local function AutoAttackHarrassExecute(botBrain)
+    core.OrderAttackClamp(botBrain, core.unitSelf, heroTarget)
+end
+
+local AutoAttackHarrassBehavior = {}
+AutoAttackHarrassBehavior["Utility"] = AutoAttackHarrassUtility
+AutoAttackHarrassBehavior["Execute"] = AutoAttackHarrassExecute
+AutoAttackHarrassBehavior["Name"] = "AutoAttackHarrass"
+tinsert(behaviorLib.tBehaviors, AutoAttackHarrassBehavior)
 
 
 
