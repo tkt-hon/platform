@@ -12,7 +12,27 @@ runfile 'bots/core_herobot.lua'
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
+
+yogi.skills = {}
+local skills = yogi.skills
+
+yogi.tSkills = {
+  0, 2, 0, 2, 0,
+  3, 0, 1, 1, 1,
+  3, 1, 2, 2, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 function yogi:SkillBuildOverride()
+ local unitSelf = self.core.unitSelf
+  if skills.abilBear == nil then
+    skills.abilBear = unitSelf:GetAbility(0)
+    skills.abilBuff = unitSelf:GetAbility(1)
+    skills.abilPassive = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
   self:SkillBuildOld()
 end
 yogi.SkillBuildOld = yogi.SkillBuild
