@@ -2,6 +2,7 @@ local _G = getfenv(0)
 local tempest = _G.object
 
 tempest.heroName = "Hero_Tempest"
+local core, behaviorLib = tempest.core, tempest.behaviorLib
 
 runfile 'bots/core_herobot.lua'
 
