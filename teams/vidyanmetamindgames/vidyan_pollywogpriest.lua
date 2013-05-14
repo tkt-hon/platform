@@ -16,6 +16,16 @@ runfile 'bots/core_herobot.lua'
 pollywogpriest.skills = {}
 local skills = pollywogpriest.skills
 
+---------------------------------------------------------------
+-- Selitys buildin takana: Tongue ekana, jotta voidaan saada --
+-- alkupäässä tehtyä damagea enemmän, ykköslevelin joltti ei --
+-- tee paskaakaan damagea. Nukea kun saa lisää, niin sitten  --
+-- voidaan käyttää sitä puskemisen yhteydessä. Hexiä otetaan --
+-- myös sen takia, että sillä saadaan yksi cooldown lisää,   --
+-- jolla voidaan selvitä taisteluista. Tärkeää saada frageja --
+-- ultimatea käyttämällä suoraan heroihin trapaten ne sinne. --
+---------------------------------------------------------------
+
 pollywogpriest.tSkills = {
   2, 0, 0, 1, 0,
   3, 0, 2, 2, 2,

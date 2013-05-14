@@ -15,6 +15,15 @@ runfile 'bots/core_herobot.lua'
 voodoo.skills = {}
 local skills = voodoo.skills
 
+---------------------------------------------------------------
+-- Selitys buildin takana: Stun + debuff + ulti combolla saa --
+-- heron kuin heron hengiltä, stunni tärkeimpänä, koska muut --
+-- herot pystyvät maksimoimaan vahinkonsa silloin. Mojo on   --
+-- käytettävissä myöhemmissä tilanteissa tukevana skillinä,  --
+-- mikäli siihen on tarve (esim nallen elossapitäminen).     --
+---------------------------------------------------------------
+
+
 voodoo.tSkills = {
   0, 2, 0, 2, 0,
   3, 0, 2, 2, 1,

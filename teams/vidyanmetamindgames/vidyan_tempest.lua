@@ -16,6 +16,16 @@ runfile 'bots/core_herobot.lua'
 tempest.skills = {}
 local skills = tempest.skills
 
+---------------------------------------------------------------
+-- Selitys buildin takana: Stun + minion autoattack tuhoaa,  --
+-- mutta tärkeimpänä on aluksi maksimoida autoattack damage  --
+-- minioneilta, jolloin lanen puskeminen + CC:n hyödyntämi-  --
+-- nen on parhaimmillaan. Aoe spelli on semiturha omasta     --
+-- mielestä, sillä korkea manacost yhdistettynä taistelun    --
+-- mukana olevaan ketjustunnailuun on liikaa.                --
+---------------------------------------------------------------
+
+
 tempest.tSkills = {
   0, 1, 1, 0, 1,
   3, 1, 0, 0, 4,

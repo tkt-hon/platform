@@ -16,6 +16,13 @@ runfile 'bots/core_herobot.lua'
 witchslayer.skills = {}
 local skills = witchslayer.skills
 
+---------------------------------------------------------------
+-- Selitys buildin takana: Nuke ja Hex ovat skillit joilla   --
+-- hoidetana frägit, manaskilliä otetaan yksi jotta voidaan  --
+-- estää tarvittaessa nullstonen käyttö (jos vastustajalla   --
+-- on null stone, aloitetaan manaskillillä). Ulti finishaa   --
+---------------------------------------------------------------
+
 witchslayer.tSkills = {
   0, 1, 0, 1, 0,
   3, 0, 1, 1, 2,

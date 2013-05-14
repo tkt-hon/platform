@@ -16,6 +16,14 @@ runfile 'bots/core_herobot.lua'
 yogi.skills = {}
 local skills = yogi.skills
 
+-----------------------------------------------------------------
+-- Selitys buildin takana: Nallen maksimointi alkuun, tällöin  --
+-- saadaan nallesta kestävä ja damagea tekevä, sekä skillit.   --
+-- Passiivinen skilli lvl 2 alkuun, jolloin Wild (buffi) pysyy --
+-- jatkuvasti yllä, 30sec cd ja 30sec kestävä buffi. Ultimate  --
+-- pidetään jatkuvasti toggletettuna kestävyyden lisäämiseksi  --
+-----------------------------------------------------------------
+
 yogi.tSkills = {
   0, 2, 0, 2, 0,
   3, 0, 1, 1, 1,
