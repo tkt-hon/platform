@@ -69,11 +69,11 @@ function yogi:onthinkOverride(tGameVariables)
     local abilBear = skills.abilBear
     local canCast = abilBear:CanActivate()
 
-
-    if abilBear:CanActivate() then
-       core.OrderAbility(self, abilBear)
+    if HoN.GetMatchTime() > 0 then
+        if abilBear:CanActivate() then
+            core.OrderAbility(self, abilBear)
+        end
     end
-
 end
 yogi.onthinkOld = yogi.onthink
 yogi.onthink = yogi.onthinkOverride
@@ -87,13 +87,18 @@ yogi.onthink = yogi.onthinkOverride
 function yogi:oncombateventOverride(EventData)
     self:oncombateventOld(EventData)
 
+
+
+    --yogi.eventsLib.printCombatEvent(EventData)
+
     if EventData.Type == "Ability" then
-        if EventData.InflictorName == "Ability_Wildsoul1" then
-            core.BotEcho("ripuli")
+
+        core.BotEcho(EventData.InflictorName)
+
+        if EventData.InflictorName == "Ability_Yogi1" then
+            core.BotEcho("ripuli1")
         end
     end
-
-
     -- custom code here
 end
 yogi.oncombateventOld = yogi.oncombatevent
