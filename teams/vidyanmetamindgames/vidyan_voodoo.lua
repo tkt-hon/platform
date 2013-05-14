@@ -2,9 +2,9 @@ local _G = getfenv(0)
 local voodoo = _G.object
 
 voodoo.heroName = "Hero_Voodoo"
-
 runfile 'bots/core_herobot.lua'
 
+local core, behaviorLib = voodoo.core, voodoo.behaviorLib
 --------------------------------------------------------------
 -- Itembuild --
 --------------------------------------------------------------
@@ -81,4 +81,4 @@ function voodoo:oncombateventOverride(EventData)
   -- custom code here
 end
 voodoo.oncombateventOld = voodoo.oncombatevent
-tempest.oncombatevent = tempest.oncombateventOverride
+voodoo.oncombatevent = voodoo.oncombateventOverride
