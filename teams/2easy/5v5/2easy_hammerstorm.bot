@@ -3,7 +3,7 @@
   name="2easy_Hammer_Template"
   description="2easy Hammer"
   heroname="Hero_Hammerstorm"
-  rootlua="2easy_hammerstorm_template.lua"
+  rootlua="2easy_hammerstorm.lua"
   defaultplayername="Hammer Hammer"
   precachepath="/heroes/dampeer/"
 />

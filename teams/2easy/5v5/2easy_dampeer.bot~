@@ -3,7 +3,7 @@
   name="2easy_Dampeer"
   description="2easy Dampeer"
   heroname="Hero_Dampeer"
-  rootlua="2easy_dampeer.lua"
+  rootlua="2easy_dampeer_template.lua"
   defaultplayername="Damp Damp"
   precachepath="/heroes/dampeer/"
 />
