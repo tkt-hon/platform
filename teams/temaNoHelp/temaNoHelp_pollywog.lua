@@ -2,7 +2,8 @@ local _G = getfenv(0)
 local pollywog = _G.object
 
 local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
-local masallaOnJuhlat = false
+local endGame = false
+
 
 pollywog.heroName = "Hero_PollywogPriest"
 
@@ -20,7 +21,7 @@ local eventsLib = pollywog.eventsLib
 
 local ultDuration = HoN.GetMatchTime()-500
 
-behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem"}
+behaviorLib.StartingItems = { "Item_HealthPotion", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_Intelligence5"}
 
 local function PreGameItems()
   for _, item in ipairs(behaviorLib.StartingItems) do
@@ -51,13 +52,13 @@ function shopping.GetNextItemToBuy()
     return PreGameItems()
   end
   local inventory = core.unitSelf:GetInventory(true)
-  if NumberInInventory(inventory, "Item_HealthPotion") < 3 then
-    return "Item_HealthPotion"
-  elseif NumberInInventory(inventory, "Item_LifeSteal5") + NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
-    if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
-      return "Item_GuardianRing"
-    elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
-      return "Item_Scarab"
+  if NumberInInventory(inventory, "Item_HealthPotion") < 1 and not endGame then
+       return "Item_HealthPotion"
+  elseif NumberInInventory(inventory, "Item_Bottle") <= 0 then
+    if NumberInInventory(inventory, "Item_HealthPotion") < 2 then
+       return "Item_HealthPotion"
+    else
+      return "Item_Bottle"
     end
   elseif not HasBoots(inventory) then
     return "Item_Marchers"
@@ -67,13 +68,20 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_GlovesOfHaste") <= 0 then
       return "Item_GlovesOfHaste"
     end
-  elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
-    if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
-      return "Item_TrinketOfRestoration"
-    elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
-      return "Item_HungrySpirit"
+  elseif NumberInInventory(inventory, "Item_Replenish") <= 0 then
+    if NumberInInventory(inventory, "Item_Intelligence5") <= 0 then
+      return "Item_Intelligence5"
     else
-      return "Item_LifeSteal5"
+      return "Item_BrainOfMaliken"
+    end
+  elseif NumberInInventory(inventory, "Item_Shield2") <= 0 then
+    if NumberInInventory(inventory, "Item_Beastheart") <= 0 then
+      return "Item_Beastheart"
+    elseif NumberInInventory(inventory, "Item_Lifetube") <= 0 then
+      return "Item_Lifetube"
+    else
+      endGame = true
+      return "Item_IronBuckler"
     end
   elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
     return "Item_SolsBulwark"
@@ -87,6 +95,8 @@ function shopping.GetNextItemToBuy()
     end
   end
 end
+
+-- Staff of the masters, Restoration stone, Beheheart, 
 
 local function ItemToSell()
   local inventory = core.unitSelf:GetInventory()
