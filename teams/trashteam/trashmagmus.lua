@@ -9,13 +9,29 @@ local tinsert = _G.table.insert
 
 local core, behaviorLib = magmus.core, magmus.behaviorLib
 
+magmus.bRunLogic         = true
+magmus.bRunBehaviors    = true
+magmus.bUpdates         = true
+magmus.bUseShop         = true
+
+magmus.bRunCommands     = true
+magmus.bMoveCommands     = true
+magmus.bAttackCommands     = true
+magmus.bAbilityCommands = true
+magmus.bOtherCommands     = true
+
+magmus.bReportBehavior = false
+magmus.bDebugUtility = false
+
+magmus.logger = {}
+magmus.logger.bWriteLog = false
+magmus.logger.bVerboseLog = false
+
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Replenish", "Item_MysticVestments"}
 behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Protect", "Item_MysticVestments" }
 behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
-
-local core, behaviorLib = magmus.core, magmus.behaviorLib
 local steam = false
 
 ---------------------------------------------------------------
@@ -25,7 +41,7 @@ local steam = false
 -- @param: none
 -- @return: none
 
-object.tSkills = {
+magmus.tSkills = {
   0, 2, 0, 1, 0,
   3, 0, 2, 2, 2,
   3, 1, 1, 1, 4,
@@ -62,15 +78,18 @@ magmus.onthink = magmus.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function magmus:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
-	self.eventsLib.printCombatEvent(EventData)
+self:oncombateventOld(EventData)
+self.eventsLib.printCombatEvent(EventData)  
+
 
 	if EventData.Type == "Projectile" then
 		steam = true
 	end
   -- custom code here
-
 end
+
+magmus.oncombateventOld = magmus.oncombatevent
+magmus.oncombatevent = magmus.oncombateventOverride
 
 local function IsChanneling()
 return core.unitSelf:IsChanneling()
@@ -141,7 +160,7 @@ behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
 -- override combat event trigger function.
 local function CustomHarassUtilityFnOverride(hero)
-	local nUtil = -20
+	local nUtil = 0
 	
 	if core.unitSelf:GetLevel() > 2 and core.unitSelf:GetHealthPercent() > 0.20 then
     nUtil = nUtil + 20
@@ -155,12 +174,11 @@ local function CustomHarassUtilityFnOverride(hero)
 
 	if hero:GetHealth() < damaget[core.unitSelf:GetAbility(0):GetLevel()] 
     and core.unitSelf:GetMana() > 130 then
-		nUtil = nUtil + 40
+		nUtil = nUtil + 20
 	end
 	if IsTowerThreateningUnit(core.unitSelf) and core.unitSelf:GetLevel() < 6 then
 		nUtil = nUtil - 50
 	end
-	core.BotEcho(nUtil)
   
   return nUtil
 end

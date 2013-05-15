@@ -444,7 +444,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
 	local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
 	local normalisoitu = Vector3.Normalize(vektori)
-	local kerrottu =  normalisoitu * 80
+	local kerrottu =  normalisoitu * 60
 
 	local stunnivektori = kerrottu + unitTarget:GetPosition()
     local vecTargetPosition = unitTarget:GetPosition()

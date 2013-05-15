@@ -102,7 +102,8 @@ witchslayer.onthink = witchslayer.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function witchslayer:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
+  
+self:oncombateventOld(EventData)
 
   -- custom code here
   local nAddBonus = 0
@@ -112,6 +113,8 @@ function witchslayer:oncombateventOverride(EventData)
         core.nHarassBonus = core.nHarassBonus + nAddBonus
     end
 end
+witchslayer.oncombateventOld = witchslayer.oncombatevent
+witchslayer.oncombatevent = witchslayer.oncombateventOverride
 -- override combat event trigger function.
 local function IsSiege(unit)
   local unitType = unit:GetTypeName()
@@ -173,8 +176,7 @@ local function GetHeroInRange(botBrain, myPos, radius)
 end
 
 
-witchslayer.oncombateventOld = witchslayer.oncombatevent
-witchslayer.oncombatevent = witchslayer.oncombateventOverride
+
 
 
 local function heroIsInRange(botBrain,enemyCreep, range)
