@@ -112,16 +112,34 @@ end
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
     local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
     local allies = unitsLocal.AllyCreeps
+    local enemies = unitsLocal.EnemyCreeps
     local unitTarget = nil
     local nDistance = 0
+    
     for _,unit in pairs(allies) do
         local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
 
-        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then --and ShouldDenyByHP(unit) then
+        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
             unitTarget = unit
             nDistance = nNewDistance
         end
     end
+    
+    local allyTargetHealth = 0.0
+    if unitTarget then
+        allyTargetHealth = unitTarget:GetHealthPercent()
+    end
+    
+    for _,unit in pairs(enemies) do
+        local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+
+        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) 
+           and unit:GetHealthPercent() <= allyTargetHealth then
+            unitTarget = unit
+            nDistance = nNewDistance
+        end
+    end
+    
     return unitTarget
 end
 
@@ -137,7 +155,6 @@ local function DenyBehaviorUtility(botBrain)
     local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
     
     if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
-        core.BotEcho("denying unit "..unit:GetTypeName())
         tempest.denyTarget = unit
         return 100
     end
@@ -151,6 +168,8 @@ local function DenyBehaviorExecute(botBrain)
     local target = tempest.denyTarget
     
     if target then
+        core.BotEcho("denying unit "..target:GetTypeName())
+        tempest.denyTarget = nil
         return core.OrderAbilityEntity(botBrain, abilDeny, target)
     end
     return false
