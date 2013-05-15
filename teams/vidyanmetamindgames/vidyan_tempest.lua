@@ -2,9 +2,11 @@ local _G = getfenv(0)
 local tempest = _G.object
 
 tempest.heroName = "Hero_Tempest"
-local core, behaviorLib = tempest.core, tempest.behaviorLib
 
 runfile 'bots/core_herobot.lua'
+
+local core, behaviorLib = tempest.core, tempest.behaviorLib
+local tinsert = _G.table.insert
 
 --------------------------------------------------------------
 -- Itembuild --
@@ -14,6 +16,8 @@ behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Ite
 behaviorLib.LaneItems = { "Item_Strength5", "Item_Marchers", "Item_MightyBlade", "Item_Warhammer", "Item_Immunity" }
 behaviorLib.MidItems = {}
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
+
+tempest.denyTarget = nil
 
 ---------------------------------------------------------------
 -- SkillBuild override --
@@ -84,3 +88,76 @@ function tempest:oncombateventOverride(EventData)
 end
 tempest.oncombateventOld = tempest.oncombatevent
 tempest.oncombatevent = tempest.oncombateventOverride
+
+----------------------------------------------
+-- Denying stuff --
+----------------------------------------------
+
+local function IsSiege(unit)
+    local unitType = unit:GetTypeName()
+    return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+end
+
+local function ShouldDenyByHP(unit)
+    local hpp = unit:GetHealthPercent()
+
+    if hpp < 0.05 then
+        core.BotEcho('denying unit with health at '..hpp..'%')
+        return true
+    end
+
+    return false
+end
+
+local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
+    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
+    local allies = unitsLocal.AllyCreeps
+    local unitTarget = nil
+    local nDistance = 0
+    for _,unit in pairs(allies) do
+        local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+
+        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then --and ShouldDenyByHP(unit) then
+            unitTarget = unit
+            nDistance = nNewDistance
+        end
+    end
+    return unitTarget
+end
+
+local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
+    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+    return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
+end
+
+local function DenyBehaviorUtility(botBrain)
+    local unitSelf = botBrain.core.unitSelf
+    local abilDeny = skills.abilMinions
+    local myPos = unitSelf:GetPosition()
+    local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+    
+    if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+        core.BotEcho("denying unit "..unit:GetTypeName())
+        tempest.denyTarget = unit
+        return 100
+    end
+    
+    return 0
+end
+
+local function DenyBehaviorExecute(botBrain)
+    local unitSelf = botBrain.core.unitSelf
+    local abilDeny = skills.abilMinions
+    local target = tempest.denyTarget
+    
+    if target then
+        return core.OrderAbilityEntity(botBrain, abilDeny, target)
+    end
+    return false
+end
+
+local DenyBehavior = {}
+DenyBehavior["Utility"] = DenyBehaviorUtility
+DenyBehavior["Execute"] = DenyBehaviorExecute
+DenyBehavior["Name"] = "Denying creep with spell"
+tinsert(behaviorLib.tBehaviors, DenyBehavior)
