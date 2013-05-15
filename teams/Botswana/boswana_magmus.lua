@@ -1,21 +1,19 @@
 local _G = getfenv(0)
-local glacius = _G.object
+local magmus = _G.object
 
-runfile 'bots/glacius/magmus_main.lua'
-runfile 'bots/teams/default/utils/sitter.lua'
+runfile 'bots/magmus/magmus_main.lua'
 
 local tinsert = _G.table.insert
-local core, behaviorLib = glacius.core, glacius.behaviorLib
 
-behaviorLib.LaneItems = { "Item_Marchers", "Item_ManaBattery", "Item_MagicArmor2" }
+local core, behaviorLib = magmus.core, magmus.behaviorLib
+
+behaviorLib.LaneItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.MidItems = { "Item_PortalKey", "Item_EnhancedMarchers", "Item_PowerSupply" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
 
 magmus.skills = {}
 local skills = magmus.skills
-
-local tinsert = _G.table.insert
 
 core.itemWard = nil
 

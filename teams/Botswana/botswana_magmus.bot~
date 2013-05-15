@@ -3,7 +3,7 @@
   name="Botswana_Magmus"
   description="Botswana Magmus"
   heroname="Hero_Magmar"
-  rootlua="botswana_moon_queen.lua"
-  defaultplayername="BotswanaMQBot"
-  precachepath="/heroes/krixi/"
+  rootlua="botswana_magmus.lua"
+  defaultplayername="BotswanaMagmusBot"
+  precachepath="/heroes/magmar/"
 />

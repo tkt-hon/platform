@@ -7,7 +7,7 @@ local tinsert = _G.table.insert
 
 local core, behaviorLib = magmus.core, magmus.behaviorLib
 
-behaviorLib.LaneItems = { "Item_Marchers", "Item_ManaBattery", "Item_MagicArmor2" }
+behaviorLib.LaneItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.MidItems = { "Item_PortalKey", "Item_EnhancedMarchers", "Item_PowerSupply" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
@@ -73,3 +73,18 @@ end
 -- override combat event trigger function.
 magmus.oncombateventOld = magmus.oncombatevent
 magmus.oncombatevent = magmus.oncombateventOverride
+
+----------------------------------
+--	HarassHeroOverride	--
+----------------------------------
+local unitTarget = behaviorLib.heroTarget
+    if unitTarget == nil then
+        return object.harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
+    end
+     
+     
+    local unitSelf = core.unitSelf
+    local vecMyPosition = unitSelf:GetPosition() 
+    local nAttackRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
+    local nMyExtraRange = core.GetExtraRange(unitSelf)
+
