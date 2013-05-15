@@ -8,10 +8,10 @@ runfile 'bots/core_herobot.lua'
 local core, behaviorLib = andromeda.core, andromeda.behaviorLib
 
 --paska buildi
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem"}
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
-behaviorLib.LateItems = { "Item_GrimoireOfPower" }
+behaviorLib.StartingItems = { "Item_Marchers", "Item_RunesOfTheBlight" }
+behaviorLib.LaneItems = { "Item_Steamboots", "Item_Pierce 3" }
+behaviorLib.MidItems = { "Item_SpellShards 3", "Item_DaemonicBreastplate" }
+behaviorLib.LateItems = { "Item_Evasion" }
 
 andromeda.skills = {
   2, 0, 2, 0, 2,
