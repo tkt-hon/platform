@@ -168,7 +168,7 @@ local function DenyBehaviorExecute(botBrain)
     local target = tempest.denyTarget
     
     -- for some reason this check needs to be done, wtf
-    if target:GetTypeName() == "Gadget_HomecomingStone" then
+    if target and target:GetTypeName() == "Gadget_HomecomingStone" then
         tempest.denyTarget = nil
         return false
     end
