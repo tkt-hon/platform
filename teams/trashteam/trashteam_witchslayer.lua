@@ -242,7 +242,6 @@ local function CustomHarassUtilityFnOverride(hero)
   -- LOL tää funktio saiki ton vastustajan sankarin wtf
   local unitSelf = core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  core.BotEcho("Distance to tower is " .. tostring(distToEneTo))
   local modifier = 0
   if distToEneTo < 750 then
     modifier = 100
@@ -271,6 +270,9 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil * 0.5
   elseif heroPHealth <= myPHealth and heroPHealth > 0.3 then
     nUtil = nUtil * 1.6
+  end
+  if hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
+    nUtil = 100
   end
 
   return nUtil-modifier
