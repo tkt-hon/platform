@@ -330,7 +330,7 @@ local function GetManaUtility(botBrain)
     local manaAfterSkills = myMana - ultiCost - nukeCost - miniCost
     if not (manaAfterSkills > 0)  then
       local distToEneTo = closeToEnemyTowerDist(unitSelf)
-      if distToEneTo < 750 then
+      if distToEneTo < 850 then
         modifier = 80
       end
 
@@ -432,6 +432,6 @@ tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
 local function PussyUtilityOverride(BotBrain)
   local util = witchslayer.PussyUtilityOld(BotBrain)
-  return util*0.5
+  return math.min(21, util*0.5)
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
