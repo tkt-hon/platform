@@ -4,6 +4,7 @@ local shaman = _G.object
 shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
 
 local tinsert = _G.table.insert
 
