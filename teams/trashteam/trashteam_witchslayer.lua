@@ -22,8 +22,8 @@ witchslayer.bAttackCommands     = true
 witchslayer.bAbilityCommands = true
 witchslayer.bOtherCommands     = true
 
-witchslayer.bReportBehavior = true
-witchslayer.bDebugUtility = true
+witchslayer.bReportBehavior = false
+witchslayer.bDebugUtility = false
 
 witchslayer.logger = {}
 witchslayer.logger.bWriteLog = false
@@ -188,7 +188,7 @@ local function heroIsInRange(botBrain,enemyCreep, range)
   return false
 end
 
-local function AmountOfCreepsInRange(botBrain, position, range, ally)
+local function AmountOfCreepsInRange(target, position, range, ally)
   if ally == nil then
     ally = false
   end
@@ -197,7 +197,7 @@ local function AmountOfCreepsInRange(botBrain, position, range, ally)
   for _,unit in pairs(unitsInRange) do
     if ally and unit then
       count = count + 1
-    elseif unit and not (botBrain:GetTeam() == unit:GetTeam()) then
+    elseif unit and not (target:GetTeam() == unit:GetTeam()) then
       count = count + 1
     end
   end
@@ -244,21 +244,33 @@ local function CustomHarassUtilityFnOverride(hero)
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   core.BotEcho("Distance to tower is " .. tostring(distToEneTo))
   local modifier = 0
-  if distToEneTo < 650 then
-    modifier = 80
-  end
-
-  local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), hero:GetPosition())
-  local attackRange = unitSelf:GetAttackRange()
-  local unitsInRange = AmountOfCreepsInRange(botBrain, unitSelf:GetPosition(), 400)
-  if nTargetDistance < attackRange and unitsInRange < 3 then
-    nUtil = 100
+  if distToEneTo < 750 then
+    modifier = 100
   end
 
   local nUtil = 0
+  local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), hero:GetPosition())
+  local attackRange = unitSelf:GetAttackRange()
+  local unitsInRange = AmountOfCreepsInRange(unitSelf, unitSelf:GetPosition(), 400)
+  if nTargetDistance < attackRange and unitsInRange < 4 then
+    nUtil = nUtil + 50
+  end
+
 
   if skills.abilNuke:CanActivate() then
     nUtil = nUtil + 7*skills.abilNuke:GetLevel()
+  end
+  local heroHealth = hero:GetHealth()
+  local myHealth = unitSelf:GetHealth()
+  local heroPHealth = hero:GetHealthPercent()
+  local myPHealth = unitSelf:GetHealthPercent()
+
+  if heroPHealth > myPHealth then
+    nUtil = nUtil * 0.8
+  elseif heroPHealth > myPHealth*2 then
+    nUtil = nUtil * 0.5
+  elseif heroPHealth <= myPHealth and heroPHealth > 0.3 then
+    nUtil = nUtil * 1.6
   end
 
   return nUtil-modifier
@@ -316,7 +328,7 @@ local function GetManaUtility(botBrain)
     local nukeCost = skills.abilNuke:GetManaCost()
     local miniCost = skills.abilMini:GetManaCost()
     local manaAfterSkills = myMana - ultiCost - nukeCost - miniCost
-    if not manaAfterSkills > 0  then
+    if not (manaAfterSkills > 0)  then
       local distToEneTo = closeToEnemyTowerDist(unitSelf)
       if distToEneTo < 750 then
         modifier = 80
@@ -361,8 +373,8 @@ tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
 local function EiMihinkaanUtility(botBrain)
   --core.BotEcho("ManaUtility calc")
-  local unitSelf = botBrain.unitSelf
-  local ulti = skills.abilUlti
+  local unitSelf = botBrain.core.unitSelf
+  local ulti = skills.abilUltimate
   local ultiLevel = ulti:GetLevel()
   if ultiLevel < 1 then
     return 0
@@ -380,7 +392,7 @@ local function EiMihinkaanUtility(botBrain)
         local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
         local targetArmor = GetArmorMultiplier(unit,true)
         local targetHealth = unit:GetHealth()
-        if targetHealth < ulti*targetArmor then
+        if targetHealth < ultdmg*targetArmor then
           if nTargetDistance < range then
             util = 100
             witchslayer.UltiTarget = unit
@@ -393,7 +405,6 @@ local function EiMihinkaanUtility(botBrain)
       end
     end
   end
-  util = util - modifier
   if witchslayer.comboFinisher then
     util = 100
     witchslayer.comboFinisher = false
@@ -407,7 +418,7 @@ end
 local function EiMihinkaanExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local targetHero = witchslayer.UltiTarget
-  local ulti = skills.abilUlti
+  local ulti = skills.abilUltimate
   return core.OrderAbilityEntity(botBrain, ulti, targetHero)
 end
 
@@ -416,3 +427,11 @@ EiMihinkaanBehavior["Utility"] = EiMihinkaanUtility
 EiMihinkaanBehavior["Execute"] = EiMihinkaanExecute
 EiMihinkaanBehavior["Name"] = "EiMihinkaan"
 tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
+
+-- MAN UP BEHAVIOUR
+witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = witchslayer.PussyUtilityOld(BotBrain)
+  return util*0.5
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
