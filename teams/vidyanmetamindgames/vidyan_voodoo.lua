@@ -82,3 +82,73 @@ function voodoo:oncombateventOverride(EventData)
 end
 voodoo.oncombateventOld = voodoo.oncombatevent
 voodoo.oncombatevent = voodoo.oncombateventOverride
+
+local function NearbyCreepCount(botBrain, center, radius)
+  local count = 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+  local enemies = unitsLocal.EnemyCreeps
+  for _,unit in pairs(enemies) do
+    count = count + 1
+  end
+  return count
+end
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilStun:CanActivate() then
+    nUtil = nUtil + 5*skills.abilStun:GetLevel()
+  end
+
+  local creeps = NearbyCreepCount(voodoo, hero:GetPosition(), 700)
+
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
+    nUtil = nUtil + 100
+  end
+
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return voodoo.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken and nLastHarassUtility > 50 then
+      if abilUltimate:CanActivate() then
+        local nRange = 600
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+
+    local abilNuke = skills.abilStun
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+  end
+  
+  if not bActionTaken then
+    return voodoo.harassExecuteOld(botBrain)
+  end
+end
+voodoo.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
