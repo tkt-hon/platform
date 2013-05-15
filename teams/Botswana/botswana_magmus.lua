@@ -85,13 +85,13 @@ function object:oncombateventOverride(EventData)
     local nAddBonus = 0
  
     if EventData.Type == "Ability" then
-        if EventData.InflictorName == "Ability_Magmar2" then
+        if EventData.InflictorName == "Ability_Magmus2" then
             nAddBonus = nAddBonus + 15
-	elseif EventData.InflictorName == "Ability_Magmar1" then
+	elseif EventData.InflictorName == "Ability_Magmus1" then
             nAddBonus = nAddBonus + 20
-        elseif EventData.InflictorName == "Ability_Magmar3" then
+        elseif EventData.InflictorName == "Ability_Magmus" then
             nAddBonus = nAddBonus + 20
-        elseif EventData.InflictorName == "Ability_Magmar4" then
+        elseif EventData.InflictorName == "Ability_Magmus4" then
             nAddBonus = nAddBonus + 25
         end
     elseif EventData.Type == "Item" then
