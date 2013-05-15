@@ -436,6 +436,6 @@ tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
 local function PussyUtilityOverride(BotBrain)
   local util = witchslayer.PussyUtilityOld(BotBrain)
-  return math.min(21, util*0.5)
+  return math.min(26, util*0.5)
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
