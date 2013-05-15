@@ -12,42 +12,13 @@ local object = _G.object
 
 object.myName = object:GetName()
 
-object.bReportBehavior = true -- DEBUG
-object.bDebugUtility = true -- DEBUG
-
-object.bRunLogic         = true
-object.bRunBehaviors    = true
-object.bUpdates         = true
-object.bUseShop         = true
-
-object.bRunCommands     = true
-object.bMoveCommands     = true
-object.bAttackCommands     = true
-object.bAbilityCommands = true
-object.bOtherCommands     = true
-
-object.bReportBehavior = false
-object.bDebugUtility = false
-
-object.logger = {}
-object.logger.bWriteLog = false
-object.logger.bVerboseLog = false
-
-object.core         = {}
-object.eventsLib     = {}
-object.metadata     = {}
-object.behaviorLib     = {}
-object.skills         = {}
-
-runfile "bots/core.lua"
-runfile "bots/botbraincore.lua"
-runfile "bots/eventsLib.lua"
-runfile "bots/metadata.lua"
-runfile "bots/behaviorLib.lua"
+runfile "bots/teams/kiinalainen/core_kiinalainen_herobot.lua"
 
 runfile "bots/teams/kiinalainen/advancedShopping.lua"
 runfile "bots/teams/kiinalainen/jungleLib.lua"
 
+object.bReportBehavior = true -- DEBUG
+object.bDebugUtility = true -- DEBUG
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
 
@@ -63,6 +34,8 @@ local Clamp = core.Clamp
 BotEcho(object:GetName()..' loading Yogi_main...')
 
 
+object.bReportBehavior = true -- DEBUG
+object.bDebugUtility = true -- DEBUG
 
 
 --####################################################################
@@ -164,7 +137,7 @@ end
 object.oncombateventOld = object.oncombatevent
 object.oncombatevent     = object.oncombateventOverride
 
-
+--[[
 
 ------------------------------------------------------
 --            customharassutility override          --
@@ -335,7 +308,7 @@ function GetCreepAttackTargetOverride(botBrain, unitEnemyCreep, unitAllyCreep) -
 		end
 	end
 	local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-	if Booboo:GetHealthPercent()>0.35 then
+	if Booboo:GetHealthPercent() and Booboo:GetHealthPercent() > 0.35 then
 --		core.OrderMoveToPosClamp(botBrain, Booboo, core.unitSelf:GetPosition(), false)
 		if unitClosestHero~=nil then
 			core.OrderAttack(botBrain, Booboo, unitClosestHero,false)
@@ -397,3 +370,99 @@ end
 object.getCreepAttackTargetOld = behaviorLib.GetCreepAttackTarget
 behaviorLib.GetCreepAttackTarget = GetCreepAttackTargetOverride
 
+]]--
+
+function debugUtility(botBrain)
+    return 99
+end
+
+
+local PULL_STATE = 1
+local PULL_RETURNING = false
+local PULL_LEG = {Vector3.Create(2248, 9342), Vector3.Create(4284, 8875), Vector3.Create(10061, 13088), Vector3.Create(9938, 13348)}
+local PULL_HB = {Vector3.Create(14223, 6516), Vector3.Create(7955, 5136), Vector3.Create(5637, 2195), Vector3.Create(5606, 1900)}
+local PULL_STARTED = false
+
+-- cg_drawSelectedStats true
+function debugExecute(botBrain)
+    -- Not pulling
+    if PULL_STATE == 0 then
+        return false
+    end
+
+    local path = {}
+    if core.myTeam == HoN.GetHellbourneTeam() then
+        path = PULL_HB
+    else
+        path = PULL_LEG
+    end
+
+    local Booboo={}
+    for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
+            if unit2:GetTypeName()=="Pet_Yogi_Ability1" then
+                    Booboo=unit2
+            end
+    end
+
+    if not Booboo then
+        return false
+    end
+
+    local unitSelf = core.unitSelf
+    core.OrderMoveToPosAndHold(botBrain, unitSelf, path[1]+Vector3.Create(-200,-200), false)
+    local vecSelfPos = Booboo:GetPosition()
+    print(Vector3.Distance2D(vecSelfPos, path[PULL_STATE]).." Durr:"..PULL_STATE.." Hurr:"..tostring(PULL_RETURNING).."\n")
+    if Vector3.Distance2D(vecSelfPos, path[PULL_STATE]) < 100 then
+        if PULL_RETURNING then
+            PULL_STATE = PULL_STATE-1
+            if PULL_STATE == 0 then
+                PULL_RETURNING = false
+                PULL_STATE = 2
+            end
+        else
+            PULL_STATE = PULL_STATE+1 
+            if PULL_STATE == 5 then
+                PULL_RETURNING = true
+                PULL_STATE = 3
+            end
+        end
+    else
+        if PULL_STARTED then
+            return true
+        end
+    end
+
+    PULL_STARTED = true
+    if PULL_STATE < 4 then
+        return core.OrderMoveToPosAndHold(botBrain, Booboo, path[PULL_STATE], false, true)
+    else
+        return core.OrderMoveToPosAndHold(botBrain, Booboo, path[4], false, true)
+    end
+
+    return false
+end
+
+behaviorLib.debugBehavior = {}
+behaviorLib.debugBehavior["Utility"] = debugUtility
+behaviorLib.debugBehavior["Execute"] = debugExecute
+behaviorLib.debugBehavior["Name"] = "debug"
+tinsert(behaviorLib.tBehaviors, behaviorLib.debugBehavior)
+
+
+local function ClosestUnit(unit)
+	local unitClosestHero = nil
+	local nClosestHeroDistSq = 1100*1100 -- Not concerned if more than 900, since Booboo can't attack then, and their range not enough to harm. But predictive running....
+        local units = HoN.GetUnitsInRadius(unit:GetPosition(), 1000, core.UNIT_MASK_ALIVE + core.UNIT_MASK_UNIT)
+	for id, unitCreep in pairs(units) do
+		if unitCreep ~= nil then
+			if core.CanSeeUnit(botBrain, unitCreep) and unitHero:GetTeam()~=unit:GetTeam() then
+				local nDistanceSq = Vector3.Distance2DSq(unitCreep:GetPosition(), unit:GetPosition())
+				if nDistanceSq < nClosestHeroDistSq then
+					nClosestHeroDistSq = nDistanceSq
+					unitClosestHero = unitHero
+				end
+			end
+		end
+	end
+        return unitClosestHero
+end

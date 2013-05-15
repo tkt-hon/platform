@@ -186,33 +186,38 @@ end
 
 function jungleExecute(botBrain)
         local unitSelf = core.unitSelf
-        local debugMode=false
+        local debugMode=true
 
         local vecMyPos = unitSelf:GetPosition()
         local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
         if not vecTargetPos then
+                return false
+                --[[
                 if core.myTeam == HoN.GetHellbourneTeam() then
                         return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, jungleLib.jungleSpots[8].outsidePos)
                 else
                         return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, jungleLib.jungleSpots[2].outsidePos)
-                end
+                end]]--
         end
 
         if debugMode then core.DrawDebugArrow(vecMyPos, vecTargetPos, 'green') end
 
         local nTargetDistanceSq = Vector3.Distance2DSq(vecMyPos, vecTargetPos)
+        BotEcho("JUNGLE wut?")
         if nTargetDistanceSq > (600 * 600) or jungleLib.nStacking ~= 0 then
                 -- Move to the next camp
                 local nMins, nSecs = jungleLib.getTime()
                 if jungleLib.nStacking ~= 0 or ((nSecs > 40 or nMins == 0) and nTargetDistanceSq < (800 * 800) and nTargetDistanceSq > (400 * 400)) then
                         -- Stack the camp if possible
                         if nSecs < 53 and (nSecs > 40 or nMins == 0) then
+                                BotEcho("JUNGLE wait")
                                 -- Wait outside the camp
                                 jungleLib.nStacking = 1
                                 jungleLib.nStackingCamp = nCamp
 
                                 return core.OrderMoveToPosAndHoldClamp(botBrain, core.unitSelf, jungleLib.jungleSpots[nCamp].outsidePos, false)
                         elseif jungleLib.nStacking == 1 and unitSelf:IsAttackReady() then
+                                BotEcho("JUNGLE attack")
                                 -- Attack the units in the camp
                                 if nSecs >= 57 then 
                                         -- Missed our chance to stack
@@ -221,6 +226,7 @@ function jungleExecute(botBrain)
 
                                 return core.OrderAttackPosition(botBrain, unitSelf, vecTargetPos,false,false)
                         elseif jungleLib.nStacking ~= 0 and nTargetDistanceSq < (1500 * 1500) and nSecs > 50 then
+                                BotEcho("JUNGLE stack")
                                 -- Move away from the units in the camp
                                 jungleLib.nStacking = 2
                                 local vecAwayPos = jungleLib.jungleSpots[jungleLib.nStackingCamp].pos + (jungleLib.jungleSpots[jungleLib.nStackingCamp].outsidePos - jungleLib.jungleSpots[jungleLib.nStackingCamp].pos) * 5
@@ -232,15 +238,18 @@ function jungleExecute(botBrain)
 
                                 return core.OrderMoveToPosClamp(botBrain, core.unitSelf, vecAwayPos, false)
                         else
+                                BotEcho("JUNGLE stack done")
                                 -- Finished stacking
                                 jungleLib.nStacking = 0
                                 return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, vecTargetPos)
                         end
                 else
+                        BotEcho("JUNGLE derp")
                         -- Otherwise just move to camp
                         return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, vecTargetPos)
                 end
         else 
+                BotEcho("JUNGLE kill!")
                 -- Kill neutrals in the camp
                 local tUnits = HoN.GetUnitsInRadius(vecMyPos, 800, core.UNIT_MASK_ALIVE + core.UNIT_MASK_UNIT)
                 if tUnits then
