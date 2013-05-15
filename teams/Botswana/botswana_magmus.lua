@@ -139,6 +139,8 @@ end
 ----------------------------------
 --	HarassHeroOverride	--
 ----------------------------------
+local function HarassHeroExecuteOverride(botBrain)
+
 local unitTarget = behaviorLib.heroTarget
     if unitTarget == nil then
         return object.harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
@@ -158,7 +160,12 @@ local unitTarget = behaviorLib.heroTarget
     local bCanSee = core.CanSeeUnit(botBrain, unitTarget)    
     local bActionTaken = false
 
-
+    if core.CanSeeUnit(botBrain, unitTarget) then
+          local bTargetVuln = unitTarget:IsStunned() or unitTarget:IsImmobilized() or unitTarget:IsPerplexed()
+          local abilBath = skills.abilW
+          local abilUltimate = skills.abilR
+          core.FindItems()
+          local itemSheepstick = core.itemSheepstick
 
 
 

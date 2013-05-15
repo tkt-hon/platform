@@ -108,9 +108,39 @@ end
 object.oncombateventOld = object.oncombatevent
 object.oncombatevent     = object.oncombateventOverride
 
+-------------------------------------------------------------
+--              CustomHarassUtility Override
+-------------------------------------------------------------
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilSurge:CanActivate() then
+    nUtil = nUtil + 30
+    local damages = {50,100,125,175}
+    if hero:GetHealth() < damages[skills.abilSurge:GetLevel()] then
+      nUtil = nUtil + 30
+    end
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 100
+  end
+
+  if core.unitSelf.isSuicide then
+    nUtil = nUtil / 2
+  end
+
+  return nUtil
+end
+
+
+
 ----------------------------------
 --	HarassHeroOverride	--
 ----------------------------------
+local function HarassHeroExecuteOverride(botBrain)
+
 local unitTarget = behaviorLib.heroTarget
     if unitTarget == nil then
         return object.harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
@@ -130,7 +160,12 @@ local unitTarget = behaviorLib.heroTarget
     local bCanSee = core.CanSeeUnit(botBrain, unitTarget)    
     local bActionTaken = false
 
-
+    if core.CanSeeUnit(botBrain, unitTarget) then
+          local bTargetVuln = unitTarget:IsStunned() or unitTarget:IsImmobilized() or unitTarget:IsPerplexed()
+          local abilDragon = skills.abilW
+          local abilBlazing = skills.abilR
+          core.FindItems()
+          local itemSheepstick = core.itemSheepstick
 
 
 
