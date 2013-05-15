@@ -82,7 +82,7 @@ self:oncombateventOld(EventData)
 self.eventsLib.printCombatEvent(EventData)  
 
 
-	if EventData.Type == "Projectile" then
+	if EventData.ProjectileDisjointable == true then
 		steam = true
 	end
   -- custom code here
@@ -98,21 +98,27 @@ end
 local function SteamBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
-
   if steam and abilSteam:CanActivate() and not IsChanneling() then
     return 100
   end
   return 0
 end
 
+local function BreakSteam(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilSteam = unitSelf:GetAbility(1)
+	if steam then
+		steam = false
+		return core.OrderPosition(unitSelf, "Move", unitSelf:GetPosition())
+	end
+end
+
 local function SteamBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
-	steam = false
 	if IsChanneling() then
 		return
 	end
-core.BotEcho("Trollliii")
     return core.OrderAbility(botBrain, abilSteam, false)
 end
 
