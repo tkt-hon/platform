@@ -8,7 +8,7 @@ runfile 'bots/core_herobot.lua'
 local core, behaviorLib = yogi.core, yogi.behaviorLib
 
 behaviorLib.StartingItems  = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet"}
-behaviorLib.LaneItems  = { "Item_Lightning1", "Item_EnhancedMarchers"} 
+behaviorLib.LaneItems  = { "Item_EnhancedMarchers", "Item_Lightning1" } 
 behaviorLib.MidItems  = { "Item_Protect", "Item_Dawnbringer"}
 behaviorLib.LateItems  = { "Item_Lightning2", "Item_FrostfieldPlate", "Item_BehemothsHeart"}
 
@@ -81,10 +81,6 @@ end
 -- @return: none
 function object:onthinkOverride(tGameVariables)
     self:onthinkOld(tGameVariables)
- 
-    -- custom code here
-	
---	BotEcho("Aaaaaaaaaaaaaaaaaaa")
 end
 object.onthinkOld = object.onthink
 object.onthink  = object.onthinkOverride
@@ -380,6 +376,5 @@ function GetCreepAttackTargetOverride(botBrain, unitEnemyCreep, unitAllyCreep) -
 
 	return nil
 end
--- overload the behaviour stock function with custom 
 object.getCreepAttackTargetOld = behaviorLib.GetCreepAttackTarget
 behaviorLib.GetCreepAttackTarget = GetCreepAttackTargetOverride

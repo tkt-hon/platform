@@ -333,6 +333,107 @@ end
 plaguerider.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
+function behaviorLib.HealHealthUtilityFn(unitHerox)
+	local nUtility = 0
+	
+	local nYIntercept = 100
+	local nXIntercept = 100
+	local nOrder = 2
+
+	nUtility = core.ExpDecay(unitHerox:GetHealthPercent() * 100, nYIntercept, nXIntercept, nOrder)
+	
+	return nUtility
+end
+
+behaviorLib.nHealUtilityMul = 0.8
+behaviorLib.nHealHealthUtilityMul = 1.0
+
+function behaviorLib.HealUtility(botBrain)
+	local nUtility = 0
+
+	local unitSelf = core.unitSelf
+	behaviorLib.unitHealTarget = nil
+
+	core.FindItems()
+	local itemAstrolabe = core.itemAstrolabe
+	
+	local nHighestUtility = 0
+	local unitTarget = nil
+
+	if (itemAstrolabe and itemAstrolabe:CanActivate()) then
+		local tTargets = core.CopyTable(core.localUnits["AllyHeroes"])
+		tTargets[unitSelf:GetUniqueID()] = unitSelf --I am also a target
+		local nMyID = unitSelf:GetUniqueID()
+		for key, hero in pairs(tTargets) do
+			--Don't heal yourself if we are going to head back to the well anyway, 
+			--	as it could cause us to retrace half a walkback
+			if hero:GetUniqueID() ~= nMyID or core.GetCurrentBehaviorName(botBrain) ~= "HealAtWell" then
+				local nCurrentUtility = 0
+		
+				local nHealthUtility = behaviorLib.HealHealthUtilityFn(hero) * behaviorLib.nHealHealthUtilityMul
+				nCurrentUtility = nHealthUtility
+				
+				if nCurrentUtility > nHighestUtility then
+					nHighestUtility = nCurrentUtility
+				end
+			end
+		end
+
+		if unitTarget then
+			
+			if nUtility == 0 and (itemAstrolabe and itemAstrolabe:CanActivate()) then
+				nUtility = nHighestUtility				
+				sAbilName = "Astrolabe"
+			end
+			
+			if nUtility ~= 0 then
+				behaviorLib.unitHealTarget = unitTarget
+			end
+	
+		end		
+	end
+	
+	nUtility = nUtility * behaviorLib.nHealUtilityMul
+	
+	if botBrain.bDebugUtility == true and nUtility ~= 0 then
+		BotEcho(format("  HelpUtility: %g", nUtility))
+	end
+	
+	return nUtility
+end
+ 
+function behaviorLib.HealExecute(botBrain)
+
+	core.FindItems()
+	local itemAstrolabe = core.itemAstrolabe
+	local unitHealTarget = behaviorLib.unitHealTarget
+	local unitSelf = core.unitSelf
+
+	if unitHealTarget then
+		if itemAstrolabe and itemAstrolabe:CanActivate() then
+			local vecTargetPosition = unitHealTarget:GetPosition()
+			local nDistance = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPosition)
+			if nDistance < itemAstrolabe.nRadius then
+				core.OrderItemClamp(botBrain, unitSelf, itemAstrolabe)
+			else
+				core.OrderMoveToUnitClamp(botBrain, unitSelf, unitHealTarget)
+			end
+		else 
+			return false
+		end
+	else
+		return false
+	end
+	
+	return
+end
+ 
+behaviorLib.HealBehavior = {}
+behaviorLib.HealBehavior["Utility"] = behaviorLib.HealUtility
+behaviorLib.HealBehavior["Execute"] = behaviorLib.HealExecute
+behaviorLib.HealBehavior["Name"] = "Heal"
+tinsert(behaviorLib.tBehaviors, behaviorLib.HealBehavior)
+
 local function EnemiesNearPosition(vecPosition)
   local tHeroes = HoN.GetUnitsInRadius(vecPosition, core.localCreepRange, core.UNIT_MASK_ALIVE + core.UNIT_MASK_HERO)
   for _, hero in pairs(tHeroes) do
