@@ -11,6 +11,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
+runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 
 
@@ -239,6 +240,10 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + 15
   end
 
+  if skills.abilUltimate:CanActivate() and skills.abilMorph:CanActivate() and skills.abilTongue:CanActivate() then
+    nUtil = nUtil + 50
+  end
+
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
@@ -257,22 +262,22 @@ local function HarassHeroExecuteOverride(botBrain)
   local bActionTaken = false
 
   if core.CanSeeUnit(botBrain, unitTarget) then
-    local abilNuke = skills.abilNuke
-
-    if abilNuke:CanActivate() then
-      local nRange = abilNuke:GetRange()
-      if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-      else
-        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-      end
-    end
 
     local abilMorph = skills.abilMorph
     if abilMorph:CanActivate() and unitSelf:GetMana() > 400 then
       local nRange = abilMorph:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilMorph, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+
+    local abilNuke = skills.abilNuke
+    if not bActionTaken and abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -327,3 +332,42 @@ WardTrapBehavior["Utility"] = WardTrapBehaviorUtility
 WardTrapBehavior["Execute"] = WardTrapBehaviorExecute
 WardTrapBehavior["Name"] = "Ward trapping"
 tinsert(behaviorLib.tBehaviors, WardTrapBehavior)
+
+local function EmptyBottle(botBrain)
+  local bottle = core.itemBottle
+  return bottle and bottle:GetActiveModifierKey() == "bottle_empty"
+end
+
+local runeTakingUtilityOld = behaviorLib.RuneTakingBehavior["Utility"]
+local function runeTakingUtilityOverride(botBrain)
+  local teambot = core.teamBotBrain
+  if EmptyBottle(botBrain) then
+    return runeTakingUtilityOld(botBrain)
+  end
+  return 0
+end
+behaviorLib.RuneTakingBehavior["Utility"] = runeTakingUtilityOverride
+
+local FindItemsOld = core.FindItems
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = FindItemsOld(botBrain)
+
+  if core.itemBottle ~= nil and not core.itemBottle:IsValid() then
+    core.itemBottle = nil
+  end
+
+  if bUpdated and not core.itemBottle then
+
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        if core.itemBottle == nil and curItem:GetName() == "Item_Bottle" then
+          core.itemBottle = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+  return bUpdated
+end
+core.FindItems = funcFindItemsOverride
