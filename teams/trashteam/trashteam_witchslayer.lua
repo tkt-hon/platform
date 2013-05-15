@@ -9,7 +9,7 @@ local tinsert = _G.table.insert
 
 local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
-runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
+runfile 'bots/teams/trashteam/utils/predLastHit.lua'
 
 witchslayer.bRunLogic         = true
 witchslayer.bRunBehaviors    = true
@@ -59,6 +59,9 @@ witchslayer.tSkills = {
   4, 4, 4, 4, 4
 }
 
+local ultiDmg = {0, 500, 650, 850}
+local ultiWithStaff =  {0, 600, 800, 1025}
+local nukeDmg = {0, 60, 130, 200, 260}
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
@@ -223,9 +226,7 @@ local function shouldWeHarassHero(botBrain)
   end
 end
 
-local ultiDmg = {0, 500, 650, 850}
-local withStaff =  {0, 600, 800, 1025}
-local nukeDmg = {0, 60, 130, 200, 260}
+
 
 local function usefulstuff()
   local ultiCost = skills.abilUltimate:GetManaCost()
@@ -302,12 +303,23 @@ local function HarassHeroExecuteOverride(botBrain)
   local myMana = unitSelf:GetMana()
   local ultdmg = ultiDmg[ulti:GetLevel()+1]
   local nukedmg = nukeDmg[nuke:GetLevel()+1]
+  local speed = botBrain.core.speedBoots
+  local taunt = skills.taunt
+  if speed and speed:CanActivate() then
+    core.OrderItemClamp(botBrain, unitSelf, speed)
+  end
 
 	if core.CanSeeUnit(botBrain, unitTarget) then
-    if nuke:CanActivate() and myMana > ultiCost+nukeCost+mini:GetManaCost() then
+    if nuke:CanActivate() and myMana-nukeCost > ultiCost+nukeCost+mini:GetManaCost() then
       local nRange = nuke:GetRange()
       if nTargetDistanceSq < nRange then
         bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
+      end
+    end
+    if taunt and taunt:CanActivate() and untiTarget:GetHealthPercent() < 0.7 then
+      local nRange = taunt:GetRange()
+      if nTargetDistanceSq < nRange then
+        bActionTaken = core.OrderAbilityEntity(botBrain, taunt, unitTarget)
       end
     end
   end
@@ -375,7 +387,14 @@ GetManaBehavior["Execute"] = GetManaExecute
 GetManaBehavior["Name"] = "DrainMana"
 tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
-local function EiMihinkaanUtility(botBrain)
+local function GetUltiDmg(botBrain)
+  if botBrain.core.ultiStaff then
+    return ultiWithStaff[ultiLevel+1]
+  end
+  return ultiDmg[ultiLevel+1]
+end
+
+local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shrunken/nullstone)
   --core.BotEcho("ManaUtility calc")
   local unitSelf = botBrain.core.unitSelf
   local ulti = skills.abilUltimate
@@ -385,7 +404,7 @@ local function EiMihinkaanUtility(botBrain)
   end
   local range = ulti:GetRange()
   local util = 0
-  local ultdmg = ultiDmg[ultiLevel+1]
+  local ultdmg = GetUltiDmg(botBrain)
   local ownTeam = botBrain:GetTeam()
   local ownMoveSpeed = unitSelf:GetMoveSpeed()
   local myPos = unitSelf:GetPosition()
@@ -423,6 +442,16 @@ local function EiMihinkaanExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local targetHero = witchslayer.UltiTarget
   local ulti = skills.abilUltimate
+  local speed = botBrain.core.speedBoots
+  core.AllChat("EI MIHINKÄÄN")
+  core.AllChat("Get")
+  core.AllChat("  on")
+  core.AllChat("   my")
+  core.AllChat("    level")
+  core.AllChat("        hoe!")
+  if speed and speed:CanActivate() then
+    core.OrderItemClamp(botBrain, unitSelf, speed)
+  end
   return core.OrderAbilityEntity(botBrain, ulti, targetHero)
 end
 
@@ -432,6 +461,63 @@ EiMihinkaanBehavior["Execute"] = EiMihinkaanExecute
 EiMihinkaanBehavior["Name"] = "EiMihinkaan"
 tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 
+local function getHeroWithLessHealthThan(botBrain, dmg, range)
+  local unitSelf = botBrain.core.unitSelf
+  local myPos = unitSelf:GetPosition()
+  local getTargets = {}
+  local unitsInRange = HoN.GetUnitsInRadius(myPos, range, ALIVE + HERO)
+  for _,unit in pairs(unitsInRange) do
+    if unit and not (ownTeam == unit:GetTeam()) then
+      local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
+      local targetArmor = GetArmorMultiplier(unit,true)
+      local targetHealth = unit:GetHealth()
+      if targetHealth < dmg*targetArmor then
+        if nTargetDistance < range then
+          util = 100
+          witchslayer.UltiTarget = unit
+        end
+      end
+    end
+  end
+end
+
+witchslayer.comboStun
+witchslayer.comboMini
+witchslayer.comboAutoAttack
+witchslayer.comboMorph
+witchslayer.comboNuke
+
+local function ComboUtility(botBrain)
+  --core.BotEcho("ManaUtility calc")
+  local unitSelf = botBrain.core.unitSelf
+  local ulti = skills.abilUltimate
+  local ultiLevel = ulti:GetLevel()
+  local range = ulti:GetRange()
+  local util = 0
+  local ultdmg = ultiDmg[ultiLevel+1]
+  local ownTeam = botBrain:GetTeam()
+  local ownMoveSpeed = unitSelf:GetMoveSpeed()
+  local myPos = unitSelf:GetPosition()
+ 
+  if botBrain.bDebugUtility == true and utility ~= 0 then
+     core.BotEcho("  ComboUtility: " .. tostring(util))
+  end
+  return util
+end
+
+local function ComboExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local targetHero = witchslayer.UltiTarget
+  local ulti = skills.abilUltimate
+  return core.OrderAbilityEntity(botBrain, ulti, targetHero)
+end
+
+--local ComboBehavior = {}
+--ComboBehavior["Utility"] = ComboUtility
+--ComboBehavior["Execute"] = ComboExecute
+--ComboBehavior["Name"] = "ComboTime"
+--tinsert(behaviorLib.tBehaviors, ComboBehavior)
+
 -- MAN UP BEHAVIOUR
 witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
 local function PussyUtilityOverride(BotBrain)
@@ -439,3 +525,52 @@ local function PussyUtilityOverride(BotBrain)
   return math.min(26, util*0.5)
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
+
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = witchslayer.FindItemsOld(botBrain)
+
+  if core.itemRing ~= nil and not core.itemRing:IsValid() then
+    core.itemRing = nil
+  end
+  if core.itemCodex ~= nil and not core.itemCodex:IsValid() then
+    core.itemCodex = nil
+  end
+  if core.sheepStick ~= nil and not core.sheepStick:IsValid() then
+    core.sheepStick = nil
+  end
+  if core.speedBoots ~= nil and not core.speedBoots:IsValid() then
+    core.speedBoots = nil
+  end
+  if core.ultiStaff ~= nil and not core.ultiStaff:IsValid() then
+    core.ultiStaff = nil
+  end
+
+  if bUpdated then
+    --only update if we need to
+    if core.itemRing and core.itemCodex and core.sheepStick and core.ultiStaff and core.speedBoots then
+      return
+    end
+
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        if core.itemRing == nil and curItem:GetName() == "Item_Replenish" then
+          core.itemRing = core.WrapInTable(curItem)
+          --Echo("Saving astrolabe")
+        elseif core.itemCodex == nil and curItem:GetName() == "Item_Nuke" then
+          core.itemCodex = core.WrapInTable(curItem)
+        elseif core.sheepStick == nil and curItem:GetName() == "Item_Morph" then
+          core.sheepStick = core.WrapInTable(curItem)
+        elseif core.speedBoots == nil and curItem:GetName() == "Item_EnhancedMarchers" then
+          core.speedBoots = core.WrapInTable(curItem)
+        elseif core.ultiStaff == nil and curItem:GetName() == "Item_Intelligence7" then
+          core.ultiStaff = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+end
+witchslayer.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride
+
