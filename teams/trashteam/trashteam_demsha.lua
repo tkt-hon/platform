@@ -1,14 +1,13 @@
 local _G = getfenv(0)
-local moonqueen = _G.object
+local shaman = _G.object
 
-moonqueen.heroName = "Hero_Krixi"
+shaman.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 
 local tinsert = _G.table.insert
-runfile 'bots/teams/trashteam/utils/predictiveLasthittingMQ.lua'
 
-local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
+local core, behaviorLib = shaman.core, shaman.behaviorLib
 
 UNIT = 0x0000001
 BUILDING = 0x0000002
@@ -23,14 +22,14 @@ behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPot
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
-moonqueen.skills = {}
-local skills = moonqueen.skills
+shaman.skills = {}
+local skills = shaman.skills
 
 core.itemGeoBane = nil
-moonqueen.AdvTarget = nil
-moonqueen.AdvTargetHero = nil
+shaman.AdvTarget = nil
+shaman.AdvTargetHero = nil
 
-moonqueen.tSkills = {
+shaman.tSkills = {
   1, 2, 1, 2, 1,
   3, 1, 2, 2, 0,
   3, 0, 0, 0, 4,
@@ -44,7 +43,7 @@ moonqueen.tSkills = {
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
-function moonqueen:SkillBuildOverride()
+function shaman:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
   if skills.abilNuke == nil then
     skills.abilNuke = unitSelf:GetAbility(0)
@@ -54,10 +53,10 @@ function moonqueen:SkillBuildOverride()
     skills.stats = unitSelf:GetAbility(4)
     skills.taunt = unitSelf:GetAbility(8)
   end
-  moonqueen:SkillBuildOld()
+  shaman:SkillBuildOld()
 end
-moonqueen.SkillBuildOld = moonqueen.SkillBuild
-moonqueen.SkillBuild = moonqueen.SkillBuildOverride
+shaman.SkillBuildOld = shaman.SkillBuild
+shaman.SkillBuild = shaman.SkillBuildOverride
 
 
 ------------------------------------------------------
@@ -66,17 +65,17 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 ------------------------------------------------------
 -- @param: tGameVariables
 -- @return: none
-function moonqueen:onthinkOverride(tGameVariables)
+function shaman:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local unitSelf = self.core.unitSelf
-  if moonqueen.AdvTarget and moonqueen.AdvTargetHero and false then 
-    HoN.DrawDebugLine(unitSelf:GetPosition(), moonqueen.AdvTarget:GetPosition(), true, "red")
-    HoN.DrawDebugLine(moonqueen.AdvTarget:GetPosition(), moonqueen.AdvTargetHero:GetPosition(), true, "blue")
+  if shaman.AdvTarget and shaman.AdvTargetHero and false then
+    HoN.DrawDebugLine(unitSelf:GetPosition(), shaman.AdvTarget:GetPosition(), true, "red")
+    HoN.DrawDebugLine(shaman.AdvTarget:GetPosition(), shaman.AdvTargetHero:GetPosition(), true, "blue")
   end
   -- custom code here
 end
-moonqueen.onthinkOld = moonqueen.onthink
-moonqueen.onthink = moonqueen.onthinkOverride
+shaman.onthinkOld = shaman.onthink
+shaman.onthink = shaman.onthinkOverride
 
 ----------------------------------------------
 --            oncombatevent override        --
@@ -84,7 +83,7 @@ moonqueen.onthink = moonqueen.onthinkOverride
 ----------------------------------------------
 -- @param: eventdata
 -- @return: none
-function moonqueen:oncombateventOverride(EventData)
+function shaman:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
   -- custom code here
@@ -137,7 +136,7 @@ local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, range, ALIVE + UNIT)
   local count = 0
   for _,unit in pairs(unitsLocal) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then 
+    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
       if not IsSiege(unit) then
         count = count +1
       end
@@ -183,8 +182,8 @@ UltimateBehavior["Execute"] = UltimateBehaviorExecute
 UltimateBehavior["Name"] = "Using ultimate properly"
 tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 
-moonqueen.oncombateventOld = moonqueen.oncombatevent
-moonqueen.oncombatevent = moonqueen.oncombateventOverride
+shaman.oncombateventOld = shaman.oncombatevent
+shaman.oncombatevent = shaman.oncombateventOverride
 
 
 local function heroIsInRange(botBrain,enemyCreep, range)
@@ -192,7 +191,7 @@ local function heroIsInRange(botBrain,enemyCreep, range)
   local unitsInRange = HoN.GetUnitsInRadius(creepPos, range, ALIVE + HERO)
   for _,unit in pairs(unitsInRange) do
     if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      moonqueen.AdvTargetHero = unit
+      shaman.AdvTargetHero = unit
       return true
     end
   end
@@ -209,7 +208,7 @@ local function shouldWeHarassHero(botBrain)
       -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
       if unit:GetHealthPercent() < 0.2 then
         return false
-      else 
+      else
         return true
       end
     end
@@ -234,11 +233,11 @@ local function AdvHarassUtility(botBrain)
   local allUnits = HoN.GetUnitsInRadius(myPos, atkRange*2, ALIVE + UNIT)
   local allUnitsMax = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + UNIT)
   local potentialCreep = nil
-  local unitCount = 0 
+  local unitCount = 0
   for _,unit in pairs(allUnitsMax) do
     if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
       unitCount = unitCount + 1
-    end 
+    end
   end
   --core.BotEcho("Units around: " .. tostring(unitCount))
   if unitCount > 0 and unitCount < unitSelf:GetAbility(1):GetLevel() then -- less creeps than our bounce
@@ -248,7 +247,7 @@ local function AdvHarassUtility(botBrain)
       end
       if unit and not (botBrain:GetTeam() == unit:GetTeam()) and unit:GetHealthPercent() > 0.55 then
         if heroIsInRange(botBrain, unit, atkRange * 0.8) then
-          moonqueen.AdvTarget = unit
+          shaman.AdvTarget = unit
           --botBrain.core.BotEcho("HARASS VITTUUU")
           return 100 - modifier
         end
@@ -260,7 +259,7 @@ end
 
 local function AdvHarassExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local targetCreep = moonqueen.AdvTarget
+  local targetCreep = shaman.AdvTarget
   return core.OrderAttackClamp(botBrain, unitSelf, targetCreep)
 end
 
@@ -302,7 +301,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
-    return moonqueen.harassExecuteOld(botBrain)
+    return shaman.harassExecuteOld(botBrain)
   end
 
   local unitSelf = core.unitSelf
@@ -333,8 +332,8 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return moonqueen.harassExecuteOld(botBrain)
+    return shaman.harassExecuteOld(botBrain)
   end
 end
-moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+shaman.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride

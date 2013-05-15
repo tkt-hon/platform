@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="TrashTeam_pyro"
+  description="TrashTeam's pyro"
+  heroname="Hero_Pyromancer"
+  rootlua="trashteam_pyro.lua"
+  defaultplayername="[TT] yded?"
+  precachepath="/heroes/pyromancer/"
+/>
