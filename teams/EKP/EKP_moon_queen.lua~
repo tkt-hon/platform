@@ -82,8 +82,9 @@ end
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
+  local nLevel = unitSelf:GetLevel()
 
-  if skills.abilNuke:CanActivate() then
+  if skills.abilNuke:CanActivate() and nLevel > 5 then
     nUtil = nUtil + 10*skills.abilNuke:GetLevel()
   end
 
