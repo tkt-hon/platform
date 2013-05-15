@@ -30,8 +30,8 @@ shaman.AdvTarget = nil
 shaman.AdvTargetHero = nil
 
 shaman.tSkills = {
-  1, 2, 1, 2, 1,
-  3, 1, 2, 2, 0,
+  2, 2, 2, 2, 1,
+  3, 1, 1, 1, 0,
   3, 0, 0, 0, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -45,10 +45,10 @@ shaman.tSkills = {
 -- @return: none
 function shaman:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilNuke == nil then
-    skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilBounce = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
+  if skills.abilEntangle == nil then
+    skills.abilEntangle = unitSelf:GetAbility(0)
+    skills.abilUnbreak = unitSelf:GetAbility(1)
+    skills.abilHeal = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
     skills.taunt = unitSelf:GetAbility(8)
@@ -185,7 +185,6 @@ tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 shaman.oncombateventOld = shaman.oncombatevent
 shaman.oncombatevent = shaman.oncombateventOverride
 
-
 local function heroIsInRange(botBrain,enemyCreep, range)
   local creepPos = enemyCreep:GetPosition()
   local unitsInRange = HoN.GetUnitsInRadius(creepPos, range, ALIVE + HERO)
@@ -197,6 +196,55 @@ local function heroIsInRange(botBrain,enemyCreep, range)
   end
   return false
 end
+
+
+local function castHealingWaveUtility(botBrain)
+	if skills.abilHeal:GetLevel() < 2 then
+		return 0
+ 	end
+
+	local unitSelf = botBrain.core.unitSelf
+  local heroesInRange = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 1000, ALIVE + HERO)
+
+	local enemyHeroesInRange = 0
+	local allyCreepsInRange = 0
+  
+	for _,unit in pairs(heroesInRange) do
+    if unit and botBrain:GetTeam() ~= unit:GetTeam() then
+			
+			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(), 180, ALIVE+UNIT)
+			for _,creep in pairs(creepsInRange) do
+				if creep and unitSelf:GetTeam() == creep:GetTeam() and (not IsSiege(creep)) then
+					allyCreepsInRange = allyCreepsInRange + 1
+					shaman.healTarget = creep
+					core.DrawDebugArrow(unit:GetPosition(), creep:GetPosition(), 'red')
+				end
+			end
+    	
+		end
+  end
+  
+	if allyCreepsInRange > 3 then
+		return 100
+	elseif allyCreepsInRange > 1 then
+		return 80
+	end
+
+	return 0	
+end
+
+local function castHealingWaveExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+	core.BotEcho("casthealingwave")
+  return core.OrderAbilityEntity(botBrain, skills.abilHeal, shaman.healTarget)
+end
+
+local healingWaveBehavior = {}
+healingWaveBehavior["Utility"] = castHealingWaveUtility
+healingWaveBehavior["Execute"] = castHealingWaveExecute
+healingWaveBehavior["Name"] = "Healingwaveinstakillyo"
+tinsert(behaviorLib.tBehaviors, healingWaveBehavior)
+
 
 local function shouldWeHarassHero(botBrain)
   local unitSelf = botBrain.core.unitSelf
@@ -215,79 +263,9 @@ local function shouldWeHarassHero(botBrain)
   end
 end
 
-local function AdvHarassUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 80
-  end
-
-  -- 1500 = 0
-  -- 600 = 100
-  local atkRange = unitSelf:GetAttackRange()
-  if not shouldWeHarassHero(botBrain)  then
-    return 0
-  end
-  local myPos = unitSelf:GetPosition()
-  local allUnits = HoN.GetUnitsInRadius(myPos, atkRange*2, ALIVE + UNIT)
-  local allUnitsMax = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + UNIT)
-  local potentialCreep = nil
-  local unitCount = 0
-  for _,unit in pairs(allUnitsMax) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      unitCount = unitCount + 1
-    end
-  end
-  --core.BotEcho("Units around: " .. tostring(unitCount))
-  if unitCount > 0 and unitCount < unitSelf:GetAbility(1):GetLevel() then -- less creeps than our bounce
-    for _,unit in pairs(allUnits) do
-      if unit and unit:GetHealthPercent() <= 0.3 then
-        return 0
-      end
-      if unit and not (botBrain:GetTeam() == unit:GetTeam()) and unit:GetHealthPercent() > 0.55 then
-        if heroIsInRange(botBrain, unit, atkRange * 0.8) then
-          shaman.AdvTarget = unit
-          --botBrain.core.BotEcho("HARASS VITTUUU")
-          return 100 - modifier
-        end
-      end
-    end
-  end
-  return 0
-end
-
-local function AdvHarassExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local targetCreep = shaman.AdvTarget
-  return core.OrderAttackClamp(botBrain, unitSelf, targetCreep)
-end
-
-local AdvHarassBehavior = {}
-AdvHarassBehavior["Utility"] = AdvHarassUtility
-AdvHarassBehavior["Execute"] = AdvHarassExecute
-AdvHarassBehavior["Name"] = "Using bounce to harass properly"
-tinsert(behaviorLib.tBehaviors, AdvHarassBehavior)
-
-
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-  if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 12*skills.abilNuke:GetLevel()
-  end
-
-  local ultiCost = skills.abilUltimate:GetManaCost()
-  local nukeCost = skills.abilNuke:GetManaCost()
-  local myMana = hero:GetMana()
-  if myMana > ultiCost + nukeCost*1.5 then
-    nUtil = nUtil + 20
-  end
-  nUtil = nUtil * (hero:GetHealthPercent()*0.5 + 0.4)
-
-  if myMana-nukeCost < nukeCost + ultiCost and (not skills.abilUltimate:CanActivate() or skills.abilUltimate:GetLevel() < 1) then
-    nUtil = nUtil*0.5
-  end
   local distToEneTo = closeToEnemyTowerDist(hero)
   local modifier = 0
   if distToEneTo < 650*650 then
@@ -312,20 +290,16 @@ local function HarassHeroExecuteOverride(botBrain)
   local magicReduc = unitTarget:GetMagicArmor()
   magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
 
-  local abilNuke = skills.abilNuke
+  local abilEntangle = skills.abilEntangle
   local ultiCost = skills.abilUltimate:GetManaCost()
-  local nukeCost = skills.abilNuke:GetManaCost()
+  local nukeCost = skills.abilEntangle:GetManaCost()
   local myMana = unitSelf:GetMana()
-  local nukeDmg = abilNuke:GetLevel() * 75 * magicReduc
+  local nukeDmg = abilEntangle:GetLevel() * 75 * magicReduc
 
-  if abilNuke:CanActivate() then
-    local nRange = abilNuke:GetRange()
-    if nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg > 300 and myMana-nukeCost > nukeCost+ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg < 300 and myMana-nukeCost > ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth() <= nukeDmg then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+  if abilEntangle:CanActivate() then
+    local nRange = abilEntangle:GetRange()
+    if nTargetDistanceSq < (nRange*nRange) then
+	    bActionTaken = core.OrderAbilityEntity(botBrain, abilEntangle, unitTarget)
     else
       bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
     end
