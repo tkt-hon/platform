@@ -3,7 +3,7 @@
   name="Vidyan_WitchSlayer"
   description="You are the witch. I am the slayer."
   heroname="Hero_WitchSlayer"
-  rootlua="vidyan_WitchSlayer.lua"
+  rootlua="vidyan_witchslayer.lua"
   defaultplayername="Vidyan Witch Slayer"
   precachepath="/heroes/witch_slayer/"
-/>
+/>	
