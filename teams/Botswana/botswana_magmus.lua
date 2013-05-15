@@ -108,6 +108,34 @@ end
 object.oncombateventOld = object.oncombatevent
 object.oncombatevent     = object.oncombateventOverride
 
+-------------------------------------------------------------
+--              CustomHarassUtility Override
+-------------------------------------------------------------
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilSurge:CanActivate() then
+    nUtil = nUtil + 30
+    local damages = {50,100,125,175}
+    if hero:GetHealth() < damages[skills.abilSurge:GetLevel()] then
+      nUtil = nUtil + 30
+    end
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 100
+  end
+
+  if core.unitSelf.isSuicide then
+    nUtil = nUtil / 2
+  end
+
+  return nUtil
+end
+
+
+
 ----------------------------------
 --	HarassHeroOverride	--
 ----------------------------------
