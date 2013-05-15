@@ -11,6 +11,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
+runfile 'bots/lib/rune_controlling/init.lua'
 
 
 pollywog.bReportBehavior = true
@@ -18,8 +19,6 @@ pollywog.bDebugUtility = true
 
 local core, behaviorLib, shopping, courier = pollywog.core, pollywog.behaviorLib, pollywog.shopping, pollywog.courier
 local eventsLib = pollywog.eventsLib
-
-local ultDuration = HoN.GetMatchTime()-500
 
 behaviorLib.StartingItems = { "Item_HealthPotion", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_Intelligence5"}
 
@@ -53,10 +52,10 @@ function shopping.GetNextItemToBuy()
   end
   local inventory = core.unitSelf:GetInventory(true)
   if NumberInInventory(inventory, "Item_HealthPotion") < 1 and not endGame then
-       return "Item_HealthPotion"
+    return "Item_HealthPotion"
   elseif NumberInInventory(inventory, "Item_Bottle") <= 0 then
     if NumberInInventory(inventory, "Item_HealthPotion") < 2 then
-       return "Item_HealthPotion"
+      return "Item_HealthPotion"
     else
       return "Item_Bottle"
     end
@@ -71,7 +70,7 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_Replenish") <= 0 then
     if NumberInInventory(inventory, "Item_Intelligence5") <= 0 then
       return "Item_Intelligence5"
-    else
+    elseif NumberInInventory(inventory, "Item_BrainOfMaliken") <= 0 then
       return "Item_BrainOfMaliken"
     end
   elseif NumberInInventory(inventory, "Item_Shield2") <= 0 then
@@ -79,30 +78,57 @@ function shopping.GetNextItemToBuy()
       return "Item_Beastheart"
     elseif NumberInInventory(inventory, "Item_Lifetube") <= 0 then
       return "Item_Lifetube"
-    else
+    elseif NumberInInventory(inventory, "Item_IronBuckler") <= 0 then
       endGame = true
       return "Item_IronBuckler"
     end
-  elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
-    return "Item_SolsBulwark"
-  elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-    if NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
-      return "Item_Warpcleft"
-    elseif NumberInInventory(inventory, "Item_Ringmail") <= 0 then
-      return "Item_Ringmail"
-    elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-      return "Item_DaemonicBreastplate"
+  elseif NumberInInventory(inventory, "Item_Summon") <= 0 then
+    if NumberInInventory(inventory, "Item_NeophytesBook") <= 0 then
+      return "Item_NeophytesBook"
+    elseif NumberInInventory(inventory, "Item_BlessedArmband") <= 0 then
+      return "Item_BlessedArmband"
+    else
+      return "Item_Summon"
+    end
+  elseif NumberInInventory(inventory, "Item_Dawnbringer") <= 0 then
+    if NumberInInventory(inventory, "Item_Frozenlight") <= 0 then
+      if NumberInInventory(inventory, "Item_Lightbrand") <= 0 then
+        if NumberInInventory(inventory, "Item_NeophytesBook") <= 0 then
+          return "Item_NeophytesBook"
+        elseif NumberInInventory(inventory, "Item_ApprenticesRobe") <= 0 then
+          return "Item_ApprenticesRobe"
+        else
+          return "Item_Lightbrand"
+        end
+      elseif NumberInInventory(inventory, "Item_Strength6") <= 0 then
+        if NumberInInventory(inventory, "Item_MightyBlade") <= 0 then
+          return "Item_MightyBlade"
+        elseif NumberInInventory(inventory, "Item_BlessedArmband") <= 0 then
+          return "Item_BlessedArmband"
+        else
+          return "Item_Strength6"
+        end
+      end
+    elseif NumberInInventory(inventory, "Item_Sicarius") <= 0 then
+      if NumberInInventory(inventory, "Item_Quickblade") <= 0 then
+        return "Item_Quickblade"
+      elseif NumberInInventory(inventory, "Item_Fleetfeet") <= 0 then
+        return "Item_Fleetfeet"
+      else
+        return "Item_Sicarius"
+      end
     end
   end
 end
 
--- Staff of the masters, Restoration stone, Beheheart, 
+-- Staff of the masters, Restoration stone, Beheheart,
 
 local function ItemToSell()
   local inventory = core.unitSelf:GetInventory()
   local prioList = {
     "Item_RunesOfTheBlight",
-    "Item_MinorTotem"
+    "Item_MinorTotem",
+    "Item_HealthPotion"
   }
   for _, name in ipairs(prioList) do
     local item = core.InventoryContains(inventory, name)
@@ -186,7 +212,6 @@ function pollywog:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   SellItems()
-  -- custom code here
 end
 
 pollywog.onthinkOld = pollywog.onthink
@@ -194,7 +219,7 @@ pollywog.onthink = pollywog.onthinkOverride
 
 function pollywog:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
---eventsLib.printCombatEvent(EventData)
+  --eventsLib.printCombatEvent(EventData)
   if EventData.Type == "Ability" then
     if EventData.InflictorName == "Ability_PollywogPriest2" then
       self.trapTarget = EventData.TargetUnit
@@ -202,9 +227,7 @@ function pollywog:oncombateventOverride(EventData)
       self.trapTongue = true
     end
   end
-  -- custom code here
 end
--- override combat event trigger function.
 pollywog.oncombateventOld = pollywog.oncombatevent
 pollywog.oncombatevent = pollywog.oncombateventOverride
 
@@ -213,7 +236,7 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 30
+    nUtil = nUtil + 15
   end
 
   return nUtil
@@ -236,28 +259,24 @@ local function HarassHeroExecuteOverride(botBrain)
   if core.CanSeeUnit(botBrain, unitTarget) then
     local abilNuke = skills.abilNuke
 
- --   if abilNuke:CanActivate() then
- --     core.BotEcho("NUKEE")
- --     local nRange = abilNuke:GetRange()
-  --    if nTargetDistanceSq < (nRange * nRange) then
-   --     bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-  --    else
-  --      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-  --    end
- --   end
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
 
     local abilMorph = skills.abilMorph
-    local abilTongue = skills.abilTongue
-    
     if abilMorph:CanActivate() and unitSelf:GetMana() > 400 then
-      core.BotEcho("MORPHORE")
       local nRange = abilMorph:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilMorph, unitTarget)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
-    end   
+    end
 
   end
 
@@ -294,7 +313,7 @@ local function WardTrapBehaviorExecute(botBrain)
     if abilUltimate:CanActivate() then
       return core.OrderAbilityPosition(botBrain, abilUltimate, target:GetPosition())
     elseif abilTongue:CanActivate() then
-core.BotEcho("KIELI")
+      core.BotEcho("KIELI")
       return core.OrderAbilityEntity(botBrain, abilTongue, target)
     end
   end
