@@ -7,36 +7,45 @@ local core, behaviorLib, eventsLib = object.core, object.behaviorLib, object.eve
 
 local Clamp = core.Clamp
 
-behaviorLib.nBottleUtility = 0
+behaviorLib.nManaPotUtility = 0
+behaviorLib.nRoSUtility = 0
+behaviorLib.nBottleManaUtility = 0
 
-function behaviorLib.BottleUtilFn(nHealthMissing)
-  --Roughly 20+ when we are down 138 hp (which is when we want to use a rune)
-  -- Fn which crosses 20 at x=138 and is 30 at roughly x=600, convex down
-
-  local nHealAmount = 150
+function behaviorLib.BottleManaUtilFn(nManaMissing)
+  local nManaAmount = 50
   local nUtilityThreshold = 20
 
-  local vecPoint = Vector3.Create(nHealAmount, nUtilityThreshold)
+  local vecPoint = Vector3.Create(nManaAmount, nUtilityThreshold)
   local vecOrigin = Vector3.Create(-1000, -20)
 
-  local nUtility = core.ATanFn(nHealthMissing, vecPoint, vecOrigin, 100)
+  local nUtility = core.ATanFn(nManaMissing, vecPoint, vecOrigin, 100)
   return nUtility
 end
 
-function behaviorLib.UseHealthRegenUtility(botBrain)
+function behaviorLib.RoSUtilFn(nManaMissing)
+  local nManaAmount = 135
+  local nUtilityThreshold = 20
+
+  local vecPoint = Vector3.Create(nManaAmount, nUtilityThreshold)
+  local vecOrigin = Vector3.Create(-1000, -20)
+
+  local nUtility = core.ATanFn(nManaMissing, vecPoint, vecOrigin, 100)
+  return nUtility
+end
+
+function behaviorLib.UseManaRegenUtility(botBrain)
   StartProfile("Init")
 
   local nUtility = 0
   local nCurrentTime = HoN.GetGameTime()
   local unitSelf = core.unitSelf
   local vecPos = unitSelf:GetPosition()
-  local nHealth = unitSelf:GetHealth()
-  local nMaxHealth = unitSelf:GetMaxHealth()
-  local nHealthMissing = nMaxHealth - nHealth
-  local nHalfSafeTreeAngle = behaviorLib.safeTreeAngle / 2
+  local nMana = unitSelf:GetMana()
+  local nMaxMana = unitSelf:GetMaxMana()
+  local nManaMissing = nMaxMana - nMana
 
-  local nHealthPotUtility = 0
-  local nBlightsUtility = 0
+  local nManaPotUtility = 0
+  local nRoSUtility = 0
   local nBottleUtility = 0
   StopProfile()
 
@@ -44,30 +53,19 @@ function behaviorLib.UseHealthRegenUtility(botBrain)
     return 0
   end
 
-  StartProfile("Health pot")
+  StartProfile("Mana pot")
   local tInventory = unitSelf:GetInventory()
-  local idefHealthPotion = core.idefHealthPotion
-  local tHealthPots = core.InventoryContains(tInventory, idefHealthPotion:GetName())
-  if #tHealthPots > 0 and not unitSelf:HasState(idefHealthPotion.stateName) then
-    nHealthPotUtility = behaviorLib.HealthPotUtilFn(nHealthMissing)
+  local idefManaPotion = core.idefManaPotion
+  local tManaPots = core.InventoryContains(tInventory, "Item_ManaPotion")
+  if #tManaPots > 0 and not unitSelf:HasState("State_ManaPotion") then
+    nManaPotUtility = behaviorLib.ManaPotUtilFn(nManaMissing)
   end
   StopProfile()
 
-  StartProfile("Runes")
-  local idefBlights = core.idefBlightStones
-  local tBlights = core.InventoryContains(tInventory, idefBlights:GetName())
-  if #tBlights > 0 and not unitSelf:HasState(idefBlights.stateName) then
-    local bSafeTrees = false
-
-    local tTrees = core.localTrees
-    local funcRadToDeg = core.RadToDeg
-    local funcAngleBetween = core.AngleBetween
-
-    nBlightsUtility = behaviorLib.RunesOfTheBlightUtilFn(nHealthMissing)
-
-    if nBlightsUtility < behaviorLib.runeUtilIntercept then
-      nBlightsUtility = 0 --no need to report if it isn't a meaningful value
-    end
+  StartProfile("Ring of Sorcery")
+  local tRoSs = core.InventoryContains(tInventory, "Item_Replenish")
+  if #tRoSs > 0 and tRoSs[1]:CanActivate() then
+    nRoSUtility = behaviorLib.RoSUtilFn(nManaMissing)
   end
   StopProfile()
 
@@ -75,78 +73,41 @@ function behaviorLib.UseHealthRegenUtility(botBrain)
   local tBottles = core.InventoryContains(tInventory, "Item_Bottle")
   local notEmptyBottles = false
   if #tBottles > 0 and not unitSelf:HasState("State_Bottle") and tBottles[1]:GetActiveModifierKey() ~= "bottle_empty" then
-    nBottleUtility = behaviorLib.BottleUtilFn(nHealthMissing)
+    nBottleUtility = behaviorLib.BottleManaUtilFn(nManaMissing)
   end
   StopProfile()
 
   StartProfile("End")
-  nUtility = max(nHealthPotUtility, nBlightsUtility, nBottleUtility)
+  nUtility = max(nManaPotUtility, nRoSUtility, nBottleUtility)
   nUtility = Clamp(nUtility, 0, 100)
 
-  if nBlightsUtility == 0 and nHealthPotUtility == 0 and nBottleUtility == 0 then
+  if nRoSUtility == 0 and nManaPotUtility == 0 and nBottleUtility == 0 then
     nUtility = 0
   end
 
-  behaviorLib.nHealthPotUtility = nHealthPotUtility
-  behaviorLib.nBlightsUtility = nBlightsUtility
+  behaviorLib.nManaPotUtility = nManaPotUtility
+  behaviorLib.nRoSUtility = nRoSUtility
   behaviorLib.nBottleUtility = nBottleUtility
 
   return nUtility
 end
 
-function behaviorLib.UseHealthRegenExecute(botBrain)
-  local bDebugLines = false
-
+function behaviorLib.UseManaRegenExecute(botBrain)
   local unitSelf = core.unitSelf
   local vecSelfPos = unitSelf:GetPosition()
   local tInventory = unitSelf:GetInventory()
-  local idefBlights = core.idefBlightStones
-  local idefHealthPotion = core.idefHealthPotion
 
-  local tBlights = core.InventoryContains(tInventory, "Item_RunesOfTheBlight")
-  local tHealthPots = core.InventoryContains(tInventory, "Item_HealthPotion")
+  local tRoSs = core.InventoryContains(tInventory, "Item_Replenish")
+  local tManaPots = core.InventoryContains(tInventory, "Item_ManaPotion")
   local tBottles = core.InventoryContains(tInventory, "Item_Bottle")
 
-  if behaviorLib.nBlightsUtility > behaviorLib.nHealthPotUtility and behaviorLib.nBlightsUtility > behaviorLib.nBottleUtility then
-    if #tBlights > 0 and not unitSelf:HasState(idefBlights.stateName) then
-      --get closest tree
-      local closestTree = nil
-      local nClosestTreeDistSq = 9999*9999
-      local vecLaneForward = object.vecLaneForward
-      local vecLaneForwardNeg = -vecLaneForward
-      local funcRadToDeg = core.RadToDeg
-      local funcAngleBetween = core.AngleBetween
-      local nHalfSafeTreeAngle = behaviorLib.safeTreeAngle / 2
-
-      core.UpdateLocalTrees()
-      local tTrees = core.localTrees
-      for key, tree in pairs(tTrees) do
-        vecTreePosition = tree:GetPosition()
-
-        --"safe" trees are backwards
-        if not vecLaneForward or abs(funcRadToDeg(funcAngleBetween(vecTreePosition - vecSelfPos, vecLaneForwardNeg)) ) < nHalfSafeTreeAngle then
-          local nDistSq = Vector3.Distance2DSq(vecTreePosition, vecSelfPos)
-          if nDistSq < nClosestTreeDistSq then
-            closestTree = tree
-            nClosestTreeDistSq = nDistSq
-            if bDebugLines then
-              core.DrawXPosition(vecTreePosition, 'yellow')
-            end
-          end
-        end
-      end
-
-      if closestTree ~= nil then
-        --BotEcho("Using blights!")
-        core.OrderItemEntityClamp(botBrain, unitSelf, tBlights[1], closestTree)
-        return
-      end
-
-      -- No good tree, so we failed to execute this behavior
-      return false
+  if behaviorLib.nRoSUtility > behaviorLib.nManaPotUtility and behaviorLib.nRoSUtility > behaviorLib.nBottleUtility then
+    if #tRoSs > 0 and tRoSs[1]:CanActivate() then
+      core.OrderItemClamp(botBrain, unitSelf, tRoSs[1])
+      return
     end
-  elseif behaviorLib.nHealthPotUtility > behaviorLib.nBlightsUtility and behaviorLib.nHealthPotUtility > behaviorLib.nBottleUtility then
-    if not unitSelf:HasState(idefHealthPotion.stateName) and #tHealthPots > 0 then
+  elseif behaviorLib.nManaPotUtility > behaviorLib.nRoSUtility and behaviorLib.nManaPotUtility > behaviorLib.nBottleUtility then
+    if not unitSelf:HasState(idefManaPotion.stateName) and #tManaPots > 0 then
       --assess local units to see if they are in nRange, retreat until out of nRange * 1.15
       --also don't use if we are taking DOT damage
       local threateningUnits = {}
@@ -193,7 +154,7 @@ function behaviorLib.UseHealthRegenExecute(botBrain)
 
       else
         --BotEcho("Using health potion!")
-        core.OrderItemEntityClamp(botBrain, unitSelf, tHealthPots[1], unitSelf)
+        core.OrderItemEntityClamp(botBrain, unitSelf, tManaPots[1], unitSelf)
         return
       end
     end
@@ -247,19 +208,8 @@ function behaviorLib.UseHealthRegenExecute(botBrain)
   return
 end
 
-behaviorLib.UseHealthRegenBehavior["Utility"] = behaviorLib.UseHealthRegenUtility
-behaviorLib.UseHealthRegenBehavior["Execute"] = behaviorLib.UseHealthRegenExecute
-
-local function HealAtWellUtilityOverrive(botBrain)
-  local unitSelf = core.unitSelf
-  local nUtility = behaviorLib.HealAtWellUtility(botBrain)
-  local tInventory = unitSelf:GetInventory()
-  local tHealthPots = core.InventoryContains(tInventory, "Item_HealthPotion")
-  local tBottles = core.InventoryContains(tInventory, "Item_Bottle")
-  local notEmptyBottles = false
-  if #tBottles > 0 and tBottles[1]:GetActiveModifierKey() ~= "bottle_empty" or #tHealthPots > 0 then
-    nUtility = nUtility / 2
-  end
-  return nUtility
-end
-behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellUtilityOverrive
+behaviorLib.UseManaRegenBehavior = {}
+behaviorLib.UseManaRegenBehavior["Utility"] = behaviorLib.UseManaRegenUtility
+behaviorLib.UseManaRegenBehavior["Execute"] = behaviorLib.UseManaRegenExecute
+behaviorLib.UseManaRegenBehavior["Name"] = "UseManaRegen"
+tinsert(behaviorLib.tBehaviors, behaviorLib.UseManaRegenBehavior)
