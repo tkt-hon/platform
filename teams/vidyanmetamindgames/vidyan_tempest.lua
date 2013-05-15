@@ -13,8 +13,8 @@ local tinsert = _G.table.insert
 --------------------------------------------------------------
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_PretendersCrown", "2 Item_ManaPotion" }
-behaviorLib.LaneItems = { "Item_Strength5", "Item_Marchers", "Item_MightyBlade", "Item_Warhammer", "Item_Immunity" }
-behaviorLib.MidItems = {}
+behaviorLib.LaneItems = { "Item_Strength5", "Item_Marchers", "Item_MightyBlade", "Item_Warhammer" }
+behaviorLib.MidItems = {"Item_Immunity"}
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
 
 tempest.denyTarget = nil
