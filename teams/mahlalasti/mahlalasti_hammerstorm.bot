@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="Mahlalasti Epic Hammerstorm Bot"
+	description="bot_description_hammerstorm"
+	heroname="Hero_Hammerstorm"
+	rootlua="mahlalasti_hammerstorm.lua"
+	defaultplayername="HammerBot"
+	precachepath="/heroes/hammerstorm/"
+/>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="Mahlalasti Epic Amun      Ra"
+	description="rar_ses"
+	rootlua="mahlalasti_amunra.lua"
+	heroname="Hero_Ra"
+	defaultplayername="MahlalastiAmunRaBot"
+	precachepath="/heroes/ra/"
+/>
