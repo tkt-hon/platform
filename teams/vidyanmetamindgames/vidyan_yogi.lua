@@ -72,6 +72,7 @@ yogi.SkillBuild = yogi.SkillBuildOverride
 ------------------------------------------------------
 -- @param: tGameVariables
 -- @return: none
+local bBearForm = false
 function yogi:onthinkOverride(tGameVariables)
     self:onthinkOld(tGameVariables)
     
@@ -81,13 +82,24 @@ function yogi:onthinkOverride(tGameVariables)
     end
     
     local abilBear = skills.abilBear
+    local abilUltimate = skills.abilUltimate
     local canCast = abilBear:CanActivate()
 
     if abilBear:CanActivate() then
         core.OrderAbility(self, abilBear)
     end
     
+    if core.unitSelf:GetLevel() >= 8 then
+        local abilBuff = skills.abilBuff
+        core.OrderAbility(self, abilBuff)
+    end
     
+    if not bBearForm then
+        if abilUltimate:CanActivate() then
+            core.OrderAbility(self, abilUltimate)
+            bBearForm = true
+        end
+    end
     
     booboo = getBooBoo()
     
@@ -96,8 +108,27 @@ function yogi:onthinkOverride(tGameVariables)
     end
     
     if not boobooAttack(self, booboo) then
-        core.OrderMoveToPos(self, booboo, core.unitSelf:GetPosition(), true)
-        --core.BotEcho(tostring(boobooUnit:GetPosition()))
+        --core.OrderMoveToPos(self, booboo, core.unitSelf:GetPosition(), true)
+        local closestTower = core.GetClosestEnemyTower(booboo:GetPosition(), 100000)
+        local distanceFromPosToTowerSq = nil
+        
+        if arrowPos == nil then
+            arrowPos = core.unitSelf:GetPosition()
+        end
+        
+        if closestTower ~= nil then
+            distanceFromPosToTowerSq = Vector3.Distance2DSq(closestTower:GetPosition(), arrowPos)
+        end
+        
+        if distanceFromPosToTowerSq == nil then
+            distanceFromPosToTowerSq = 490001
+        end
+        
+        --core.BotEcho(distance
+        
+        if distanceFromPosToTowerSq > 490000 then --If wanted position isn't within enemy tower range
+            core.OrderMoveToPos(self, booboo, arrowPos, true)
+        end
     end    
 end
 yogi.onthinkOld = yogi.onthink
@@ -155,20 +186,18 @@ function boobooAttack(botBrain, booboo)
     return true
 end
 
--- Vector3.Distance2DSq
 
 local function OverrideMoveExecute(botBrain, vecDesiredPosition)
-    --core.BotEcho("Overrided move executed")
-    --if booboo == nil then
-    --    booboo = getBooBoo()
-    --end
-    
-    --core.OrderMoveToPos(botBrain, booboo, vecDesiredPosition)
+   
+
+
     arrowPos = vecDesiredPosition
     return behaviorLib.MoveExecuteOld(botBrain, vecDesiredPosition)
 end
 behaviorLib.MoveExecuteOld = behaviorLib.MoveExecute
 behaviorLib.MoveExecute = OverrideMoveExecute
+
+
 ----------------------------------------------
 -- oncombatevent override --
 -- use to check for infilictors (fe. buffs) --
@@ -178,12 +207,24 @@ behaviorLib.MoveExecute = OverrideMoveExecute
 function yogi:oncombateventOverride(EventData)
     self:oncombateventOld(EventData)
     
+      if EventData.Type == "Death" then
+        bBearForm = false
+      end
+    
     if EventData.Type == "Ability" then
 
         core.BotEcho(EventData.InflictorName)
 
         if EventData.InflictorName == "Ability_Yogi1" then
             getBooBoo()
+        end
+        
+        if EventData.InflictorName == "Ability_Yogi4" then
+            yogi.eventsLib.printCombatEvent(EventData)
+            core.BotEcho("lelelelele " .. EventData.StateLevel)
+            if EventData.StateLevel == nil then
+                bBearForm = true
+            end
         end
     end
     -- custom code here
@@ -208,6 +249,43 @@ function getBooBoo()
     
 end
 
+--Stuff below this should probably be copypastable to all other heroes...
+-- Should probably use runfile (like on row 8) instead of copypasting though?
+
+local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
+    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+        local unitSelf = botBrain.core.unitSelf
+        local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 550)
+        local unitsAllies = unitsLocal.AllyCreeps
+        
+        if #unitsAllies == 1 and unitsAllies[1]:GetHealthPercent() < 0.5 then
+          return nil
+        end
+        
+        local nTargetHealth = unitEnemyCreep:GetHealth()
+        local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf)
+        
+        local LHTweak = 50
+        
+        nDamageAverage = LHTweak + nDamageAverage
+        
+        if nDamageAverage >= nTargetHealth then
+            return unitEnemyCreep
+        end
+        
+        --If you want to fiddle in percentages:
+        
+        --if unitEnemyCreep:GetHealthPercent() < 0.4 then
+        --    return unitEnemyCreep
+        --end
+
+        return nil
+    end
+    return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
+end
+
+behaviorLib.GetCreepAttackTargetOLD = behaviorLib.GetCreepAttackTarget
+behaviorLib.GetCreepAttackTarget = OverrideGetCreepAttackTarget
 
 ------- Auto Attack Harrass Behavior ----------
 
@@ -216,7 +294,8 @@ local heroTarget
 local function AutoAttackHarrassUtility(botBrain)
     local unitSelf = core.unitSelf
     local unitSelfPos = unitSelf:GetPosition()
-    local unitSelfAARange = unitSelf:GetAttackRange() + 50
+    --How much we add to the attack range determines how far from 
+    local unitSelfAARange = unitSelf:GetAttackRange() + 100
     local closestTower = core.GetClosestEnemyTower(unitSelf:GetPosition(), 100000)
     
     local selfDistanceToTower = Vector3.Distance2DSq(unitSelfPos, closestTower:GetPosition())
@@ -239,7 +318,7 @@ local function AutoAttackHarrassUtility(botBrain)
                 if enemyHealth < lowestHealth then
                     lowestHealth = enemyHealth
                     heroTarget = enemy
-                    return 20
+                    return 30
                 end
             end
         end
