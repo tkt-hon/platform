@@ -75,6 +75,40 @@ magmus.oncombateventOld = magmus.oncombatevent
 magmus.oncombatevent = magmus.oncombateventOverride
 
 ----------------------------------
+--	OnCombatEvent Override	--
+----------------------------------
+-- @param: EventData
+-- @return: none 
+function object:oncombateventOverride(EventData)
+    self:oncombateventOld(EventData)
+ 
+    local nAddBonus = 0
+ 
+    if EventData.Type == "Ability" then
+        if EventData.InflictorName == "Ability_Magmar2" then
+            nAddBonus = nAddBonus + 15
+	elseif EventData.InflictorName == "Ability_Magmar1" then
+            nAddBonus = nAddBonus + 20
+        elseif EventData.InflictorName == "Ability_Magmar3" then
+            nAddBonus = nAddBonus + 20
+        elseif EventData.InflictorName == "Ability_Magmar4" then
+            nAddBonus = nAddBonus + 25
+        end
+    elseif EventData.Type == "Item" then
+        end
+    end
+ 
+   if nAddBonus > 0 then
+        core.DecayBonus(self)
+        core.nHarassBonus = core.nHarassBonus + nAddBonus
+    end
+ 
+end
+-- override combat event trigger function.
+object.oncombateventOld = object.oncombatevent
+object.oncombatevent     = object.oncombateventOverride
+
+----------------------------------
 --	HarassHeroOverride	--
 ----------------------------------
 local unitTarget = behaviorLib.heroTarget
