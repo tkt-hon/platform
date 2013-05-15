@@ -78,6 +78,10 @@ function behaviorLib.UseManaRegenUtility(botBrain)
   StopProfile()
 
   StartProfile("End")
+  if nRoSUtility > 0 then
+    nManaPotUtility = 0
+    nBottleUtility = 0
+  end
   nUtility = max(nManaPotUtility, nRoSUtility, nBottleUtility)
   nUtility = Clamp(nUtility, 0, 100)
 
