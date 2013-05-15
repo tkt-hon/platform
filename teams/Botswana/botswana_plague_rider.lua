@@ -52,9 +52,10 @@ function plaguerider:onthinkOverride(tGameVariables)
 
   -- custom code here
 end
+
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
-
+------------------------------------------------------
 
 -- bonus aggro pts if skill/item is available
 plaguerider.nNukeUp = 30
