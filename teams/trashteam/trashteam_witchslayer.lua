@@ -38,9 +38,9 @@ GADGET = 0x0000010
 ALIVE = 0x0000020
 CORPSE = 0x0000040
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_MinorTotem", "2 Item_MarkOfTheNovice" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_Glowstone", "Item_EnhancedMarchers" }
-behaviorLib.MidItems = { "Item_PortalKey", "Item_Intelligence7", "1 Item_Nuke", "Item_Morph", "5 Item_Nuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_MinorTotem", "Item_MarkOfTheNovice", "Item_PretendersCrown" }
+behaviorLib.LaneItems = { "Item_Marchers","Item_HealthPotion", "Item_Glowstone", "Item_EnhancedMarchers" }
+behaviorLib.MidItems = { "Item_Protect", "Item_Intelligence7", "Item_Nuke", "Item_Morph", "4 Item_Nuke" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_PostHaste" }
 
 witchslayer.skills = {}

@@ -11,7 +11,7 @@ local core, behaviorLib = magmus.core, magmus.behaviorLib
 
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Replenish", "Item_MysticVestments"}
-behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Shield2", "Item_MysticVestments" }
+behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Protect", "Item_MysticVestments" }
 behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 
