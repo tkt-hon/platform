@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="temaNoHelp_Rampage"
+  description="temaNoHelp Rampage"
+  heroname="Hero_Rampage"
+  rootlua="temaNoHelp_rampage.lua"
+  defaultplayername="temaNoHelpRampageBot"
+  precachepath="/heroes/rampage/"
+/>

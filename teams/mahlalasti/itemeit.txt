@@ -1,0 +1,59 @@
+
+RAMPAGE
+stampede = 0
+might of the herd = 1, varma
+horned strike = 2
+the chains that bind = 3
+
+mahdollinen 
+1. Horned Strike (For easier last hitting)
+2. Stampede (For that first blood opportunity if your red-life enemy tries to run away)
+3. Might of the Herd (So you can slow your enemies for 4 seconds for that kill or escape)
+4. Might of the Herd (To boost your normal attack damage and your last hitting)
+5. Horned Strike (For a more hurtful harass and easier last-hitting)
+6. The Chains That Bind (Best if you only level this up once)
+7. Might of the Herd
+8. Might of the Herd
+9. Stampede
+10. Horned Strike / Stampede
+11. Stampede / Horned Strike
+12. Stampede / Horned Strike
+13. Horned Strike / Stampede
+14. The Chains That Bind
+15. Bonus
+16. The Chains That Bind
+
+
+1 horned strike
+2 might
+3 charge
+4 might
+5 might
+6 ult
+7 might
+8 strike
+9 strike
+10 strike
+11 ult
+12 charge
+13 charge
+14 charge
+16 ult
+
+horned strike scales horrible as well imo :> might of the herd, might be better to max before charge though but yeah, burst+longer stun > constant dps + slow for ganking imo, but it might still be better, dunno. never tried going like that tbh.
+
+one in each in this order: horned, charge, might of the herd.
+after that, i prio my skills; ulti > charge > might > horned.
+
+
+kaikissa horned ekana ainakin, tässä eka speksi
+2, 0, 1, 1, 2,
+3, 1, 1, 2, 2,
+2, 3, 4, 4, 4,
+4, 4, 4, 4, 4
+
+
+
+itemeistä
+iron shield 
+scarab 
