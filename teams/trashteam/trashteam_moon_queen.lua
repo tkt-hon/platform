@@ -69,7 +69,7 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 function moonqueen:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local unitSelf = self.core.unitSelf
-  if moonqueen.AdvTarget and moonqueen.AdvTargetHero and false then 
+  if moonqueen.AdvTarget and moonqueen.AdvTargetHero and false then
     HoN.DrawDebugLine(unitSelf:GetPosition(), moonqueen.AdvTarget:GetPosition(), true, "red")
     HoN.DrawDebugLine(moonqueen.AdvTarget:GetPosition(), moonqueen.AdvTargetHero:GetPosition(), true, "blue")
   end
@@ -137,7 +137,7 @@ local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, range, ALIVE + UNIT)
   local count = 0
   for _,unit in pairs(unitsLocal) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then 
+    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
       if not IsSiege(unit) then
         count = count +1
       end
@@ -151,7 +151,7 @@ local function UltimateBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 70
   end
 
@@ -209,7 +209,7 @@ local function shouldWeHarassHero(botBrain)
       -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
       if unit:GetHealthPercent() < 0.2 then
         return false
-      else 
+      else
         return true
       end
     end
@@ -220,7 +220,7 @@ local function AdvHarassUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 80
   end
 
@@ -234,11 +234,11 @@ local function AdvHarassUtility(botBrain)
   local allUnits = HoN.GetUnitsInRadius(myPos, atkRange*2, ALIVE + UNIT)
   local allUnitsMax = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + UNIT)
   local potentialCreep = nil
-  local unitCount = 0 
+  local unitCount = 0
   for _,unit in pairs(allUnitsMax) do
     if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
       unitCount = unitCount + 1
-    end 
+    end
   end
   --core.BotEcho("Units around: " .. tostring(unitCount))
   if unitCount > 0 and unitCount < unitSelf:GetAbility(1):GetLevel() then -- less creeps than our bounce
@@ -291,7 +291,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
   local distToEneTo = closeToEnemyTowerDist(hero)
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 80
   end
   return nUtil-modifier

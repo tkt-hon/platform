@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="TrashTeam_MoonQueen"
-  description="TrashTeam's imab Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="trashteam_moon_queen.lua"
-  defaultplayername="TrashTeamMQBot"
-  precachepath="/heroes/krixi/"
-/>

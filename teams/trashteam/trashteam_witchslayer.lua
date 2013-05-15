@@ -9,6 +9,27 @@ local tinsert = _G.table.insert
 
 local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
+runfile 'bots/teams/trashteam/utils/predictiveLasthitting.lua'
+
+witchslayer.bRunLogic         = true
+witchslayer.bRunBehaviors    = true
+witchslayer.bUpdates         = true
+witchslayer.bUseShop         = true
+
+witchslayer.bRunCommands     = true
+witchslayer.bMoveCommands     = true
+witchslayer.bAttackCommands     = true
+witchslayer.bAbilityCommands = true
+witchslayer.bOtherCommands     = true
+
+witchslayer.bReportBehavior = true
+witchslayer.bDebugUtility = true
+
+witchslayer.logger = {}
+witchslayer.logger.bWriteLog = false
+witchslayer.logger.bVerboseLog = false
+
+
 UNIT = 0x0000001
 BUILDING = 0x0000002
 HERO = 0x0000004
@@ -17,22 +38,22 @@ GADGET = 0x0000010
 ALIVE = 0x0000020
 CORPSE = 0x0000040
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_DuckBoots", "Item_MinorTotem", "Item_PretendersCrown" }
-behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_MinorTotem", "2 Item_MarkOfTheNovice" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Glowstone", "Item_EnhancedMarchers" }
+behaviorLib.MidItems = { "Item_PortalKey", "Item_Intelligence7", "1 Item_Nuke", "Item_Morph", "5 Item_Nuke" }
+behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_PostHaste" }
 
 witchslayer.skills = {}
 local skills = witchslayer.skills
 
 core.itemGeoBane = nil
-witchslayer.AdvTarget = nil
+witchslayer.DrainTarget = nil
 witchslayer.AdvTargetHero = nil
 
 witchslayer.tSkills = {
-  1, 2, 1, 2, 1,
-  3, 1, 2, 2, 0,
-  3, 0, 0, 0, 4,
+  0, 2, 0, 1, 0,
+  3, 2, 0, 1, 1,
+  3, 2, 1, 2, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
@@ -47,8 +68,8 @@ function witchslayer:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
   if skills.abilNuke == nil then
     skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilBounce = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
+    skills.abilMini = unitSelf:GetAbility(1)
+    skills.abilDrain = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
     skills.taunt = unitSelf:GetAbility(8)
@@ -95,6 +116,15 @@ local function IsSiege(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
+local function IsRanged(unit)
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionRanged" or unitType == "Creep_HellbourneRanged"
+end
+
+local function IsTower(unit)
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionRanged" or unitType == "Creep_HellbourneRanged"
+end
 
 local function closeToEnemyTowerDist(unit)
   local unitSelf = unit
@@ -105,14 +135,14 @@ local function closeToEnemyTowerDist(unit)
   for _,unit in pairs(unitsInRange) do
     if unit and not(myTeam == unit:GetTeam()) then
       if unit:GetTypeName() == "Building_HellbourneTower" then
-        return Vector3.Distance2DSq(myPos, unit:GetPosition())
+        return Vector3.Distance2D(myPos, unit:GetPosition())
       end
     end
   end
   return 3000
 end
 
-local function GetHeroToUlti(botBrain, myPos, radius)
+local function GetHeroInRange(botBrain, myPos, radius)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
   local vihunmq = nil
 
@@ -128,55 +158,6 @@ local function GetHeroToUlti(botBrain, myPos, radius)
   return vihunmq
 end
 
-local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
-  local unitsLocal = HoN.GetUnitsInRadius(myPos, range, ALIVE + UNIT)
-  local count = 0
-  for _,unit in pairs(unitsLocal) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      if not IsSiege(unit) then
-        count = count +1
-      end
-    end
-  end
-
-  return count <= 1
-end
-
-local function UltimateBehaviorUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 70
-  end
-
-  local abilUlti = unitSelf:GetAbility(3)
-  local myPos = unitSelf:GetPosition()
-  local vihu = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange() * 0.5)
-  local vihuMax = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange())
-  if vihu then
-    local canUlti = AreThereMaxTwoEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange()*2)
-    if abilUlti:CanActivate() and vihu and canUlti  then
-      return 90 -modifier
-    end
-  end
-  if abilUlti:CanActivate() and vihuMax and vihuMax:GetHealth() < 200 then
-    return 95 - (modifier * 0.5)
-  end
-  return 0
-end
-
-local function UltimateBehaviorExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local abilUlti = unitSelf:GetAbility(3)
-  return core.OrderAbility(botBrain, abilUlti, false)
-end
-
-local UltimateBehavior = {}
-UltimateBehavior["Utility"] = UltimateBehaviorUtility
-UltimateBehavior["Execute"] = UltimateBehaviorExecute
-UltimateBehavior["Name"] = "Using ultimate properly"
-tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 
 witchslayer.oncombateventOld = witchslayer.oncombatevent
 witchslayer.oncombatevent = witchslayer.oncombateventOverride
@@ -202,7 +183,7 @@ local function shouldWeHarassHero(botBrain)
   for _,unit in pairs(heroes) do
     if unit and not (allyTeam == unit:GetTeam()) then
       -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
-      if unit:GetHealthPercent() < 0.2 then
+      if unit:GetHealthPercent() < 0.4 then
         return false
       else
         return true
@@ -211,83 +192,48 @@ local function shouldWeHarassHero(botBrain)
   end
 end
 
-local function AdvHarassUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
+local ultiDmg = {0, 500, 650, 850}
+local withStaff =  {0, 600, 800, 1025}
+local nukeDmg = {0, 60, 130, 200, 260}
+
+local function CustomHarassUtilityFnOverride(hero)
+  -- LOL tää funktio saiki ton vastustajan sankarin wtf
+  local unitSelf = core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
+  core.BotEcho("Distance to tower is " .. tostring(distToEneTo))
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 80
   end
 
-  -- 1500 = 0
-  -- 600 = 100
-  local atkRange = unitSelf:GetAttackRange()
-  if not shouldWeHarassHero(botBrain)  then
-    return 0
-  end
-  local myPos = unitSelf:GetPosition()
-  local allUnits = HoN.GetUnitsInRadius(myPos, atkRange*2, ALIVE + UNIT)
-  local allUnitsMax = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + UNIT)
-  local potentialCreep = nil
-  local unitCount = 0
-  for _,unit in pairs(allUnitsMax) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      unitCount = unitCount + 1
-    end
-  end
-  --core.BotEcho("Units around: " .. tostring(unitCount))
-  if unitCount > 0 and unitCount < unitSelf:GetAbility(1):GetLevel() then -- less creeps than our bounce
-    for _,unit in pairs(allUnits) do
-      if unit and unit:GetHealthPercent() <= 0.3 then
-        return 0
-      end
-      if unit and not (botBrain:GetTeam() == unit:GetTeam()) and unit:GetHealthPercent() > 0.55 then
-        if heroIsInRange(botBrain, unit, atkRange * 0.8) then
-          witchslayer.AdvTarget = unit
-          --botBrain.core.BotEcho("HARASS VITTUUU")
-          return 100 - modifier
-        end
-      end
-    end
-  end
-  return 0
-end
-
-local function AdvHarassExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local targetCreep = witchslayer.AdvTarget
-  return core.OrderAttackClamp(botBrain, unitSelf, targetCreep)
-end
-
-local AdvHarassBehavior = {}
-AdvHarassBehavior["Utility"] = AdvHarassUtility
-AdvHarassBehavior["Execute"] = AdvHarassExecute
-AdvHarassBehavior["Name"] = "Using bounce to harass properly"
-tinsert(behaviorLib.tBehaviors, AdvHarassBehavior)
-
-
-local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 12*skills.abilNuke:GetLevel()
+    nUtil = nUtil + 7*skills.abilNuke:GetLevel()
   end
 
   local ultiCost = skills.abilUltimate:GetManaCost()
   local nukeCost = skills.abilNuke:GetManaCost()
-  local myMana = hero:GetMana()
+  local myMana = unitSelf:GetMana()
   if myMana > ultiCost + nukeCost*1.5 then
-    nUtil = nUtil + 20
+    nUtil = nUtil + 10
   end
-  nUtil = nUtil * (hero:GetHealthPercent()*0.5 + 0.4)
+  nUtil = nUtil * (unitSelf:GetHealthPercent()*0.5 + 0.4)
 
   if myMana-nukeCost < nukeCost + ultiCost and (not skills.abilUltimate:CanActivate() or skills.abilUltimate:GetLevel() < 1) then
     nUtil = nUtil*0.5
   end
-  local distToEneTo = closeToEnemyTowerDist(hero)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 80
+  local nuke = skills.abilNuke
+  local ulti = skills.abilUltimate
+  local ultdmg = ultiDmg[ulti:GetLevel()+1]
+  local nukedmg = nukeDmg[nuke:GetLevel()+1]
+  local magicReduc = hero:GetMagicArmor()
+  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
+  if myMana - ultiCost > 0 and hero:GetHealth() < ultdmg*magicReduc and ulti:CanActivate() then
+    return 100
+  end
+  if myMana - nukeCost > 0 and hero:GetHealth() < nukedmg*magicReduc and nuke:CanActivate() then
+    return 100
   end
   return nUtil-modifier
 end
@@ -308,22 +254,31 @@ local function HarassHeroExecuteOverride(botBrain)
   local magicReduc = unitTarget:GetMagicArmor()
   magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
 
-  local abilNuke = skills.abilNuke
+  local nuke = skills.abilNuke
+  local ulti = skills.abilUltimate
+  local mini = skills.abilMini
   local ultiCost = skills.abilUltimate:GetManaCost()
   local nukeCost = skills.abilNuke:GetManaCost()
   local myMana = unitSelf:GetMana()
-  local nukeDmg = abilNuke:GetLevel() * 75 * magicReduc
+  local ultdmg = ultiDmg[ulti:GetLevel()+1]
+  local nukedmg = nukeDmg[nuke:GetLevel()+1]
 
-  if abilNuke:CanActivate() then
-    local nRange = abilNuke:GetRange()
-    if nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg > 300 and myMana-nukeCost > nukeCost+ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg < 300 and myMana-nukeCost > ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth() <= nukeDmg then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    else
-      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+	if core.CanSeeUnit(botBrain, unitTarget) then
+    if ulti:CanActivate() and hero:GetHealth() < ultdmg*magicReduc then
+      local nRange = ulti:GetRange()
+      if nTargetDistanceSq < nRange*nRange then
+        bActionTaken = core.OrderAbilityEntity(botBrain, ulti, unitTarget)
+      end
+    elseif mini:CanActivate() and myMana-mini:GetManaCost() > ultiCost + nukeCost then
+      local nRange = mini:GetRange()
+      if nTargetDistanceSq < (nRange*nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, mini, unitTarget)
+      end
+    elseif nuke:CanActivate() then
+      local nRange = nuke:GetRange()
+      if nTargetDistanceSq < (nRange*nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
+      end
     end
   end
 
@@ -333,3 +288,59 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 witchslayer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+
+local function GetManaUtility(botBrain)
+  --core.BotEcho("ManaUtility calc")
+  local drainMana = skills.abilDrain
+  local util = 0
+  local modifier = 0
+  if drainMana:CanActivate() then
+    local unitSelf = botBrain.core.unitSelf
+    local myMana = unitSelf:GetMana()
+    local ultiCost = skills.abilUltimate:GetManaCost()
+    local nukeCost = skills.abilNuke:GetManaCost()
+    local miniCost = skills.abilMini:GetManaCost()
+    local manaAfterSkills = myMana - ultiCost - nukeCost - miniCost
+    if not manaAfterSkills > 0  then
+      local distToEneTo = closeToEnemyTowerDist(unitSelf)
+      if distToEneTo < 750 then
+        modifier = 80
+      end
+
+      local drainRange = skills.abilDrain:GetRange()
+      local myPos = unitSelf:GetPosition()
+      local allUnitsMax = HoN.GetUnitsInRadius(myPos, drainRange, ALIVE + UNIT)
+      local potentialCreep = nil
+      for _,unit in pairs(allUnitsMax) do
+        if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
+          if IsRanged(unit) then
+            potentialCreep = unit
+          end
+        end
+      end
+      if potentialCreep then
+        witchslayer.DrainTarget = potentialCreep
+        util = 25
+      end
+    end
+  end
+  util = util - modifier
+  if botBrain.bDebugUtility == true and utility ~= 0 then
+     core.BotEcho("  GetManaUtility: " .. tostring(util))
+  end
+  return util
+end
+
+local function GetManaExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local targetCreep = witchslayer.DrainTarget
+  local manaDrain = skills.abilDrain
+  return core.OrderAbilityEntity(botBrain, manaDrain, targetCreep)
+end
+
+local GetManaBehavior = {}
+GetManaBehavior["Utility"] = GetManaUtility
+GetManaBehavior["Execute"] = GetManaExecute
+GetManaBehavior["Name"] = "DrainMana"
+tinsert(behaviorLib.tBehaviors, GetManaBehavior)

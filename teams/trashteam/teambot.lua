@@ -20,16 +20,20 @@ function teambot:GetMemoryUnit(unit)
   return unit and self.tMemoryUnits[unit:GetUniqueID()]
 end
 
-local function FindSuicider(units)
+local function FindLonglane(units)
+  local retUnits = {}
   for _, unit in pairs(units) do
     if unit and unit.isSuicide then
-      return unit.object
+      table.insert(retUnits, unit.object)
     end
+  end
+  if #retUnits > 1 then
+    return retUnits
   end
   return nil
 end
 
-local function FindGanker(units)
+local function FindMid(units)
   for _, unit in pairs(units) do
     if unit and unit.isMid and unit.isGanker then
       return unit.object
@@ -66,17 +70,20 @@ function teambot:BuildLanesOverride()
     tSafeLane = tTopLane
   end
 
-  local suicider = FindSuicider(memUnits)
-  if suicider then
-    local nUID = suicider:GetUniqueID()
-    tExposedLane[nUID] = suicider
-    memUnits[nUID] = nil
+  local suiciders = FindLonglane(memUnits)
+  core.BotEcho(tostring(#suiciders) .. " amount of suiciders")
+  for i=1,#suiciders,1  do
+    if suiciders[i] then
+      local unit = suiciders[i]:GetUniqueID()
+      tExposedLane[unit] = suiciders[i]
+      memUnits[unit] = nil
+    end
   end
 
-  local ganker = FindGanker(memUnits)
-  if ganker then
-    local nUID = ganker:GetUniqueID()
-    tMiddleLane[nUID] = ganker
+  local gankers = FindMid(memUnits)
+  if gankers then
+    local nUID = gankers:GetUniqueID()
+    tMiddleLane[nUID] = gankers
     memUnits[nUID] = nil
   end
 
@@ -109,24 +116,23 @@ local function tfind(table, value)
 end
 
 local tGankers = {
-  "Hero_Magmar"
-  "Hero_Pyromancer"
+  "Hero_WitchSlayer"
 }
 local tCarries = {
-  ""
+  "Hero_Predator"
 }
 local tMidHeros = {
   "Hero_WitchSlayer"
 }
 local tSuiciders = {
   "Hero_Predator",
-  "Hero_shaman"
+  "Hero_Shaman"
 }
 local tSitters = {
-  "Hero_shaman"
+  "Hero_Shaman"
 }
 local tSupports = {
-  "Hero_Frosty"
+  "Hero_Shaman"
 }
 
 function teambot:CreateMemoryUnitOverride(unit)
