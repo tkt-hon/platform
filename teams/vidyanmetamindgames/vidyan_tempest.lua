@@ -167,6 +167,12 @@ local function DenyBehaviorExecute(botBrain)
     local abilDeny = skills.abilMinions
     local target = tempest.denyTarget
     
+    -- for some reason this check needs to be done, wtf
+    if target:GetTypeName() == "Gadget_HomecomingStone" then
+        tempest.denyTarget = nil
+        return false
+    end
+    
     if target then
         core.BotEcho("denying unit "..target:GetTypeName())
         tempest.denyTarget = nil
