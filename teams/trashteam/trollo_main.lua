@@ -266,18 +266,39 @@ local function GetWaveTarget(botBrain, myPos, radius)
   return target
 end
 
+local function CanSeeEnemyHero(botBrain, myPos, radius)
+  local vihu = core.AssessLocalUnits(botBrain, myPos, radius).EnemyHeroes
+  local target = nil
+
+  for key,unit in pairs(vihu) do
+    if unit ~= nil then
+      target = unit
+    end
+  end
+
+  if not target then
+    return nil
+  end
+  return target
+end
+
 
 local function WaveBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilWave = unitSelf:GetAbility(0)
   local myPos = unitSelf:GetPosition()
   local vihu = GetWaveTarget(botBrain, myPos, abilWave:GetRange())
+  core.FindItems(botBrain)	
+	local itemRing = core.itemRing
   if not vihu then
     return 0
   end
-  if abilWave:CanActivate() and unitSelf:GetLevel() > 14 then
+  if abilWave:CanActivate() and vihu:GetHealth() < 180 and abilWave:GetLevel() > 2 and unitSelf:GetMana() > 400 then
     return 100
   end
+	if CanSeeEnemyHero(botBrain, myPos, radius) == nil and abilWave:CanActivate() and abilWave:GetLevel() > 2 and itemRing ~= nil and unitSelf:GetMana() > 400 then
+		return 100
+	end
   return 0
 end
 
@@ -297,7 +318,44 @@ WaveBehavior["Execute"] = WaveBehaviorExecute
 WaveBehavior["Name"] = "Using ultimate properly"
 tinsert(behaviorLib.tBehaviors, WaveBehavior)
 
+local function ManaRingBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  core.FindItems(botBrain)
+	local util = 0	
+	local itemRing = core.itemRing
+
+ 	if botBrain.bDebugUtility == true and utility ~= 0 then
+     core.BotEcho("  ManaRingBehaviorUtility: " .. tostring(util))
+  end
+  if itemRing and itemRing:CanActivate() and unitSelf:GetManaPercent() < 0.9 then
+    util = 50
+  end
+  	return util
 end
+
+local function ManaRingExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+	core.FindItems(botBrain)	
+	local itemRing = core.itemRing
+		object.bRunCommands = true
+		return core.OrderItemClamp(botBrain, unitSelf, itemRing)
+end
+
+local ManaRingBehavior = {}
+ManaRingBehavior["Utility"] = ManaRingBehaviorUtility
+ManaRingBehavior["Execute"] = ManaRingExecute
+ManaRingBehavior["Name"] = "ManaRing"
+tinsert(behaviorLib.tBehaviors, ManaRingBehavior)
+
+end
+
+object.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = object.PussyUtilityOld(BotBrain)
+  return math.min(util*0.5,21)
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
+
 object.oncombateventOld = object.oncombatevent
 object.oncombatevent 	= object.oncombateventOverride
 
@@ -310,8 +368,12 @@ object.oncombatevent 	= object.oncombateventOverride
 -- @param: iunitentity hero
 -- @return: number
 local function CustomHarassUtilityFnOverride(hero)
-    local nUtil = 0
+    local nUtil = -20
     
+	if hero:IsStunned() then 
+		nUtil = nUtil + 100
+	end
+
 	if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
 		nUtil = nUtil + 100
 	end
@@ -382,7 +444,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
 	local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
 	local normalisoitu = Vector3.Normalize(vektori)
-	local kerrottu =  normalisoitu * 40
+	local kerrottu =  normalisoitu * 80
 
 	local stunnivektori = kerrottu + unitTarget:GetPosition()
     local vecTargetPosition = unitTarget:GetPosition()
@@ -393,7 +455,7 @@ local function HarassHeroExecuteOverride(botBrain)
     local bCanSee = core.CanSeeUnit(botBrain, unitTarget)    
     local bActionTaken = false
     
-    
+    HoN.DrawDebugLine(vecMyPosition, stunnivektori, true, "Red")
     --- Insert abilities code here, set bActionTaken to true 
     --- if an ability command has been given successfully
 
@@ -446,42 +508,6 @@ local function HarassHeroExecuteOverride(botBrain)
 		end
 	end
 
-	if not bActionTaken and unitTarget:GetHealth() < 390 and (unitSelf:GetLevel() >= 6 and unitSelf:GetLevel() < 11)  then
-		if bDebugEchos then BotEcho("  No action yet, checking blaze") end
-		local abilBlaze = skills.abilR
-		if abilBlaze:CanActivate() then
-			local nRange = abilBlaze:GetRange()
-			if nTargetDistanceSq < (nRange *nRange) then
-				--calculate a target since our range doesn't match the ability effective range
-				bActionTaken = core.OrderAbilityEntity(botBrain, abilBlaze, unitTarget)
-			end
-		end
-	end
-
-	if not bActionTaken and unitTarget:GetHealth() < 600 and (unitSelf:GetLevel() >= 11 and unitSelf:GetLevel() < 16)  then
-		if bDebugEchos then BotEcho("  No action yet, checking blaze") end
-		local abilBlaze = skills.abilR
-		if abilBlaze:CanActivate() then
-			local nRange = abilBlaze:GetRange()
-			if nTargetDistanceSq < (nRange *nRange) then
-				--calculate a target since our range doesn't match the ability effective range
-				bActionTaken = core.OrderAbilityEntity(botBrain, abilBlaze, unitTarget)
-			end
-		end
-	end
-
-	if not bActionTaken and unitTarget:GetHealth() < 900 and unitSelf:GetLevel() >= 16 then
-		if bDebugEchos then BotEcho("  No action yet, checking blaze") end
-		local abilBlaze = skills.abilR
-		if abilBlaze:CanActivate() then
-			local nRange = abilBlaze:GetRange()
-			if nTargetDistanceSq < (nRange *nRange) then
-				--calculate a target since our range doesn't match the ability effective range
-				bActionTaken = core.OrderAbilityEntity(botBrain, abilBlaze, unitTarget)
-			end
-		end
-	end
-
 	if not bActionTaken then
 		local itemCodex = core.itemCodex
 		if itemCodex and itemCodex:CanActivate() then
@@ -491,7 +517,6 @@ local function HarassHeroExecuteOverride(botBrain)
 			end
 		end
 	end
-    
     
     if not bActionTaken then
         return object.harassExecuteOld(botBrain)

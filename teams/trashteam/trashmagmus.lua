@@ -72,11 +72,15 @@ function magmus:oncombateventOverride(EventData)
 
 end
 
+local function IsChanneling()
+return core.unitSelf:IsChanneling()
+end
+
 local function SteamBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
 
-  if steam and abilSteam:CanActivate() then
+  if steam and abilSteam:CanActivate() and not IsChanneling() then
     return 100
   end
   return 0
@@ -86,7 +90,7 @@ local function SteamBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
 	steam = false
-	if core.unitSelf:IsChanneling() then
+	if IsChanneling() then
 		return
 	end
 core.BotEcho("Trollliii")
@@ -108,8 +112,8 @@ local function ManaRingBehaviorUtility(botBrain)
  	if botBrain.bDebugUtility == true and utility ~= 0 then
      core.BotEcho("  ManaRingBehaviorUtility: " .. tostring(util))
   end
-  if itemRing and itemRing:CanActivate() and unitSelf:GetManaPercent() < 90 then
-    util = 100
+  if itemRing and itemRing:CanActivate() and unitSelf:GetManaPercent() < 0.9 and not IsChanneling() then
+    util = 50
   end
   	return util
 end
@@ -128,12 +132,19 @@ ManaRingBehavior["Execute"] = ManaRingExecute
 ManaRingBehavior["Name"] = "ManaRing"
 tinsert(behaviorLib.tBehaviors, ManaRingBehavior)
 
+magmus.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = magmus.PussyUtilityOld(BotBrain)
+  return math.min(util*0.5,21)
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
+
 -- override combat event trigger function.
 local function CustomHarassUtilityFnOverride(hero)
-	local nUtil = 0
+	local nUtil = -20
 	
-	if core.unitSelf:GetLevel() >= 3 then
-    nUtil = 100
+	if core.unitSelf:GetLevel() > 2 and core.unitSelf:GetHealthPercent() > 0.20 then
+    nUtil = nUtil + 20
   end
 
 	if core.unitSelf:GetLevel() > 6 then
@@ -144,11 +155,32 @@ local function CustomHarassUtilityFnOverride(hero)
 
 	if hero:GetHealth() < damaget[core.unitSelf:GetAbility(0):GetLevel()] 
     and core.unitSelf:GetMana() > 130 then
-		nUtil = nUtil + 60
+		nUtil = nUtil + 40
 	end
+	if IsTowerThreateningUnit(core.unitSelf) and core.unitSelf:GetLevel() < 6 then
+		nUtil = nUtil - 50
+	end
+	core.BotEcho(nUtil)
   
   return nUtil
 end
+
+	function IsTowerThreateningUnit(unit)
+	vecPosition = unit:GetPosition()
+	--TODO: switch to just iterate through the enemy towers instead of calling GetUnitsInRadius
+
+	local nTowerRange = 821.6 --700 + (86 * sqrtTwo)
+	nTowerRange = nTowerRange
+	local tBuildings = HoN.GetUnitsInRadius(vecPosition, nTowerRange, core.UNIT_MASK_ALIVE + core.UNIT_MASK_BUILDING)
+	for key, unitBuilding in pairs(tBuildings) do
+		if unitBuilding:IsTower() and unitBuilding:GetCanAttack() and (unitBuilding:GetTeam()==unit:GetTeam())==false then
+			return true
+		end
+	end
+
+	return false
+end
+
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function HarassHeroExecuteOverride(botBrain)
