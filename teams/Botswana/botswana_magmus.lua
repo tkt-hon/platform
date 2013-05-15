@@ -89,7 +89,7 @@ function object:oncombateventOverride(EventData)
             nAddBonus = nAddBonus + 15
 	elseif EventData.InflictorName == "Ability_Magmus1" then
             nAddBonus = nAddBonus + 20
-        elseif EventData.InflictorName == "Ability_Magmus" then
+        elseif EventData.InflictorName == "Ability_Magmus3" then
             nAddBonus = nAddBonus + 20
         elseif EventData.InflictorName == "Ability_Magmus4" then
             nAddBonus = nAddBonus + 25
@@ -116,9 +116,22 @@ local unitTarget = behaviorLib.heroTarget
         return object.harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
     end
      
-     
     local unitSelf = core.unitSelf
     local vecMyPosition = unitSelf:GetPosition() 
     local nAttackRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
     local nMyExtraRange = core.GetExtraRange(unitSelf)
+     
+    local vecTargetPosition = unitTarget:GetPosition()
+    local nTargetExtraRange = core.GetExtraRange(unitTarget)
+    local nTargetDistanceSq = Vector3.Distance2DSq(vecMyPosition, vecTargetPosition)
+ 
+     
+    local nLastHarassUtility = behaviorLib.lastHarassUtil
+    local bCanSee = core.CanSeeUnit(botBrain, unitTarget)    
+    local bActionTaken = false
+
+
+
+
+
 
