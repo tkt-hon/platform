@@ -23,6 +23,17 @@ local tSupports = {
 	"Hero_Shaman"
 }
 
+local function UID2Name(teambot, nUID)
+	if teambot.tEnemyHeroes[nUID] then
+		return teambot.tEnemyHeroes[nUID]:GetTypeName()
+	elseif teambot.tAllyHeroes[nUID] then
+		return teambot.tAllyHeroes[nUID]:GetTypeName()
+	else
+		return "Unknown("..nUID..")"
+	end
+end
+
+
 -- enemy unit
 local tPositionBuffer = {}
 local nPositionBufferSize = 4
@@ -57,7 +68,45 @@ local function PrintPositionBuffers()
 	end
 end
 
+-- if enemy movement vector hits this, we're good.
+local nWellRadius = 500
+
+-- function just tests if the movements in given array are predictable
+local function IsPredictable(array)
+	local wellPos = core.enemyWell:GetPosition()
+
+	if not array[4] then
+		return false
+	end
+
+	if array[0] == array[4] then
+		return false
+	end
+
+	-- here should test the mid points: 1, 2, 3
+
+	local vecMovement   = -array[4] + array[0]
+	local vecCurrentPos =  array[0]
+	local vecToWell     =  wellPos - vecCurrentPos
+
+	local vecProjection = Vector3.Project(vecToWell, vecMovement)
+
+	local nSqrt = (nWellRadius*nWellRadius)
+	nSqrt = nSqrt - Vector3.Dot(vecProjection, vecProjection)
+	nSqrt = nSqrt + Vector3.Dot(vecToWell, vecToWell)
+
+	if nSqrt > 0 and Vector3.Dot(vecMovement, vecToWell) > 0 then
+		core.DrawDebugArrow(array[4], array[0], 'blue')
+		core.DrawDebugLine(vecCurrentPos, wellPos, 'red')
+		return true
+	else
+		return false
+	end
+end
+
 local nTicks = 0
+-- health must be below this to start predicting enemy movements
+local nHealthPreThreshold = 0.4
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -73,7 +122,10 @@ function teambot:onthinkOverride(tGameVariables)
 		local tEnemyHeroes = self.tEnemyHeroes
 		for nUID, unitHero in pairs(tEnemyHeroes) do
 			if core.CanSeeUnit(self, unitHero) then
-				tPositionBuffer[nUID] = UpdatePositionBuffer(nUID, unitHero)
+				local nHealthPercent = unitHero:GetHealthPercent()
+				if nHealthPercent < nHealthPreThreshold then
+					tPositionBuffer[nUID] = UpdatePositionBuffer(nUID, unitHero)
+				end
 			else
 				tPositionBuffer[nUID] = nil
 			end
@@ -81,7 +133,13 @@ function teambot:onthinkOverride(tGameVariables)
 
 		nTicks = nTicks + 1
 		if (nTicks%10) == 0 then
-			--PrintPositionBuffers()
+			PrintPositionBuffers()
+		end
+
+		for nUID, arr in pairs(tPositionBuffer) do
+			if IsPredictable(tPositionBuffer[nUID]) then
+				print(UID2Name(self, nUID)..': can predict\n')
+			end
 		end
 	end
 
