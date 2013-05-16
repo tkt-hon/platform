@@ -1,11 +1,12 @@
 local _G = getfenv(0)
 local forsaken_archer = _G.object
-local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 forsaken_archer.heroName = "Hero_ForsakenArcher"
 
 runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
+runfile 'bots/teams/drop-table-bots/libhon.lua'
 
+local core, behaviorLib = forsaken_archer.core, forsaken_archer.behaviorLib
 forsaken_archer.skills = {}
 local skills = forsaken_archer.skills
 
@@ -50,13 +51,13 @@ function behaviorLib.CustomHarassUtility(heroTarget)
 	local util = 20 - numCreeps*2
   	local unitSelf = core.unitSelf
 
-	local splitfireMult = 3
+	local volleyMult = 3
 	local ultiMult = 6
-	util = util + splitfireMult * skills.abilSplitFire:GetLevel()
+	util = util + volleyMult * skills.abilCripplingVolley:GetLevel()
 	util = util + ultiMult * skills.abilUlti:GetLevel()
 
 	if heroTarget then
-		if skills.abilSplitFire:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
+		if skills.abilCripplingVolley:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
 			util = util + 1000 -- Splitfire
 		end
 		if skills.abilUlti:CanActivate() and numCreeps < 3 then
@@ -86,16 +87,18 @@ local function executeBehavior(botBrain)
 	local ultiRange = 625
     if behaviorLib.lastHarassUtil >= 5000 then
     	if nTargetDistanceSq < ultiRange * ultiRange then
-			success = core.OrderAbility(botBrain, skills.abilUlti)
+            p("ULTI")
+			success = core.OrderAbilityPosition(botBrain, skills.abilUlti, unitTarget:GetPosition())
         else
         	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
     end
 
 	if not success and behaviorLib.lastHarassUtil >= 500 then
-		local range = skills.abilSplitFire:GetRange()
+		local range = skills.abilCripplingVolley:GetRange()
+        p("VOLLEY")
 		if nTargetDistanceSq < range * range then
-			success = core.OrderAbilityEntity(botBrain, skills.abilSplitFire, unitTarget)
+			success = core.OrderAbilityPosition(botBrain, skills.abilCripplingVolley, unitTarget:GetPosition())
 		else
 			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
 		end
