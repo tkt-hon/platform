@@ -11,7 +11,19 @@ runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 
 
-local core, behaviorLib, shopping, courier = wildsoul.core, wildsoul.behaviorLib, wildsoul.shopping, wildsoul.courier
+local core, behaviorLib, eventsLib, shopping, courier = wildsoul.core, wildsoul.behaviorLib, wildsoul.eventsLib, wildsoul.shopping, wildsoul.courier
+
+core.unitBooboo = nil
+
+local function AssignBooboo(botBrain)
+  local tCreeps = core.AssessLocalUnits(botBrain).AllyCreeps
+  local sPlayer = core.unitSelf:GetOwnerPlayer()
+  for _, creep in pairs(tCreeps) do
+    if creep:GetTypeName() == "Pet_Yogi_Ability1" and creep:GetOwnerPlayer() == sPlayer then
+      core.unitBooboo = creep
+    end
+  end
+end
 
 local ultDuration = HoN.GetMatchTime()-500
 
@@ -145,7 +157,7 @@ local skills = wildsoul.skills
 
 wildsoul.tSkills = {
   0, 2, 0, 2, 0,
-  2, 0, 2, 3, 1,
+  3, 0, 2, 2, 1,
   3, 1, 1, 1, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
@@ -154,10 +166,10 @@ wildsoul.tSkills = {
 
 function wildsoul:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilNuke == nil then
-    skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilBounce = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
+  if skills.abilBear == nil then
+    skills.abilBear = unitSelf:GetAbility(0)
+    skills.abilWild = unitSelf:GetAbility(1)
+    skills.abilBoost = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
@@ -179,9 +191,66 @@ wildsoul.onthink = wildsoul.onthinkOverride
 
 function wildsoul:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
-
+  if EventData.Type == "Ability" then
+    if EventData.InflictorName == "Ability_Yogi1" and not core.Booboo then
+      AssignBooboo(self)
+    end
+  end
   -- custom code here
 end
 -- override combat event trigger function.
 wildsoul.oncombateventOld = wildsoul.oncombatevent
 wildsoul.oncombatevent = wildsoul.oncombateventOverride
+
+local function BearBehaviorUtility(botBrain)
+  if skills.abilBear:CanActivate() then
+    return 100
+  end
+  return 0
+end
+
+local function BearBehaviorExecute(botBrain)
+  return core.OrderAbility(botBrain, skills.abilBear)
+end
+
+local BearBehavior = {}
+BearBehavior["Utility"] = BearBehaviorUtility
+BearBehavior["Execute"] = BearBehaviorExecute
+BearBehavior["Name"] = "Bear using"
+tinsert(behaviorLib.tBehaviors, BearBehavior)
+
+local function UltiBehaviorUtility(botBrain)
+  if skills.abilUltimate:CanActivate() and not (core.unitSelf:HasState("State_Yogi_Ability4") or core.unitSelf:HasState("State_Yogi_Ability4_HD")) then
+    return 100
+  end
+  return 0
+end
+
+local function UltiBehaviorExecute(botBrain)
+  return core.OrderAbility(botBrain, skills.abilUltimate)
+end
+
+local UltiBehavior = {}
+UltiBehavior["Utility"] = UltiBehaviorUtility
+UltiBehavior["Execute"] = UltiBehaviorExecute
+UltiBehavior["Name"] = "Ulti using"
+tinsert(behaviorLib.tBehaviors, UltiBehavior)
+
+local function WildBehaviorUtility(botBrain)
+  if skills.abilWild:CanActivate() and (not core.unitSelf:HasState("State_Yogi_Ability2") or core.unitBooboo and core.unitBooboo:IsAlive() and not core.unitBooboo:HasState("State_Yogi_Ability2")) then
+    return 100
+  end
+  return 0
+end
+
+local function WildBehaviorExecute(botBrain)
+  return core.OrderAbility(botBrain, skills.abilWild)
+end
+
+local WildBehavior = {}
+WildBehavior["Utility"] = WildBehaviorUtility
+WildBehavior["Execute"] = WildBehaviorExecute
+WildBehavior["Name"] = "Wild using"
+tinsert(behaviorLib.tBehaviors, WildBehavior)
+
+
