@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="2easy_Andromeda"
-  description="2easy Andromeda"
-  heroname="Hero_Andromeda"
-  rootlua="2easy_andromeda.lua"
-  defaultplayername="AndroMandro"
-  precachepath="/heroes/andromeda/"
-/>

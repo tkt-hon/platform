@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="2easy_Dampeer_Template"
-  description="2easy Dampeer"
-  heroname="Hero_Dampeer"
-  rootlua="2easy_dampeer_template.lua"
-  defaultplayername="Dampeer Temp"
-  precachepath="/heroes/dampeer/"
-/>

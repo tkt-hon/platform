@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="KazeNoMoon"
-  description="KazeNoMoonBot"
-  heroname="Hero_Krixi"
-  rootlua="2easy_moon_queenCOB.lua"
-  defaultplayername="KazeNoMoon"
-  precachepath="/heroes/krixi/"
-/>

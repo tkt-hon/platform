@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="2easy_RainbowRampage"
-  description="Rainbows are for real men"
-  heroname="Hero_Rampage"
-  rootlua="rainbow_rampage.lua"
-  defaultplayername="RainbowAssRampage"
-  precachepath="/heroes/rampage/"
-/>
