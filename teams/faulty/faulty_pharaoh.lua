@@ -4,6 +4,7 @@ local pharaoh = _G.object
 pharaoh.heroName = "Hero_Mumra"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/faulty/utils.lua'
 
 local core, behaviorLib = pharaoh.core, pharaoh.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
@@ -110,8 +111,6 @@ tWrathRange[0] = 2000
 
 pharaoh.doHarass = {}
 
-runfile 'bots/teams/faulty/utils.lua'
-
 local function CustomHarassUtilityFnOverride(hero)
 	pharaoh.doHarass = {} -- reset
 	local unitSelf = core.unitSelf
@@ -181,6 +180,11 @@ local function CustomHarassUtilityFnOverride(hero)
 		BotEcho(format("  CustomHarass; Hellfire: %g, Wall: %g, Wrath: %g", nRet + nHellfireVal, nRet + nWallVal, nRet + nWrathVal))
 	end
 	nRet = nRet + math.max(nHellfireVal, math.max(nWallVal, nWrathVal))
+
+	-- do avoid enemy towers
+	if core.GetClosestEnemyTower(selfPos, 715) then
+		nRet = nRet / 2
+	end
 
 	return nRet;
 end
