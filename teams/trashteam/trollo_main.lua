@@ -443,11 +443,11 @@ local function HarassHeroExecuteOverride(botBrain)
     local nMyExtraRange = core.GetExtraRange(unitSelf)
     
 
-	local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
-	local normalisoitu = Vector3.Normalize(vektori)
-	local kerrottu =  normalisoitu * 60
+		local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
+		local normalisoitu = Vector3.Normalize(vektori)
+		local kerrottu =  normalisoitu * 60
 
-	local stunnivektori = kerrottu + unitTarget:GetPosition()
+		local stunnivektori = kerrottu + unitTarget:GetPosition()
     local vecTargetPosition = unitTarget:GetPosition()
     local nTargetExtraRange = core.GetExtraRange(unitTarget)
     local nTargetDistanceSq = Vector3.Distance2DSq(vecMyPosition, vecTargetPosition)
