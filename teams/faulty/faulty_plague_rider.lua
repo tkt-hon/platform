@@ -4,6 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/faulty/utils.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
@@ -114,30 +115,6 @@ local nSkillLevelBonus = 5
 
 plaguerider.doHarass = {}
 
-local function NearbyCreepCountUtility(botBrain, center, radius)
-	local count = 0
-	local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
-	local enemies = unitsLocal.EnemyCreeps
-	for _,unit in pairs(enemies) do
-		count = count + 1
-	end
-	return count
-end
-
-local function HeroStateValue(hero, nNoManaVal, nNoHealthVal)
-	local nHealthPercent = hero:GetHealthPercent()
-	local nManaPercent   = hero:GetManaPercent()
-
-	local nRet = 0
-	if nHealthPercent ~= nil then
-		nRet = nRet + (1 - nHealthPercent) * nNoHealthVal
-	end
-	if nManaPercent ~= nil then
-		nRet = nRet + (1 - nManaPercent) * nNoManaVal
-	end
-	return nRet
-end
-
 local function CustomHarassUtilityFnOverride(hero)
 	plaguerider.doHarass = {} -- reset
 	local unitSelf = core.unitSelf
@@ -146,8 +123,8 @@ local function CustomHarassUtilityFnOverride(hero)
 	local selfPos = unitSelf:GetPosition()
 
 	local nRet = 0
-	local nMe = HeroStateValue(unitSelf, nEnemyNoMana, nEnemyNoHealth)
-	local nEnemy = HeroStateValue(hero, nEnemyNoMana, nEnemyNoHealth)
+	local nMe = HeroStateValueUtility(unitSelf, nEnemyNoMana, nEnemyNoHealth)
+	local nEnemy = HeroStateValueUtility(hero, nEnemyNoMana, nEnemyNoHealth)
 	nRet = (nRet + nEnemy - nMe)
 
 	local bCanSee = core.CanSeeUnit(plaguerider, hero)
@@ -169,7 +146,7 @@ local function CustomHarassUtilityFnOverride(hero)
 		local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
 
 		if targetDistanceSq < (nRange * nRange) then
-			local creeps = NearbyCreepCountUtility(plaguerider, heroPos, 600)
+			local creeps = NearbyEnemyCreepCountUtility(plaguerider, heroPos, 600)
 			nPlagueVal = nPlagueVal + nPlagueUp + skills.abilContagion:GetLevel() * nSkillLevelBonus + creeps * nPlagueCreepMod
 		end
 	end
