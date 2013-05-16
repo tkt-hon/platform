@@ -3,7 +3,7 @@ local flint_beastwood = _G.object
 
 flint_beastwood.heroName = "Hero_FlintBeastwood"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
 flint_beastwood.skills = {}
 local skills = flint_beastwood.skills

@@ -3,7 +3,7 @@ local magmus = _G.object
 
 magmus.heroName = "Hero_Magmar"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
 magmus.skills = {}
 local skills = magmus.skills

@@ -3,7 +3,7 @@ local plaguerider = _G.object
 
 plaguerider.heroName = "Hero_DiseasedRider"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
 plaguerider.skills = {}
 local skills = plaguerider.skills

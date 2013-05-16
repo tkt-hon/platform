@@ -18,6 +18,7 @@ local ceil, floor, pi, tan, atan, atan2, abs, cos, sin, acos, max, random
 local BotEcho, VerboseLog, BotLog = core.BotEcho, core.VerboseLog, core.BotLog
 	
 local nSqrtTwo = math.sqrt(2)
+local getMatchTime = HoN.GetMatchTime
 	
 core.unitSelf = nil
 core.teamBotBrain = nil
@@ -90,7 +91,7 @@ function object:onthink(tGameVariables)
 	
 	--[Tutorial] After the reset time, switch legion to different behaviors. 
 	--  This also stop doing some tutorial-specific crutches
-	if core.bIsTutorial and core.bTutorialBehaviorReset == false and HoN.GetMatchTime() > core.nbTutorialBehaviorResetTime then
+	if core.bIsTutorial and core.bTutorialBehaviorReset == false and getMatchTime() > core.nbTutorialBehaviorResetTime then
 		if core.myTeam == HoN.GetLegionTeam() then
 			core.nDifficulty = core.nMEDIUM_DIFFICULTY
 			behaviorLib.harassUtilityWeight = 0.65
@@ -585,7 +586,7 @@ function core.ProcessRespawnChat()
 
 	local nChance = random()
 	if core.bDebugChats then BotEcho("Respawn: "..nChance.." < "..core.nRespawnChatChance.." is "..tostring(nChance < core.nRespawnChatChance)) end
-	if nChance < core.nRespawnChatChance and HoN.GetMatchTime() > 0 then
+	if nChance < core.nRespawnChatChance and getMatchTime() > 0 then
 		local nDelay = random(core.nChatDelayMin, core.nChatDelayMax) 
 		
 		local tChatKeys = core.GetRespawnKeys()

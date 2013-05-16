@@ -783,8 +783,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 		bCanEnterRange = true
 	end
 
-	local bDebugEchos = true
-	local bDebugLines = true
+	local bDebugEchos = core.bDebugTowers
+	local bDebugLines = core.bDebugTowers
 	local lineLen = 150
 
 	--if object.myName == 'ShamanBot' then bDebugEchos = true bDebugLines = true end

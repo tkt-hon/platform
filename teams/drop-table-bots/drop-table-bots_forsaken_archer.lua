@@ -1,12 +1,13 @@
 local _G = getfenv(0)
 local forsaken_archer = _G.object
+local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
 forsaken_archer.heroName = "Hero_ForsakenArcher"
 
-runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
 forsaken_archer.skills = {}
-local skills = forsaken_archer
+local skills = forsaken_archer.skills
 
 forsaken_archer.tSkills = {
   0, 4, 4, 0, 2,
@@ -24,10 +25,88 @@ forsaken_archer.tSkills = {
 -- @param: none
 -- @return: none
 function forsaken_archer:SkillBuildOverride()
-  self:SkillBuildOld()
+    local unitSelf = self.core.unitSelf
+    if  skills.abilCripplingVolley == nil then
+		skills.abilCripplingVolley	= unitSelf:GetAbility(0)
+		skills.abilSplitFire		= unitSelf:GetAbility(1)
+		skills.abilCallOfTheDamned	= unitSelf:GetAbility(2)
+		skills.abilUlti	            = unitSelf:GetAbility(3)
+		skills.abilAttributeBoost	= unitSelf:GetAbility(4)
+	end
+    self:SkillBuildOld()
 end
 forsaken_archer.SkillBuildOld = forsaken_archer.SkillBuild
 forsaken_archer.SkillBuild = forsaken_archer.SkillBuildOverride
+
+---------------------------------------------------------------
+--            Harass utility override                        --
+---------------------------------------------------------------
+-- @param: hero
+-- @return: utility
+function behaviorLib.CustomHarassUtility(heroTarget)
+    -- Default 0
+    local t = core.AssessLocalUnits(forsaken_archer, nil, 400)
+    local numCreeps = core.NumberElements(t.EnemyUnits)
+	local util = 20 - numCreeps*2
+  	local unitSelf = core.unitSelf
+
+	local splitfireMult = 3
+	local ultiMult = 6
+	util = util + splitfireMult * skills.abilSplitFire:GetLevel()
+	util = util + ultiMult * skills.abilUlti:GetLevel()
+
+	if heroTarget then
+		if skills.abilSplitFire:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
+			util = util + 1000 -- Splitfire
+		end
+		if skills.abilUlti:CanActivate() and numCreeps < 3 then
+			util = util + 10000 -- Ulti
+		end
+	end
+	return util
+end
+
+--------------------------------------------------------------
+--                    Harass Behavior                       --
+-- All code how to use abilities against enemies goes here  --
+--------------------------------------------------------------
+-- @param: botbrain
+-- @return: none
+local oldExecute = behaviorLib.HarassHeroBehavior["Execute"]
+local function executeBehavior(botBrain)
+  	local unitTarget = behaviorLib.heroTarget
+  	if unitTarget == nil then
+    	return oldExecute(botBrain)
+  	end
+
+  	local unitSelf = core.unitSelf
+  	local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  	local success = false
+	local ultiRange = 625
+    if behaviorLib.lastHarassUtil >= 5000 then
+    	if nTargetDistanceSq < ultiRange * ultiRange then
+			success = core.OrderAbility(botBrain, skills.abilUlti)
+        else
+        	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+    end
+
+	if not success and behaviorLib.lastHarassUtil >= 500 then
+		local range = skills.abilSplitFire:GetRange()
+		if nTargetDistanceSq < range * range then
+			success = core.OrderAbilityEntity(botBrain, skills.abilSplitFire, unitTarget)
+		else
+			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+		end
+	end
+
+	if not success then
+		return oldExecute(botBrain)
+	end
+	return success
+end
+behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 
 ------------------------------------------------------
 --            onthink override                      --
