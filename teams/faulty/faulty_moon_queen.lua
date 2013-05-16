@@ -5,6 +5,7 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/faulty/bottle_behavior.lua'
+runfile 'bots/teams/faulty/utils.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
@@ -114,32 +115,6 @@ moonqueen.doHarass = {}
 -- moonqueen.doHarass["skill"]  = nil
 -- moonqueen.doHarass["item"]   = nil
 
--- functions returns integer value representing hero state.
-local function HeroStateValue(hero, nNoManaVal, nNoHealthVal)
-	local nHealthPercent = hero:GetHealthPercent()
-	local nManaPercent   = hero:GetManaPercent()
-
-	local nRet = 0
-	if nHealthPercent ~= nil then
-		nRet = nRet + (1 - nHealthPercent) * nNoHealthVal
-	end
-	if nManaPercent ~= nil then
-		nRet = nRet + (1 - nManaPercent) * nNoManaVal
-	end
-	return nRet
-end
-
--- Returns the number of nearby creeps in given radius
-local function NearbyCreepCountUtility(botBrain, center, radius)
-	local count = 0
-	local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
-	local enemies = unitsLocal.EnemyCreeps
-	for _,unit in pairs(enemies) do
-		count = count + 1
-	end
-	return count
-end
-
 local function CustomHarassUtilityFnOverride(hero)
 	moonqueen.doHarass = {} -- reset
 	local unitSelf = core.unitSelf
@@ -152,8 +127,8 @@ local function CustomHarassUtilityFnOverride(hero)
 	local bounceVal   = 0
 
 	local nRet = 0
-	local nMe = HeroStateValue(unitSelf, nEnemyNoMana, nEnemyNoHealth)
-	local nEnemy = HeroStateValue(hero, nEnemyNoMana, nEnemyNoHealth)
+	local nMe = HeroStateValueUtility(unitSelf, nEnemyNoMana, nEnemyNoHealth)
+	local nEnemy = HeroStateValueUtility(hero, nEnemyNoMana, nEnemyNoHealth)
 	nRet = (nRet + nEnemy - nMe)
 
 	local canSee = core.CanSeeUnit(moonqueen, hero)
@@ -161,7 +136,7 @@ local function CustomHarassUtilityFnOverride(hero)
 	local nukeRangeSq      = skills.abilNuke:GetRange() * skills.abilNuke:GetRange()
 
 	if skills.abilUltimate:CanActivate() and targetDistanceSq < (700 * 700) then
-		local creeps = NearbyCreepCountUtility(moonqueen, selfPos, 700)
+		local creeps = NearbyEnemyCreepCountUtility(moonqueen, selfPos, 700)
 		ultimateVal = nUltimateUp
 		if creeps > 2 then
 			ultimateVal = ultimateVal + creeps * nUltimateCreepMod
@@ -170,13 +145,13 @@ local function CustomHarassUtilityFnOverride(hero)
 	end
 
 	if skills.abilNuke:CanActivate() and canSee and targetDistanceSq < nukeRangeSq then
-		local creeps = NearbyCreepCountUtility(moonqueen, heropos, 400)
+		local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 400)
 		nukeVal = nNukeUp + creeps * nNukeCreepMod
 		nukeVal = nukeVal + skills.abilNuke:GetLevel() * nSkillLevelBonus
 	end
 
 	--if skills.abilBounce:CanActivate() then
-	--	local creeps = NearbyCreepCountUtility(moonqueen, heropos, 500)
+	--	local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 500)
 	--	bounceVal = nBounceUp + creeps * nBounceCreepMod
 	--	bounceVal = bounceVal + skills.abilBounce:GetLevel() * nSkillLevelBonus
 	--end
