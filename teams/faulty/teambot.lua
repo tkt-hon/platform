@@ -23,6 +23,10 @@ local tSuiciders = {
 local tSupports = {
 	"Hero_Shaman"
 }
+local tSitters = {
+	"Hero_Shaman",
+	"Hero_Mumra"
+}
 local tSnipers = {
 	"Hero_Mumra"
 }
@@ -346,6 +350,9 @@ function teambot:CreateMemoryUnitOverride(unit)
 		end
 		if tfind(tSnipers, unitType) then
 			original.isSniper = true
+		end
+		if tfind(tSitters, unitType) then
+			original.isSitter = true
 		end
 	end
 	return original

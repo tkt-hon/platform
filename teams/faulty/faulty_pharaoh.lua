@@ -5,12 +5,21 @@ pharaoh.heroName = "Hero_Mumra"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/faulty/lib/utils.lua'
+runfile 'bots/teams/faulty/lib/sitter.lua'
 
 local core, behaviorLib = pharaoh.core, pharaoh.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
 local BotEcho = core.BotEcho
 
 BotEcho("loading faulty_pharaoh.lua")
+
+local function PreGameExecuteOverride(botBrain)
+	if not core.unitSelf.isSitter then
+		return behaviorLib.PreGameExecute(botBrain)
+	end
+	return behaviorLib.PreGameSitterExecute(botBrain)
+end
+behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
 
 behaviorLib.StartingItems = { "Item_ManaRegen3", "Item_RunesOfTheBlight" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_EnhancedMarchers" }

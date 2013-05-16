@@ -8,11 +8,10 @@ runfile 'bots/teams/faulty/lib/utils.lua'
 local core, behaviorLib = shaman.core, shaman.behaviorLib
 
 local function PreGameExecuteOverride(botBrain)
-  local unitSelf = core.unitSelf
-  if not unitSelf.isSitter then
-    return behaviorLib.PreGameExecute(botBrain)
-  end
-  return behaviorLib.PreGameSitterExecute(botBrain)
+	if not core.unitSelf.isSitter then
+		return behaviorLib.PreGameExecute(botBrain)
+	end
+	return behaviorLib.PreGameSitterExecute(botBrain)
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
 
