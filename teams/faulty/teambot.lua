@@ -62,10 +62,10 @@ local function FindSuicider(units)
 	return nil
 end
 
-local function FindSniper(units)
-	for _, unit in pairs(units) do
-		if unit and unit.isSniper then
-			return unit.object
+local function FindSniper(teambot)
+	for nUID, unit in pairs(teambot.tAllyBotHeroes) do
+		if tfind(tSnipers, unit:GetTypeName()) then
+			return unit
 		end
 	end
 	return nil
@@ -138,7 +138,6 @@ local function IsPredictable(array)
 		return false
 	end
 
-
 	local vecMovement   = -array[4] + array[0]
 	local vecCurrentPos =  array[0]
 	local vecToWell     =  wellPos - vecCurrentPos
@@ -173,20 +172,10 @@ end
 
 -- first version
 -- quick-and-dirty iterative algorithm.
-local function FindCollisionPoint(teambot, heroUnit)
+--
+-- @return the position on map to snipe
+local function FindCollisionPoint(teambot, sniper, heroUnit)
 	local wellPos = core.enemyWell:GetPosition()
-
-	local sniper = nil
-	for nUID, unit in pairs(teambot.tAllyBotHeroes) do
-		if tfind(tSnipers, unit:GetTypeName()) then
-			sniper = unit
-		end
-	end
-	if not sniper then
-		print("No sniper found :'(\n")
-		return nil
-	end
-
 	local sniperPos = sniper:GetPosition()
 	local skill = sniper:GetAbility(3)
 	local nProjectileSpeed = 1200 -- hardcoded, for nao.
@@ -194,12 +183,12 @@ local function FindCollisionPoint(teambot, heroUnit)
 	local nHeroSpeed = heroUnit:GetMoveSpeed();
 	local heroPos = heroUnit:GetPosition()
 	local vecToWell = wellPos - heroPos
-	local vecAdd = vecToWell/15
 
 	-- minimal projectile vector, and its travel time
 	local vecProjectileMin, timeMin = nil, nil
 
-	local nIterations = 15
+	local nIterations = 30
+	local vecAdd = vecToWell/nIterations
 	for i = 1, nIterations, 1 do
 		local currentPos = heroPos + (vecAdd * i)
 
@@ -221,7 +210,7 @@ local function FindCollisionPoint(teambot, heroUnit)
 
 	core.DrawDebugLine(sniperPos, sniperPos + vecProjectileMin, 'red')
 
-	return vecProjectileMin
+	return (sniperPos + vecProjectileMin)
 end
 
 local nTicks = 0
@@ -255,18 +244,22 @@ function teambot:onthinkOverride(tGameVariables)
 			end
 		end
 
+		local sniper = FindSniper(teambot)
+		if not sniper then
+			return
+		end
+
 		for nUID, arr in pairs(tPositionBuffer) do
 			if IsPredictable(tPositionBuffer[nUID]) then
 				print(UID2Name(self, nUID)..': can predict\n')
-				local pos = FindCollisionPoint(self, teambot.tEnemyHeroes[nUID])
-
+				local pos = FindCollisionPoint(self, sniper, teambot.tEnemyHeroes[nUID])
 				if pos then
+					teambot.snipeTargetPos = pos
 					print("YATTTAA!\n")
 				end
 			end
 		end
 	end
-
 end
 teambot.onthinkOld = teambot.onthink
 teambot.onthink = teambot.onthinkOverride

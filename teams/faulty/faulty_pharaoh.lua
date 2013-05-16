@@ -224,4 +224,46 @@ pharaoh.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- Sniper behavior. Teambot calculates the position for this.
+--
+local nSnipePossible = 60
+
+-- this will contain all the info.
+pharaoh.doSnipe = {}
+
+function behaviorLib.SniperUtility(botBrain)
+	if core.teamBotBrain.snipeTargetPos then
+		if skills.abilTormented:CanActivate() then
+			return nSnipePossible
+		else
+			BotEcho("SniperUtility: Can't activate :'(")
+			--pharaoh.doSnipe["target"] = nil
+			core.teamBotBrain.snipeTargetPos = nil
+		end
+	end
+
+	return 0
+end
+
+function behaviorLib.SniperExecute(botBrain)
+	--targetPos = pharaoh.doSnipe["target"]
+	targetPos = core.teamBotBrain.snipeTargetPos
+	if targetPos then
+		if skills.abilTormented:CanActivate() then
+			BotEcho("SNIPING!")
+			core.OrderAbilityPosition(botBrain, skills.abilTormented, targetPos)
+			core.teamBotBrain.snipeTargetPos = nil
+		end
+	else
+		BotEcho("SnipeExecute: INVALID TARGET!")
+	end
+end
+behaviorLib.SniperBehavior = {}
+behaviorLib.SniperBehavior["Utility"] = behaviorLib.SniperUtility
+behaviorLib.SniperBehavior["Execute"] = behaviorLib.SniperExecute
+behaviorLib.SniperBehavior["Name"] = "Sniping LAIKA BAAAUUUS"
+tinsert(behaviorLib.tBehaviors, behaviorLib.SniperBehavior)
+--------------------------------------------------------------------------------
+
 BotEcho("finished loading faulty_pharaoh.lua")
