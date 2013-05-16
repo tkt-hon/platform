@@ -100,3 +100,10 @@ local function BuildLanesOverride(self)
   self.tBottomLane = tBottomLane
 end
 teambot.BuildLanes = BuildLanesOverride
+
+function teambot.CalculateThreat(unitHero)
+  local nDPSThreat = teambot.DPSThreat(unitHero)
+  local nRangeThreat = unitHero:GetAttackRange() * 0.50
+  local nThreat = nDPSThreat + nRangeThreat
+  return nThreat
+end

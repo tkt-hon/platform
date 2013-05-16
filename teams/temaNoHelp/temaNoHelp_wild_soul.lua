@@ -1,7 +1,7 @@
 local _G = getfenv(0)
 local wildsoul = _G.object
 
-local tinsert, tremove, max = _G.table.insert, _G.table.remove, _G.math.max
+local tinsert, tremove, max, format = _G.table.insert, _G.table.remove, _G.math.max, _G.string.format
 
 wildsoul.heroName = "Hero_Yogi"
 
@@ -10,6 +10,10 @@ runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/clamp_overrides.lua'
+runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
+
+--wildsoul.bReportBehavior = true
+--wildsoul.bDebugUtility = true
 
 local core, behaviorLib, eventsLib, shopping, courier = wildsoul.core, wildsoul.behaviorLib, wildsoul.eventsLib, wildsoul.shopping, wildsoul.courier
 

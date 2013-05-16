@@ -15,8 +15,7 @@ runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/custom_unit_control.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
-runfile 'bots/teams/temaNoHelp/temaNoHelp_nodivepls.lua'
-
+runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
 
 --pollywog.bReportBehavior = true
 --pollywog.bDebugUtility = true
@@ -235,6 +234,9 @@ pollywog.oncombatevent = pollywog.oncombateventOverride
 
 
 local function CustomHarassUtilityFnOverride(hero)
+  if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 900) then
+    return -1000
+  end
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
