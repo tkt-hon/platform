@@ -293,4 +293,18 @@ behaviorLib.ExtinguishBehavior["Name"] = "Extinguish"
 tinsert(behaviorLib.tBehaviors, behaviorLib.ExtinguishBehavior)
 --------------------------------------------------------------------------------
 
+
+--------------------------------------------------------------------------------
+-- Overridden retreat from threat utilty => avoids towers
+--
+local function RetreatFromThreatUtilityOverride(botBrain)
+	if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 730) then
+		return 120
+	end
+
+	return behaviorLib.RetreatFromThreatUtility(botBrain)
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
+--------------------------------------------------------------------------------
+
 BotEcho("finished loading faulty_plague_rider.lua")
