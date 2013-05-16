@@ -428,7 +428,8 @@ object.nDragonRangeBuffer = -100
 
 local function HarassHeroExecuteOverride(botBrain)
     
-	BotEcho("VITTUUU")
+    -- lol removed since SPAM :DD
+	--BotEcho("VITTUUU")
 
     local unitTarget = behaviorLib.heroTarget
     if unitTarget == nil then

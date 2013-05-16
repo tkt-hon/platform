@@ -131,3 +131,28 @@ function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
 
   return count <= 1
 end
+
+function getHeroWithLessHealthThan(botBrain, dmg, range, physical) -- checksAgainstMagicDmg, unless physical is true
+  local magicDmg = true
+  if physical then
+    magicDmg = false
+  end
+
+  local unitSelf = botBrain.core.unitSelf
+  local myPos = unitSelf:GetPosition()
+  local getTargets = {}
+  local unitsInRange = HoN.GetUnitsInRadius(myPos, range, ALIVE + HERO)
+  for _,unit in pairs(unitsInRange) do
+    if unit and not (ownTeam == unit:GetTeam()) then
+      local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
+      local targetArmor = GetArmorMultiplier(unit,magicDmg)
+      local targetHealth = unit:GetHealth()
+      if targetHealth < dmg*targetArmor then
+        if nTargetDistance < range then
+          util = 100
+          witchslayer.UltiTarget = unit
+        end
+      end
+    end
+  end
+end

@@ -244,7 +244,7 @@ local function LaneLeapBehaviorUtility(botBrain)
   return 0
 end
 
-local function LaneLeapBehaviorExecute(botBrain)
+local function LaneLeapBehaviorExecute(botBrain) -- core.CanSeeUnit(botBrain, unitTarget) Try to use this... Cannot say how.
   local unitSelf = botBrain.core.unitSelf
   local abilLeap = unitSelf:GetAbility(0)
 	local targetHero = predator.LeapTarget
@@ -254,14 +254,15 @@ local function LaneLeapBehaviorExecute(botBrain)
   local nDist = Vector3.Distance2D(targetHero:GetPosition(), unitSelf:GetPosition())
 	local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(targetHero, true)
 	local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(targetHero, false)
+
 	if abilLeap:CanActivate() and (leapdmg > targetHero:GetHealth() or not IsSlowed(targetHero)) and nDist<650 then
-		core.BotEcho("Leappi")
+		--core.BotEcho("Leappi")
 		return core.OrderAbilityEntity(botBrain, abilLeap, targetHero)
 	elseif nDist<=128 then
-		core.BotEcho("ATAAK")
+		--core.BotEcho("ATAAK")
 		return core.OrderAttackClamp(botBrain, unitSelf, targetHero) 
 	else
-		core.BotEcho("LIIKU")
+		--core.BotEcho("LIIKU")
 		return core.OrderMoveToUnitClamp(botBrain, unitSelf, targetHero, false)
 	end
 end

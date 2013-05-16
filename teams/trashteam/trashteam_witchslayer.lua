@@ -10,6 +10,7 @@ local tinsert = _G.table.insert
 local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
 runfile 'bots/teams/trashteam/utils/predLastHit.lua'
+runfile 'bots/teams/trashteam/utils/utils.lua'
 
 witchslayer.bRunLogic         = true
 witchslayer.bRunBehaviors    = true
@@ -119,116 +120,18 @@ end
 witchslayer.oncombateventOld = witchslayer.oncombatevent
 witchslayer.oncombatevent = witchslayer.oncombateventOverride
 -- override combat event trigger function.
-local function IsSiege(unit)
-  local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+
+
+-- MAN UP BEHAVIOUR
+witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = witchslayer.PussyUtilityOld(BotBrain)
+  return math.min(26, util*0.5)
 end
-local function IsRanged(unit)
-  local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionRanged" or unitType == "Creep_HellbourneRanged"
-end
-
-local function IsTower(unit)
-  local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionRanged" or unitType == "Creep_HellbourneRanged"
-end
-
-local function GetArmorMultiplier(unit, magic)
-  --return value of like 0.75 where armor would therefore be 25%
-  --just multiply dmg with this value and you get final result
-  local magicReduc = 0
-  if magic then
-    magicReduc = unit:GetMagicArmor()
-  else
-    magicReduc = unit:GetArmor()
-  end
-  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
-  return magicReduc
-end
-
-local function closeToEnemyTowerDist(unit)
-  local unitSelf = unit
-  local myPos = unitSelf:GetPosition()
-  local myTeam = unitSelf:GetTeam()
-
-  local unitsInRange = HoN.GetUnitsInRadius(myPos, 3000, ALIVE + BUILDING)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not(myTeam == unit:GetTeam()) then
-      if unit:GetTypeName() == "Building_HellbourneTower" then
-        return Vector3.Distance2D(myPos, unit:GetPosition())
-      end
-    end
-  end
-  return 3000
-end
-
-local function GetHeroInRange(botBrain, myPos, radius)
-  local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
-  local vihunmq = nil
-
-  for key,unit in pairs(unitsLocal) do
-    if unit ~= nil and not (botBrain:GetTeam() == unit:GetTeam()) then
-      vihunmq = unit
-    end
-  end
-
-  if not vihunmq then
-    return nil
-  end
-  return vihunmq
-end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
 
-
-
-
-local function heroIsInRange(botBrain,enemyCreep, range)
-  local creepPos = enemyCreep:GetPosition()
-  local unitsInRange = HoN.GetUnitsInRadius(creepPos, range, ALIVE + HERO)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      return true
-    end
-  end
-  return false
-end
-
-local function AmountOfCreepsInRange(target, position, range, ally)
-  if ally == nil then
-    ally = false
-  end
-  local unitsInRange = HoN.GetUnitsInRadius(position, range, ALIVE + UNIT)
-  local count = 0
-  for _,unit in pairs(unitsInRange) do
-    if ally and unit then
-      count = count + 1
-    elseif unit and not (target:GetTeam() == unit:GetTeam()) then
-      count = count + 1
-    end
-  end
-  return count
-end
-
-local function shouldWeHarassHero(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local myPos = unitSelf:GetPosition()
-  local allyTeam = botBrain:GetTeam()
-  local heroes = HoN.GetUnitsInRadius(myPos, 4000, ALIVE+HERO)
-  for _,unit in pairs(heroes) do
-    if unit and not (allyTeam == unit:GetTeam()) then
-      -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
-      if unit:GetHealthPercent() < 0.4 then
-        return false
-      else
-        return true
-      end
-    end
-  end
-end
-
-
-
-local function usefulstuff()
+local function usefulstuff() -- misc stuff, for reminder of stuff
   local ultiCost = skills.abilUltimate:GetManaCost()
   local nukeCost = skills.abilNuke:GetManaCost()
   local myMana = unitSelf:GetMana()
@@ -332,6 +235,8 @@ witchslayer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 
+--- MY BEHAVIOURS ONLY AFTER THIS POINT ---
+
 local function GetManaUtility(botBrain)
   --core.BotEcho("ManaUtility calc")
   local drainMana = skills.abilDrain
@@ -387,7 +292,7 @@ GetManaBehavior["Execute"] = GetManaExecute
 GetManaBehavior["Name"] = "DrainMana"
 tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
-local function GetUltiDmg(botBrain)
+local function GetUltiDmg(botBrain) -- witchslayer specific
   local ulti = skills.abilUltimate
   local ultiLevel = ulti:GetLevel()
   if botBrain.core.ultiStaff then
@@ -458,25 +363,6 @@ EiMihinkaanBehavior["Execute"] = EiMihinkaanExecute
 EiMihinkaanBehavior["Name"] = "EiMihinkaan"
 tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 
-local function getHeroWithLessHealthThan(botBrain, dmg, range)
-  local unitSelf = botBrain.core.unitSelf
-  local myPos = unitSelf:GetPosition()
-  local getTargets = {}
-  local unitsInRange = HoN.GetUnitsInRadius(myPos, range, ALIVE + HERO)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not (ownTeam == unit:GetTeam()) then
-      local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
-      local targetArmor = GetArmorMultiplier(unit,true)
-      local targetHealth = unit:GetHealth()
-      if targetHealth < dmg*targetArmor then
-        if nTargetDistance < range then
-          util = 100
-          witchslayer.UltiTarget = unit
-        end
-      end
-    end
-  end
-end
 
 local function ComboUtility(botBrain)
   --core.BotEcho("ManaUtility calc")
@@ -503,20 +389,15 @@ local function ComboExecute(botBrain)
   return core.OrderAbilityEntity(botBrain, ulti, targetHero)
 end
 
+-- NOT READY FOR DAYLIGHT, BROKEN TO CORE
 --local ComboBehavior = {}
 --ComboBehavior["Utility"] = ComboUtility
 --ComboBehavior["Execute"] = ComboExecute
 --ComboBehavior["Name"] = "ComboTime"
 --tinsert(behaviorLib.tBehaviors, ComboBehavior)
 
--- MAN UP BEHAVIOUR
-witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
-local function PussyUtilityOverride(BotBrain)
-  local util = witchslayer.PussyUtilityOld(BotBrain)
-  return math.min(26, util*0.5)
-end
-behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
+--find items from inventory and puts them in core.xxxx location, check function for more
 local function funcFindItemsOverride(botBrain)
   local bUpdated = witchslayer.FindItemsOld(botBrain)
 
