@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-name="2easy_MQ_trial"
-description="My first HoN bot!"
-heroname="Hero_Krixi”
-rootlua="lumberjack_main.lua"
-defaultplayername="Lumberjack”
-precachepath="/heroes/krixi/"
-/>
