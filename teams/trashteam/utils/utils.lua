@@ -1,3 +1,11 @@
+UNIT = 0x0000001
+BUILDING = 0x0000002
+HERO = 0x0000004
+POWERUP = 0x0000008
+GADGET = 0x0000010
+ALIVE = 0x0000020
+CORPSE = 0x0000040
+
 function IsSiege(unit)
   local unitType = unit:GetTypeName()
   return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"

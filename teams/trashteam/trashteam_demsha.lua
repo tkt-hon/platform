@@ -3,21 +3,16 @@ local shaman = _G.object
 
 shaman.heroName = "Hero_Shaman"
 
+
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
 runfile 'bots/teams/trashteam/utils/utils.lua'
+--runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
+runfile 'bots/teams/trashteam/utils/predictiveLastHittingVesa.lua'
 
 local tinsert = _G.table.insert
 
 local core, behaviorLib = shaman.core, shaman.behaviorLib
 
-UNIT = 0x0000001
-BUILDING = 0x0000002
-HERO = 0x0000004
-POWERUP = 0x0000008
-GADGET = 0x0000010
-ALIVE = 0x0000020
-CORPSE = 0x0000040
 
 --skills!? T0ntsu/fazias
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_DuckBoots", "Item_MinorTotem", "Item_PretendersCrown" }
@@ -68,7 +63,9 @@ shaman.SkillBuild = shaman.SkillBuildOverride
 function shaman:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local unitSelf = self.core.unitSelf
-  -- custom code here
+	
+	initTracking(self)
+	updateCreepHistory(self)
 end
 shaman.onthinkOld = shaman.onthink
 shaman.onthink = shaman.onthinkOverride
