@@ -15,6 +15,7 @@ end
 function GetArmorMultiplier(unit, magic)
   --return value of like 0.75 where armor would therefore be 25%
   --just multiply dmg with this value and you get final result
+  -- needs changes... for if armor is below zero, is different algorithm then
   local magicReduc = 0
   if magic then
     magicReduc = unit:GetMagicArmor()
