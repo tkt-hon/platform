@@ -13,8 +13,8 @@ behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Ite
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 behaviorLib.pushingStrUtilMul = 1
-moonqueen.bReportBehavior = true
-moonqueen.bDebugUtility = true
+moonqueen.bReportBehavior = false
+moonqueen.bDebugUtility = false
 
 
 moonqueen.skills = {}

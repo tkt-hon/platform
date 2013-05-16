@@ -18,8 +18,8 @@ beastwood.skills = {}
 local skills = beastwood.skills
 
 core.itemGeoBane = nil
-beastwood.bReportBehavior = true
-beastwood.bDebugUtility = true
+beastwood.bReportBehavior = false
+beastwood.bDebugUtility = false
 
 beastwood.tSkills = {
   2, 1, 2, 1, 2,

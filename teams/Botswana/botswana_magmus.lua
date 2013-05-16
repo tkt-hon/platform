@@ -210,7 +210,7 @@ local unitTarget = behaviorLib.heroTarget
   end
 
   if not bActionTaken then
-    return plaguerider.harassExecuteOld(botBrain)
+    return magmus.harassExecuteOld(botBrain)
   end
 end
 magmus.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
