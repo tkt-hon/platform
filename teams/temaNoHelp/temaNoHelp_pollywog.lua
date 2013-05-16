@@ -15,6 +15,7 @@ runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/custom_unit_control.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
+runfile 'bots/teams/temaNoHelp/temaNoHelp_nodivepls.lua'
 
 
 --pollywog.bReportBehavior = true
