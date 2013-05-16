@@ -368,18 +368,18 @@ object.oncombatevent 	= object.oncombateventOverride
 -- @param: iunitentity hero
 -- @return: number
 local function CustomHarassUtilityFnOverride(hero)
-    local nUtil = -20
+    local nUtil = 0
 
 		if hero:IsStunned() then 
 			nUtil = nUtil + 100
 		end
 
 		if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
-			nUtil = nUtil + 20
+			nUtil = nUtil + 60
 		end
 
 		if core.unitSelf:GetLevel() > 11 then
-			nUtil = nUtil + 30
+			nUtil = nUtil + 40
 		end
 
     if skills.abilQ:CanActivate() then
@@ -445,7 +445,7 @@ local function HarassHeroExecuteOverride(botBrain)
 
 		local vektori = unitSelf:GetPosition() - unitTarget:GetPosition()
 		local normalisoitu = Vector3.Normalize(vektori)
-		local kerrottu =  normalisoitu * 60
+		local kerrottu =  normalisoitu * 40
 
 		local stunnivektori = kerrottu + unitTarget:GetPosition()
     local vecTargetPosition = unitTarget:GetPosition()

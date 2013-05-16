@@ -27,7 +27,7 @@ magmus.logger = {}
 magmus.logger.bWriteLog = false
 magmus.logger.bVerboseLog = false
 
-behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight" }
+behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown", "Item_MinorTotem", "Item_HealthPotion", "Item_HealthPotion" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Replenish", "Item_MysticVestments"}
 behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Protect", "Item_MysticVestments" }
 behaviorLib.LateItems = { "Item_MagicArmor2" , "Item_DaemonicBreastplate" }
