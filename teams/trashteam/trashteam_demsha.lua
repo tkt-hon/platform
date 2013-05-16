@@ -14,10 +14,10 @@ local core, behaviorLib = shaman.core, shaman.behaviorLib
 
 
 --skills!? T0ntsu/fazias
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_DuckBoots", "Item_MinorTotem", "Item_PretendersCrown" }
-behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_GuardianRing", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown" }
+behaviorLib.LaneItems = { "Item_ManaRegen3", "Item_Marchers", "Item_Steamboots" }
+behaviorLib.MidItems = { "Item_LifeSteal5","Item_MagicArmor2","Item_Protect" }
+behaviorLib.LateItems = { "Item_NomesWisdom"}
 
 shaman.skills = {}
 local skills = shaman.skills
