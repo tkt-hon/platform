@@ -5,6 +5,18 @@ forsaken_archer.heroName = "Hero_ForsakenArcher"
 
 runfile 'bots/core_herobot.lua'
 
+forsaken_archer.skills = {}
+local skills = forsaken_archer
+
+forsaken_archer.tSkills = {
+  0, 4, 4, 0, 2,
+  3, 0, 2, 4, 0,
+  3, 2, 2, 1, 1,
+  3, 1, 1, 4, 4,
+  4, 4, 4, 4, 4
+}
+
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --

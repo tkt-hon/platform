@@ -5,6 +5,9 @@ plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
 
+plaguerider.skills = {}
+local skills = plaguerider.skills
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --

@@ -5,6 +5,18 @@ magmus.heroName = "Hero_Magmar"
 
 runfile 'bots/core_herobot.lua'
 
+magmus.skills = {}
+local skills = magmus.skills
+
+magmus.tSkills = {
+  1, 0, 1, 0, 4,
+  3, 1, 0, 1, 0,
+  3, 2, 4, 2, 4,
+  3, 2, 4, 2, 4,
+  4, 4, 4, 4, 4
+}
+
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --

@@ -5,6 +5,17 @@ witch_slayer.heroName = "Hero_WitchSlayer"
 
 runfile 'bots/core_herobot.lua'
 
+witch_slayer.skills = {}
+local skills = witch_slayer.skills
+
+witch_slayer.tSkills = {
+  0, 1, 0, 2, 0,
+  3, 0, 1, 1, 1,
+  3, 2, 2, 2, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
+}
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --

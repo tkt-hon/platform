@@ -5,6 +5,18 @@ flint_beastwood.heroName = "Hero_FlintBeastwood"
 
 runfile 'bots/core_herobot.lua'
 
+flint_beastwood.skills = {}
+local skills = flint_beastwood.skills
+
+flint_beaswood.tSkills = {
+  2, 0, 4, 2, 0,
+  3, 2, 4, 4, 0,
+  3, 1, 1, 1, 2,
+  3, 0, 1, 4, 4,
+  4, 4, 4, 4, 4
+}
+
+
 ---------------------------------------------------------------
 --            SkillBuild override                            --
 -- Handles hero skill building. To customize just write own  --
