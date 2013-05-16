@@ -11,6 +11,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
+runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
 
 local core, behaviorLib, shopping, courier = plaguerider.core, plaguerider.behaviorLib, plaguerider.shopping, plaguerider.courier
 
@@ -177,11 +178,6 @@ local function CustomHarassUtilityFnOverride(hero)
   local unitTarget = behaviorLib.heroTarget
   --jos potu käytössä niin ei agroilla
   if core.unitSelf:HasState(core.idefHealthPotion.stateName) then
-    return -10000
-  end
-
-  --jos tornin rangella ni ei mennä
-  if core.GetClosestEnemyTower(hero:GetPosition(), 715) then
     return -10000
   end
 

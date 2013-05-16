@@ -30,7 +30,7 @@ end
 
 local function FindSolo(units)
   for _, unit in pairs(units) do
-    if unit and unit:GetTypeName() == "Hero_Yogi" then
+    if unit and unit:GetTypeName() == "Hero_DiseasedRider" then
       return unit.object
     end
   end
