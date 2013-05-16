@@ -6,6 +6,7 @@ runfile 'bots/lib/rune_controlling/init_team.lua'
 
 local core = teambot.core
 local print, tinsert = _G.print, _G.table.insert
+local acos, pi = _G.math.acos, _G.math.pi
 
 teambot.myName = 'Faulty'
 
@@ -22,6 +23,14 @@ local tSuiciders = {
 local tSupports = {
 	"Hero_Shaman"
 }
+
+
+local function VectorAngle(vec1, vec2)
+	local nDot = Vector3.Dot(vec1, vec2)
+	nDot = nDot/(Vector3.Length(vec1) * Vector3.Length(vec2))
+	local nAcos = acos(nDot)
+	return nAcos * 180/math.pi
+end
 
 local function UID2Name(teambot, nUID)
 	if teambot.tEnemyHeroes[nUID] then
@@ -83,11 +92,23 @@ local function IsPredictable(array)
 		return false
 	end
 
-	-- here should test the mid points: 1, 2, 3
 
 	local vecMovement   = -array[4] + array[0]
 	local vecCurrentPos =  array[0]
 	local vecToWell     =  wellPos - vecCurrentPos
+
+	-- here should test the mid points: 1, 2, 3
+	local firstToSecond = -array[4] + array[3]
+	local firstToThird  = -array[4] + array[2]
+	local firstToFourth = -array[4] + array[1]
+
+	local nAngle1 = VectorAngle(firstToSecond, vecMovement)
+	local nAngle2 = VectorAngle(firstToThird, vecMovement)
+	local nAngle3 = VectorAngle(firstToFourth, vecMovement)
+
+	if nAngle1 < 15 or nAngle2 < 15 or nAngle3 < 15 then
+		return false
+	end
 
 	local vecProjection = Vector3.Project(vecToWell, vecMovement)
 
@@ -95,7 +116,7 @@ local function IsPredictable(array)
 	nSqrt = nSqrt - Vector3.Dot(vecProjection, vecProjection)
 	nSqrt = nSqrt + Vector3.Dot(vecToWell, vecToWell)
 
-	if nSqrt > 0 and Vector3.Dot(vecMovement, vecToWell) > 0 then
+	if nSqrt > 0 and VectorAngle(vecMovement, vecToWell) < 10 then
 		core.DrawDebugArrow(array[4], array[0], 'blue')
 		core.DrawDebugLine(vecCurrentPos, wellPos, 'red')
 		return true
@@ -105,6 +126,8 @@ local function IsPredictable(array)
 end
 
 local nTicks = 0
+local nUpdateInterval = 4
+
 -- health must be below this to start predicting enemy movements
 local nHealthPreThreshold = 0.4
 
@@ -117,8 +140,10 @@ local nHealthPreThreshold = 0.4
 function teambot:onthinkOverride(tGameVariables)
 	self:onthinkOld(tGameVariables)
 
+	nTicks = nTicks + 1
+
 	-- custom code here
-	if self.teamBotBrainInitialized then
+	if self.teamBotBrainInitialized and (nTicks%nUpdateInterval) == 0 then
 		local tEnemyHeroes = self.tEnemyHeroes
 		for nUID, unitHero in pairs(tEnemyHeroes) do
 			if core.CanSeeUnit(self, unitHero) then
@@ -129,11 +154,6 @@ function teambot:onthinkOverride(tGameVariables)
 			else
 				tPositionBuffer[nUID] = nil
 			end
-		end
-
-		nTicks = nTicks + 1
-		if (nTicks%10) == 0 then
-			PrintPositionBuffers()
 		end
 
 		for nUID, arr in pairs(tPositionBuffer) do
