@@ -1,59 +1,34 @@
 local _G = getfenv(0)
 local moonqueen = _G.object
 
------------------------------------
---        Todo                   --
--- 				 --
------------------------------------
--- Itemit
--- Varovaisempi peli
--- vihusta etäisyys
--- position self ongelma tornin kanssa
-
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
---"Item_HealthPotion",
+
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_TrinketOfRestoration",  "3 Item_MinorTotem"}
-behaviorLib.LaneItems = { "Item_Punchdagger","Item_TrinketOfRestoration", "Item_MagicArmor2" }
-behaviorLib.MidItems = { "Item_EnhancedMarchers" }
+
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+
+behaviorLib.pushingStrUtilMul = 1
+moonqueen.bReportBehavior = true
+moonqueen.bDebugUtility = true
 
 
 moonqueen.skills = {}
 local skills = moonqueen.skills
-behaviorLib.pushingCap = 22
-behaviorLib.pushingStrUtilMul = 20
-moonqueen.bReportBehavior = true
-moonqueen.bDebugUtility = true
-local BotEcho = core.BotEcho
----------------------------------------------------------------
---            SkillBuild override                            --
--- Handles hero skill building. To customize just write own  --
----------------------------------------------------------------
--- @param: none
--- @return: none
+
+core.itemGeoBane = nil
+
 moonqueen.tSkills = {
- 1, 4, 1, 4, 2,
- 4, 2, 4, 2, 1,
- 2, 1, 4, 4, 0,
- 0, 0, 0, 3, 3,
- 3, 0, 0, 0, 0
+  0, 4, 0, 4, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 2,
+  3, 2, 4, 4, 4,
+  4, 4, 4, 4, 4
 }
- 
---  2, 4, 2, 1, 2,
---  4, 2, 1, 4, 1,
---  4, 1, 4, 4, 4,
---  3, 0, 0, 0, 0,
---  3, 3, 0, 0, 0
-
---  0, 4, 0, 4, 0,
---  3, 0, 2, 2, 1,
---  3, 1, 1, 1, 2,
---  3, 2, 4, 4, 4,
---  4, 0, 0, 0, 0
-
 
 function moonqueen:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
@@ -68,6 +43,7 @@ function moonqueen:SkillBuildOverride()
 end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
+
 ------------------------------------------------------
 --            onthink override                      --
 -- Called every bot tick, custom onthink code here  --
@@ -97,166 +73,137 @@ end
 moonqueen.oncombateventOld = moonqueen.oncombatevent
 moonqueen.oncombatevent = moonqueen.oncombateventOverride
 
-
-local function nearestCreep()
-	local temp = core.localUnits["EnemyCreeps"]
-	local selfPos = core.unitSelf:GetPosition()
-	local nearest = nil
-	local nearestDistance = nil
-        for id, creep in pairs(temp) do
-		local position = creep:GetPosition()
-		local distance = Vector3.Distance2DSq(position, selfPos)
-		
-		if not nearest or distance < nearestDistance then
-			nearest = creep
-			nearestDistance = distance
-		end
-	end
-	return nearest
+local function NearbyCreepCount(botBrain, center, radius)
+  local count = 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+  local enemies = unitsLocal.EnemyCreeps
+  for _,unit in pairs(enemies) do
+    count = count + 1
+  end
+  return count
 end
 
-
-local function checkTower(range)
-	local selfPos = core.unitSelf:GetPosition()
-	local torni = core.GetClosestEnemyTower(selfPos, range)
-	if torni == nil then
-	return false
-	end
-	return true
-
+local function NearbyHeroCount(botBrain, center, radius)
+  local count = 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
+  local enemies = unitsLocal.EnemyHeroes
+  for _,unit in pairs(enemies) do
+    count = count + 1
+  end
+  return count
 end
 
-local function HarassHeroUtilityOverride(botBrain)
-	
-	if checkTower(1200) then
-		return 0
-	end
-	
-	return behaviorLib.HarassHeroUtility(botBrain)
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
 
+
+  local leveli = moonqueen:GetHeroUnit():GetLevel()
+  local ultimana = 0  
+	if leveli == 6 then
+	ultimana = 150
+	elseif leveli == 11 then
+	ultimana = 200
+	elseif leveli == 16 then
+	ultimana = 250
+	end
+  ultimana = ultimana+120 
+  if skills.abilNuke:CanActivate() and moonqueen:GetHeroUnit():GetMana() > ultimana and leveli > 4 then
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
+  end
+
+  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
+  local heroes = NearbyHeroCount(moonqueen, hero:GetPosition(), 700)
+  if skills.abilUltimate:CanActivate() and creeps < 3 and heroes < 3 then
+    nUtil = nUtil + 100
+  end
+
+  return nUtil
 end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
-behaviorLib.HarassHeroBehavior["Utility"] = HarassHeroUtilityOverride
+local function HarassHeroExecuteOverride(botBrain)
 
-local function CheckForFriendlies()
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
 
-	local AllyCreeps = core.localUnits["AllyCreeps"]
-	local size = core.NumberElements(AllyCreeps)	
-	if size > 2 then
-	return true
-	end
-	return false
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+    local itemGeoBane = core.itemGeoBane
+    if not bActionTaken then
+      if itemGeoBane then
+        if itemGeoBane:CanActivate() then
+          bActionTaken = core.OrderItemClamp(botBrain, unitSelf, itemGeoBane)
+        end
+      end
+    end
+
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken and nLastHarassUtility > 50 then
+      if abilUltimate:CanActivate() then
+        local nRange = 600
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+
+    local abilNuke = skills.abilNuke
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
 end
+moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
-local function PushUtilityOverride(botBrain)
-	
-	if checkTower(1200) then
-		return 0
-	end
-	
-	if not CheckForFriendlies() then
-		return 0
-	end
-
-
-
-	return behaviorLib.PushUtility(botBrain)
-
+local function DPSPushingUtilityOverride(myHero)
+  local modifier = 1 + myHero:GetAbility(1):GetLevel()*0.3
+  return moonqueen.DPSPushingUtilityOld(myHero) * modifier
 end
+moonqueen.DPSPushingUtilityOld = behaviorLib.DPSPushingUtility
+behaviorLib.DPSPushingUtility = DPSPushingUtilityOverride
 
-behaviorLib.PushBehavior["Utility"] = PushUtilityOverride
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = moonqueen.FindItemsOld(botBrain)
 
+  if core.itemGeoBane ~= nil and not core.itemGeoBane:IsValid() then
+    core.itemGeoBane = nil
+  end
 
+  if bUpdated then
+    if core.itemGeoBane then
+      return
+    end
 
-local function Ostelee(botBrain)
-	local massit = moonqueen:GetGold()
-	local hp = moonqueen:GetHeroUnit ():GetHealthPercent ()
-
-	if massit > 1050 or hp < 0.3 then
-		return 50
-	end
-	
-	
-	
-	return behaviorLib.HealAtWellUtility(botBrain)
-	
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        if core.itemGeoBane == nil and curItem:GetName() == "Item_ManaBurn2" and not curItem:IsRecipe() then
+          core.itemGeoBane = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+  return bUpdated
 end
-
-behaviorLib.HealAtWellBehavior["Utility"] = Ostelee
-
-local function PushExecuteOverwrite(botBrain)
-
-	local bDebugLines = true
-
-
-
-	if core.unitSelf:IsChanneling() then 
-		return
-	end
-
-	local unitSelf = core.unitSelf
-	local bActionTaken = false
-
-
-	--If no creeps around, go to tower to wait
-	
-	
-	
-
-
-
-
-
-	--Turn on Ring of the Teacher if we have it
-	if bActionTaken == false then
-		local itemRoT = core.itemRoT
-		if itemRoT then
-			itemRoT:Update()
-			local tInventory = unitSelf:GetInventory()
-			if itemRoT.bHeroesOnly then
-				local tRoT = core.InventoryContains(tInventory, itemRoT:GetTypeName())
-				if not core.IsTableEmpty(tRoT) then
-					if bDebugEchos then BotEcho("Turning on RoTeacher") end
-					bActionTaken = core.OrderItemClamp(botBrain, unitSelf, core.itemRoT)
-				end
-			end
-		end
-	end
-
-
-	--Attack creeps if we're in range
-	if bActionTaken == false then
-
-		local unitTarget = nearestCreep()
-		if unitTarget then
-			if bDebugEchos then BotEcho("Attacking creeps") end
-			local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
-			if unitSelf:GetAttackType() == "melee" then
-				--override melee so they don't stand *just* out of range
-				nRange = 250
-			end
-
-			if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
-				bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
-			end
-
-			if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
-		end
-	end
-
-	if bActionTaken == false then
-		local vecDesiredPos = behaviorLib.PositionSelfLogic(botBrain)
-		if vecDesiredPos then
-			if bDebugEchos then BotEcho("Moving out") end
-			bActionTaken = behaviorLib.MoveExecute(botBrain, vecDesiredPos)
-
-			if bDebugLines then core.DrawXPosition(vecDesiredPos, 'blue') end
-		end
-	end
-
-	if bActionTaken == false then
-		return false
-	end
-end
-
-behaviorLib.PushBehavior["Execute"] = PushExecuteOverwrite
+moonqueen.FindItemsOld = core.FindItems
+core.FindItems = funcFindItemsOverride
