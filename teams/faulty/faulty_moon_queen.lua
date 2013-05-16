@@ -4,6 +4,7 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/faulty/bottle_behavior.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
@@ -300,87 +301,6 @@ end
 moonqueen.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
--- HEAL BEHAVIOR - Currently only heals self
---
--- Utility: 0 if health greater than healThreshold value, or item unusable
---          else: (1 - healthPercent) * healVar
---             e.g. assume healVar is 45, and health at given percent
---               0.7: 13.5
---               0.5: 22.5
---               0.3: 31.5
---               0.2: 36
-moonqueen.doHeal = {}
---moonqueen.doHeal["target"] = nil
---moonqueen.doHeal["skill"]  = nil
---moonqueen.doHeal["item"]   = nil
-
-local healThreshold = 0.7 -- heals when health below this %
-local healVar = 40        -- just some magic value
-                          -- higher it is, more likely to heal
-local manaThreshold = 0.5
-local manaVar = 20
-
-function behaviorLib.HealUtility(botBrain)
-	moonqueen.doHeal = {} -- reset
-
-	if core.GetCurrentBehaviorName(botBrain) == "HealAtWell" then
-		-- don't heal if going to well.
-		return 0
-	end
-
-	core.FindItems()
-	local itemBottle = core.itemBottle
-
-	if itemBottle and itemBottle:CanActivate() and itemBottle:GetActiveModifierKey() ~= "bottle_empty" then
-		local unitSelf = core.unitSelf
-		local healthPercent = unitSelf:GetHealthPercent()
-		local healthLow = (healthPercent < healThreshold)
-		local manaPercent = unitSelf:GetManaPercent()
-		local manaLow = (manaPercent < manaThreshold)
-
-		if healthLow then
-			moonqueen.doHeal["target"] = unitSelf
-			moonqueen.doHeal["item"]   = itemBottle
-			local ret = (1 - healthPercent) * healVar
-			if manaLow then
-				ret = ret + (1 - manaPercent) * manaVar
-			end
-			BotEcho(format("  HealUtility: %g", ret))
-			return ret
-		end
-	end
-
-	return 0
-end
-
-function behaviorLib.HealExecute(botBrain)
-	if moonqueen.doHeal["target"] then
-		local target = moonqueen.doHeal["target"]
-		if moonqueen.doHeal["item"] then
-			local item = moonqueen.doHeal["item"]
-			BotEcho(format("  HealExecute, Healing with %s", item:GetName()))
-			core.OrderItemClamp(botBrain, target, item)
-		elseif moonqueen.doHeal["skill"] then
-			-- TODO
-		end
-
-		return true
-	else
-		BotEcho("  HealExecute: INVALID TARGET!")
-	end
-
-	return false
-end
-
-behaviorLib.HealBehavior = {}
-behaviorLib.HealBehavior["Utility"] = behaviorLib.HealUtility
-behaviorLib.HealBehavior["Execute"] = behaviorLib.HealExecute
-behaviorLib.HealBehavior["Name"] = "Heal"
-tinsert(behaviorLib.tBehaviors, behaviorLib.HealBehavior)
 --------------------------------------------------------------------------------
 
 BotEcho("finished loading faulty_moon_queen.lua")
