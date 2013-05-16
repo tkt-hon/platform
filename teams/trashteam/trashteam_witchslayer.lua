@@ -177,11 +177,15 @@ local function CustomHarassUtilityFnOverride(hero)
   elseif heroPHealth <= myPHealth and heroPHealth > 0.3 then
     nUtil = nUtil * 1.6
   end
+  if heroPHealth < 0.3 and not skills.abilNuke:CanActivate() then
+    nUtil = 0
+  end
   if hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
-    nUtil = 100
+    nUtil = 70
+    modifier = modifier*0.4 -- GO IN!?
   end
 
-  return nUtil-modifier
+  return math.min(70,nUtil-modifier) -- Never be more important than 70
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
@@ -212,8 +216,8 @@ local function HarassHeroExecuteOverride(botBrain)
     core.OrderItemClamp(botBrain, unitSelf, speed)
   end
 
-	if core.CanSeeUnit(botBrain, unitTarget) then
-    if nuke:CanActivate() and myMana-nukeCost > ultiCost+nukeCost+mini:GetManaCost() then
+	if core.CanSeeUnit(botBrain, unitTarget) then -- removed mini cost, not using yet
+    if nuke:CanActivate() and myMana-nukeCost > ultiCost+nukeCost then
       local nRange = nuke:GetRange()
       if nTargetDistanceSq < nRange then
         bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
@@ -302,6 +306,7 @@ local function GetUltiDmg(botBrain) -- witchslayer specific
 end
 
 local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shrunken/nullstone)
+                                            -- also serious weakness against illusions, FUCK. Geomen too strong.
   --core.BotEcho("ManaUtility calc")
   local unitSelf = botBrain.core.unitSelf
   local ulti = skills.abilUltimate

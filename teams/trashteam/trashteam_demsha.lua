@@ -109,6 +109,7 @@ local function CustomHarassUtilityFnOverride(hero)
   -- maybe also raise utility to initiate a kill try, predator should(?) jump in if slow hits
   -- Help Predator when he is trying to kill someone? or something :D
   -- We could get more kills if we had more heroes trying to kill one instead of only 1
+
   return nUtil
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
@@ -240,7 +241,7 @@ local function ResqueHealingWaveUtility(botBrain) -- done by hiridur, does it wo
 end
 
 local function ResqueHealingWaveExecute(botBrain)
-	core.BotEcho("resquehealingwave")
+	--core.BotEcho("resquehealingwave")
   return core.OrderAbilityEntity(botBrain, skills.abilHeal, shaman.resqueTarget)
 end
 
