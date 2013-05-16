@@ -88,7 +88,7 @@ object.heroName = 'Hero_Pyromancer'
 --   item buy order. internal names  
 behaviorLib.StartingItems  = {"Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_HealthPotion", "Item_PretendersCrown"}
 behaviorLib.LaneItems  = {"Item_Marchers", "Item_Replenish", "Item_Steamboots", }
-behaviorLib.MidItems  = {"Item_Protect", "Item_Nuke"}
+behaviorLib.MidItems  = {"Item_Protect", "3 Item_SpellShards"}
 behaviorLib.LateItems  = {"Item_Silence"}
 
 
@@ -102,9 +102,9 @@ object.tSkills = {
 }
 
 -- These are bonus agression points if a skill/item is available for use
-object.nPhoenixUp = 10
-object.nDragonUp = 10
-object.nBlazingUp = 70
+object.nPhoenixUp = 100
+object.nDragonUp = 100
+object.nBlazingUp = 100
 
 
 -- These are bonus agression points that are applied to the bot upon successfully using a skill/item
@@ -233,7 +233,7 @@ function object:oncombateventOverride(EventData)
 	self:oncombateventOld(EventData)
 
 	if core.unitSelf:GetLevel() < 3 then
-		core.nHarassBonus = 0
+		core.nHarassBonus = 5
 
 	elseif IsTowerThreateningUnit(core.unitSelf) then
 		core.nHarrasBonus = 0
@@ -369,18 +369,18 @@ object.oncombatevent 	= object.oncombateventOverride
 -- @return: number
 local function CustomHarassUtilityFnOverride(hero)
     local nUtil = -20
-    
-	if hero:IsStunned() then 
-		nUtil = nUtil + 100
-	end
 
-	if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
-		nUtil = nUtil + 20
-	end
+		if hero:IsStunned() then 
+			nUtil = nUtil + 100
+		end
 
-	if core.unitSelf:GetLevel() > 11 then
-		nUtil = nUtil + 30
-	end
+		if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
+			nUtil = nUtil + 20
+		end
+
+		if core.unitSelf:GetLevel() > 11 then
+			nUtil = nUtil + 30
+		end
 
     if skills.abilQ:CanActivate() then
         nUtil = nUtil + object.nPhoenixUp

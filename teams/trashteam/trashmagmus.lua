@@ -231,13 +231,13 @@ behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 -- override combat event trigger function.
 local function CustomHarassUtilityFnOverride(hero)
 	local nUtil = 0
-	
+
 	if core.unitSelf:GetLevel() > 2 and core.unitSelf:GetHealthPercent() > 0.20 then
-    nUtil = nUtil + 20
+    nUtil = nUtil + 30
   end
 
 	if core.unitSelf:GetLevel() > 6 then
-		nUtil = nUtil + 10
+		nUtil = nUtil + 20
 	end
 
   local damaget = {100, 160, 220, 280}
@@ -249,6 +249,7 @@ local function CustomHarassUtilityFnOverride(hero)
 	if IsTowerThreateningUnit(core.unitSelf) and core.unitSelf:GetLevel() < 6 then
 		nUtil = nUtil - 50
 	end
+
   
   return nUtil
 end

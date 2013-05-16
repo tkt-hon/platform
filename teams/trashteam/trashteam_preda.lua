@@ -22,9 +22,11 @@ ALIVE = 0x0000020
 CORPSE = 0x0000040
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_CrushingClaws", "Item_CrushingClaws", "Item_MinorTotem", "Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_HealthPotion","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_Strength5", "Item_Strength5", "Item_Pierce" }
+behaviorLib.LaneItems = { "Item_HealthPotion","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_Strength5", "Item_Strength5" }
 behaviorLib.MidItems = { "Item_Strength6", "Item_StrengthAgility" }
-behaviorLib.LateItems = { "2 Item_Pierce", "Item_Dawnbringer", "Item_BehemothsHeart" }
+behaviorLib.LateItems = {"Item_Dawnbringer", "Item_BehemothsHeart" }
+
+local hide = false
 
 predator.skills = {}
 local skills = predator.skills
@@ -90,6 +92,10 @@ predator.onthink = predator.onthinkOverride
 function predator:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
+	if EventData.ProjectileDisjointable then
+		hide = true
+	end
+
   -- custom code here
   local nAddBonus = 0
 	if EventData.Type=="Ability" then
@@ -139,7 +145,15 @@ local function HarassHeroExecuteOverride(botBrain)
   local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), unitTarget:GetPosition())
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
-  local bActionTaken = false
+	if not bActionTaken then
+			if unitTarget ~= nil and not core.unitSelf:IsChanneling() then
+				bActionTaken = core.OrderAttack(botBrain, unitSelf, unitTarget)
+			else
+				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
+      end
+		end
+
+  --local bActionTaken = false
   if not bActionTaken then
     return predator.harassExecuteOld(botBrain)
   end
@@ -150,6 +164,29 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 ------------------------------------------------------------------------------------------------
 ---                 Your own functions and behaviours after this point                       ---
 ------------------------------------------------------------------------------------------------
+local function HideBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilHide = unitSelf:GetAbility(1)
+  if hide then
+		hide = false
+    return 80
+  end
+  return 0
+end
+
+local function HideBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilHide = unitSelf:GetAbility(1)
+  
+	return core.OrderAbility(botBrain, abilHide, false)
+end
+
+local HideBehavior = {}
+HideBehavior["Utility"] = HideBehaviorUtility
+HideBehavior["Execute"] = HideBehaviorExecute
+HideBehavior["Name"] = "Hide"
+tinsert(behaviorLib.tBehaviors, HideBehavior)
+
 
 local function GetHeroToLeap(botBrain, myPos, radius)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
@@ -234,7 +271,7 @@ local function LaneLeapBehaviorUtility(botBrain)
 	  if leapdmg > vihu:GetHealth()+200 and unitSelf:GetHealthPercent()>0.5 then
 	    return 95-modifier
 	  end
-	  if vihuslow and unitSelf:GetHealthPercent()>0.5 and not omalkm < vihulkm then
+	  if vihuslow and unitSelf:GetHealthPercent()>0.5 and omalkm < vihulkm then
 	    return 90-modifier
 	  end
 		if not (omalkm < vihulkm) and vihu:GetHealth() < unitSelf:GetHealth() then
