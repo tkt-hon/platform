@@ -86,7 +86,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
 
   if skills.abilUltimate:CanActivate()  then
-    nUtil = nUtil + 10
+    nUtil = nUtil + 50
   end
 
   return nUtil
@@ -108,13 +108,11 @@ local function HarassHeroExecuteOverride(botBrain)
 
   if core.CanSeeUnit(botBrain, unitTarget) then
     local abilStun = skills.abilStun
-
-    local abilStun = skills.abilStun
     if abilStun:CanActivate() then
       local nRange = abilStun:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilStun, unitTarget)
-	core.AllChat("Hammertime",10)
+	core.AllChat("Hammertime!",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -124,8 +122,9 @@ local function HarassHeroExecuteOverride(botBrain)
     if not bActionTaken then
       if abilUltimate:CanActivate() then
         local nRange = 500
-        if nTargetDistanceSq < (nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate)
+        if nTargetDistanceSq < (nRange*nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+	core.AllChat("SUPERULTI",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end

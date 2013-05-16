@@ -77,7 +77,7 @@ local function CustomHarassUtilityFnOverride(hero)
   local manaP = unitSelf:GetManaPercent()
   local mana = unitSelf:GetMana()
 
-  if skills.abilStun:CanActivate() and (mana > 150) then
+  if skills.abilStun:CanActivate() and (mana > 250) then
     nUtil = nUtil + 30
     local damages = {100,175,250,325}
     if hero:GetHealth() < damages[skills.abilStun:GetLevel()] then
@@ -86,7 +86,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
 
   if skills.abilUltimate:CanActivate()  then
-    nUtil = nUtil + 10
+    nUtil = nUtil + 50
   end
 
   return nUtil
@@ -108,8 +108,6 @@ local function HarassHeroExecuteOverride(botBrain)
 
   if core.CanSeeUnit(botBrain, unitTarget) then
     local abilStun = skills.abilStun
-
-    local abilStun = skills.abilStun
     if abilStun:CanActivate() then
       local nRange = abilStun:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
@@ -124,8 +122,9 @@ local function HarassHeroExecuteOverride(botBrain)
     if not bActionTaken then
       if abilUltimate:CanActivate() then
         local nRange = 500
-        if nTargetDistanceSq < (nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate)
+        if nTargetDistanceSq < (nRange*nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
+	core.AllChat("SUPERULTI",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
