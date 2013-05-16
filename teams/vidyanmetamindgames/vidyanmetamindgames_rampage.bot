@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="vidyan_Rampage"
-  description="THIS IS A RAMPAGE, LANA"
-  heroname="Hero_Rampage"
-  rootlua="vidyanmetamindgames_rampage.lua"
-  defaultplayername="Vidyan Rampage"
-  precachepath="/heroes/rampage/"
-/>

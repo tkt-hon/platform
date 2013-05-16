@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="TrashTeam_PlagueRider"
-  description="TrashTeam's Ulla Plague Rider"
-  heroname="Hero_DiseasedRider"
-  rootlua="trashrider_plague_rider.lua"
-  defaultplayername="TrashTeamPleiguuBot"
-  precachepath="/heroes/diseasedrider/"
-/>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="Kiinalainen_PlagueRider"
-  description="Kiinalainen Plague Rider"
-  heroname="Hero_DiseasedRider"
-  rootlua="kiinalainen_plague_rider.lua"
-  defaultplayername="KiinalainenPlagueBot"
-  precachepath="/heroes/diseasedrider/"
-/>

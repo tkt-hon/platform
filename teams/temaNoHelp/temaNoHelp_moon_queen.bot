@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="temaNoHelp_MoonQueen"
-  description="temaNoHelp Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="temaNoHelp_moon_queen.lua"
-  defaultplayername="temaNoHelpMQBot"
-  precachepath="/heroes/krixi/"
-/>

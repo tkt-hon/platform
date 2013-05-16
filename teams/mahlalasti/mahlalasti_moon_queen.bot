@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="mahlalasti_MoonQueen"
-  description="Mahlalasti Epic Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="mahlalasti_moon_queen.lua"
-  defaultplayername="MahlalastiMQBot"
-  precachepath="/heroes/krixi/"
-/>
