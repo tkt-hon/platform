@@ -22,7 +22,11 @@ function GetArmorMultiplier(unit, magic)
   else
     magicReduc = unit:GetArmor()
   end
-  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
+  if magicReduc >= 0 then
+    magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
+  else
+    magicReduc = math.pow(0.94,math.abs(magicReduc)) - 1
+  end
   return magicReduc
 end
 
@@ -150,7 +154,7 @@ function getHeroWithLessHealthThan(botBrain, dmg, range, physical) -- checksAgai
       if targetHealth < dmg*targetArmor then
         if nTargetDistance < range then
           util = 100
-          witchslayer.UltiTarget = unit
+          --witchslayer.UltiTarget = unit
         end
       end
     end

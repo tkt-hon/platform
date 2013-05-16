@@ -99,6 +99,15 @@ end
 witchslayer.onthinkOld = witchslayer.onthink
 witchslayer.onthink = witchslayer.onthinkOverride
 
+local function GetUltiDmg(core) -- witchslayer specific
+  local ulti = skills.abilUltimate
+  local ultiLevel = ulti:GetLevel()
+  if core.ultiStaff then
+    return ultiWithStaff[ultiLevel+1]
+  end
+  return ultiDmg[ultiLevel+1]
+end
+
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
@@ -106,11 +115,11 @@ witchslayer.onthink = witchslayer.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function witchslayer:oncombateventOverride(EventData)
-  
-self:oncombateventOld(EventData)
+  self:oncombateventOld(EventData)
 
   -- custom code here
   local nAddBonus = 0
+  witchslayer.eventsLib.printCombatEvent(EventData)
 
    if nAddBonus > 0 then
         core.DecayBonus(self)
@@ -169,7 +178,12 @@ local function CustomHarassUtilityFnOverride(hero)
   local myHealth = unitSelf:GetHealth()
   local heroPHealth = hero:GetHealthPercent()
   local myPHealth = unitSelf:GetHealthPercent()
-
+  local eHeroPos = hero:GetPosition()
+  local myPos = unitSelf:GetPosition()
+  if myPos.z-eHeroPos.z > 80 then
+    core.BotEcho("We haz upperhand")
+    nUtil = nUtil + 30
+  end
   if heroPHealth > myPHealth then
     nUtil = nUtil * 0.8
   elseif heroPHealth > myPHealth*2 then
@@ -178,12 +192,26 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil * 1.6
   end
   if heroPHealth < 0.3 and not skills.abilNuke:CanActivate() then
-    nUtil = 0
+    if not skills.abilUltimate:CanActivate() then
+      nUtil = 0
+    end
+  end
+  local nuke = skills.abilNuke
+  local nukedmg = nukeDmg[nuke:GetLevel()+1]
+  local ultiCost = skills.abilUltimate:GetManaCost()
+  local nukeCost = skills.abilNuke:GetManaCost()
+  local myMana = unitSelf:GetMana()
+  if core.CanSeeUnit(witchslayer, hero) then 
+    local targetMA = GetArmorMultiplier(hero, true)
+    if  heroHealth < targetMA*(GetUltiDmg(core)+(nukedmg*1.5)) and myMana > ultiCost + nukeCost and skills.abilUltimate:CanActivate() and skills.abilNuke:CanActivate() then 
+      nUtil = 70
+    end
   end
   if hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
     nUtil = 70
     modifier = modifier*0.4 -- GO IN!?
   end
+
 
   return math.min(70,nUtil-modifier) -- Never be more important than 70
 end
@@ -237,6 +265,18 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 witchslayer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+local function IllusionsAlert(botBrain, target) -- returns true if there are multiple of same targets
+  return false
+end
+
+local function targetHasNullStone(botBrain, target) -- returns true if target has nullstone effect
+  return false
+end
+
+local function targetHasShrunkenActive(target) -- returns true if target has shrunken activated
+  return target:HasState("State_Item3E")
+end
 
 
 --- MY BEHAVIOURS ONLY AFTER THIS POINT ---
@@ -296,15 +336,6 @@ GetManaBehavior["Execute"] = GetManaExecute
 GetManaBehavior["Name"] = "DrainMana"
 tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
-local function GetUltiDmg(botBrain) -- witchslayer specific
-  local ulti = skills.abilUltimate
-  local ultiLevel = ulti:GetLevel()
-  if botBrain.core.ultiStaff then
-    return ultiWithStaff[ultiLevel+1]
-  end
-  return ultiDmg[ultiLevel+1]
-end
-
 local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shrunken/nullstone)
                                             -- also serious weakness against illusions, FUCK. Geomen too strong.
   --core.BotEcho("ManaUtility calc")
@@ -316,14 +347,14 @@ local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shru
   end
   local range = ulti:GetRange()
   local util = 0
-  local ultdmg = GetUltiDmg(botBrain)
+  local ultdmg = GetUltiDmg(botBrain.core)
   local ownTeam = botBrain:GetTeam()
   local ownMoveSpeed = unitSelf:GetMoveSpeed()
   local myPos = unitSelf:GetPosition()
   if ulti:CanActivate() then
     local unitsInRange = HoN.GetUnitsInRadius(myPos, range+200, ALIVE + HERO)
     for _,unit in pairs(unitsInRange) do
-      if unit and not (ownTeam == unit:GetTeam()) then
+      if unit and not (ownTeam == unit:GetTeam()) and core.CanSeeUnit(botBrain, unit) then
         local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
         local targetArmor = GetArmorMultiplier(unit,true)
         local targetHealth = unit:GetHealth()
