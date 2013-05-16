@@ -86,7 +86,7 @@ object.heroName = 'Hero_Pyromancer'
 
 
 --   item buy order. internal names  
-behaviorLib.StartingItems  = {"Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_HealthPotion", "Item_HealthPotion", "Item_PretendersCrown"}
+behaviorLib.StartingItems  = {"Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_HealthPotion", "Item_PretendersCrown"}
 behaviorLib.LaneItems  = {"Item_Marchers", "Item_Replenish", "Item_Steamboots", }
 behaviorLib.MidItems  = {"Item_Protect", "Item_Nuke"}
 behaviorLib.LateItems  = {"Item_Silence"}
@@ -102,9 +102,9 @@ object.tSkills = {
 }
 
 -- These are bonus agression points if a skill/item is available for use
-object.nPhoenixUp = 100
-object.nDragonUp = 100
-object.nBlazingUp = 100
+object.nPhoenixUp = 10
+object.nDragonUp = 10
+object.nBlazingUp = 70
 
 
 -- These are bonus agression points that are applied to the bot upon successfully using a skill/item
@@ -239,7 +239,7 @@ function object:oncombateventOverride(EventData)
 		core.nHarrasBonus = 0
 
 	elseif core.unitSelf:GetLevel() < 6 and core.unitSelf:GetLevel() >= 3 then
-		core.nHarassBonus = 40
+		core.nHarassBonus = 20
 
 	elseif core.unitSelf:GetMana() < 240 then
 		core.nHarrasBonus = 10
@@ -247,7 +247,7 @@ function object:oncombateventOverride(EventData)
 	elseif core.unitSelf:GetLevel() > 11 then
 		core.nHarrasBonus = 100		
 	else 
-		core.nHarassBonus = 100
+		core.nHarassBonus = 0
 	end
 
 local function GetWaveTarget(botBrain, myPos, radius)
@@ -297,7 +297,7 @@ local function WaveBehaviorUtility(botBrain)
     return 100
   end
 	if CanSeeEnemyHero(botBrain, myPos, radius) == nil and abilWave:CanActivate() and abilWave:GetLevel() > 2 and itemRing ~= nil and unitSelf:GetMana() > 400 then
-		return 100
+		return 60
 	end
   return 0
 end
@@ -375,11 +375,11 @@ local function CustomHarassUtilityFnOverride(hero)
 	end
 
 	if hero:GetHealth() < 450 and core.unitSelf:GetLevel() > 4 then
-		nUtil = nUtil + 100
+		nUtil = nUtil + 20
 	end
 
 	if core.unitSelf:GetLevel() > 11 then
-		nUtil = nUtil + 100
+		nUtil = nUtil + 30
 	end
 
     if skills.abilQ:CanActivate() then
@@ -471,7 +471,7 @@ local function HarassHeroExecuteOverride(botBrain)
 	if core.CanSeeUnit(botBrain, unitTarget) then
 		if bDebugEchos then BotEcho("  No action yet, checking dragon") end
 		local abilDragon = skills.abilW
-		if abilDragon:CanActivate() and (unitTarget:GetHealth() > 50) then
+		if abilDragon:CanActivate() then
 			local nRange = abilDragon:GetRange()
 			if nTargetDistanceSq < (nRange * nRange) then
 				--calculate a target since our range doesn't match the ability effective range
@@ -503,6 +503,10 @@ local function HarassHeroExecuteOverride(botBrain)
 		if abilBlaze:CanActivate() then
 			local nRange = abilBlaze:GetRange()
 			if nTargetDistanceSq < (nRange *nRange) then
+				core.AllChat("GET ON MY LEVEL, HOE!")
+				core.AllChat("GET ON MY LEVEL, HOE!")
+				core.AllChat("GET ON MY LEVEL, HOE!")
+				core.AllChat("GET ON MY LEVEL, HOE!")
 				--calculate a target since our range doesn't match the ability effective range
 				bActionTaken = core.OrderAbilityEntity(botBrain, abilBlaze, unitTarget)
 			end

@@ -30,9 +30,10 @@ magmus.logger.bVerboseLog = false
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_MinorTotem", "Item_PretendersCrown", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Replenish", "Item_MysticVestments"}
 behaviorLib.MidItems = { "Item_EnhancedMarchers", "Item_Protect", "Item_MysticVestments" }
-behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
+behaviorLib.LateItems = { "Item_MagicArmor2" , "Item_DaemonicBreastplate" }
 
 local steam = false
+local takingDamage = false
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -79,11 +80,14 @@ magmus.onthink = magmus.onthinkOverride
 -- @return: none
 function magmus:oncombateventOverride(EventData)
 self:oncombateventOld(EventData)
---self.eventsLib.printCombatEvent(EventData)  
+self.eventsLib.printCombatEvent(EventData)  
 
 
-	if EventData.ProjectileDisjointable == true then
+	if EventData.ProjectileDisjointable and core.unitSelf:GetHealth() < 100 then
 		steam = true
+	end
+	if EventData.Type == "Damage" then
+		takingDamage = true
 	end
   -- custom code here
 end
@@ -91,26 +95,86 @@ end
 magmus.oncombateventOld = magmus.oncombatevent
 magmus.oncombatevent = magmus.oncombateventOverride
 
+function behaviorLib.DontBreakChannelUtility(botBrain)
+	local utility = 0
+	if steam and core.unitSelf:IsChanneling() then
+	 	utility = 0
+	elseif core.unitSelf:IsChanneling() then
+		utility = 100
+	end
+
+	if botBrain.bDebugUtility == true and utility ~= 0 then
+		BotEcho(format("  DontBreakChannelUtility: %g", utility))
+	end
+
+	return utility
+end
+
+function behaviorLib.DontBreakChannelExecute(botBrain)
+	--do nothing
+
+	return
+end
+
+behaviorLib.DontBreakChannelBehavior = {}
+behaviorLib.DontBreakChannelBehavior["Utility"] = behaviorLib.DontBreakChannelUtility
+behaviorLib.DontBreakChannelBehavior["Execute"] = behaviorLib.DontBreakChannelExecute
+behaviorLib.DontBreakChannelBehavior["Name"] = "DontBreakChannel"
+tinsert(behaviorLib.tBehaviors, behaviorLib.DontBreakChannelBehavior)
+
 local function IsChanneling()
 return core.unitSelf:IsChanneling()
 end
+
+local function SteamBreakBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilSteam = unitSelf:GetAbility(1)
+  if steam and takingDamage then
+	core.BotEcho("BreakUtility")
+    return 80
+  end
+  return 0
+end
+
+local function SteamBreakBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilSteam = unitSelf:GetAbility(1)
+	local abilSurge = unitSelf:GetAbility(0)
+	local welli = core.allyWell:GetPosition()
+	local stunnivektori = welli - unitSelf:GetPosition()
+	local normalisoitu = Vector3.Normalize(stunnivektori)
+
+	if takingDamage and abilSurge:CanActivate() and steam then
+		core.BotEcho("Surge")
+		takingDamage = false
+		steam = false
+		return core.OrderAbilityPosition(botBrain, abilSurge,unitSelf:GetPosition() + normalisoitu*700, false)
+	end
+	if takingDamage and steam then
+		takingDamage = false
+		steam = false
+    return core.OrderMoveToPos(botBrain, unitSelf, unitSelf:GetPosition())
+	end
+	if steam then		
+		takingDamage = false
+		steam = false
+		return core.OrderMoveToPos(botBrain, unitSelf, unitSelf:GetPosition())
+	end
+end
+
+local SteamBreakBehavior = {}
+SteamBreakBehavior["Utility"] = SteamBreakBehaviorUtility
+SteamBreakBehavior["Execute"] = SteamBreakBehaviorExecute
+SteamBreakBehavior["Name"] = "Breaking"
+tinsert(behaviorLib.tBehaviors, SteamBreakBehavior)
 
 local function SteamBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilSteam = unitSelf:GetAbility(1)
   if steam and abilSteam:CanActivate() and not IsChanneling() then
-    return 100
+    return 80
   end
   return 0
-end
-
-local function BreakSteam(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local abilSteam = unitSelf:GetAbility(1)
-	if steam then
-		steam = false
-		return core.OrderPosition(unitSelf, "Move", unitSelf:GetPosition())
-	end
 end
 
 local function SteamBehaviorExecute(botBrain)
@@ -237,6 +301,10 @@ local function HarassHeroExecuteOverride(botBrain)
     local abilUltimate = unitSelf:GetAbility(3)
     if not bActionTaken and abilUltimate:CanActivate() then
       if abilUltimate:CanActivate() and unitTarget:IsStunned() then
+					core.AllChat("GET ON MY LEVEL, HOE!")
+					core.AllChat("GET ON MY LEVEL, HOE!")
+					core.AllChat("GET ON MY LEVEL, HOE!")
+					core.AllChat("GET ON MY LEVEL, HOE!")
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
 			else
 					bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	

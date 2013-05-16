@@ -21,10 +21,10 @@ GADGET = 0x0000010
 ALIVE = 0x0000020
 CORPSE = 0x0000040
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_IronBuckler", "3 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_Pierce" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_CrushingClaws", "Item_CrushingClaws", "Item_MinorTotem", "Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_HealthPotion","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_Strength5", "Item_Strength5", "Item_Pierce" }
+behaviorLib.MidItems = { "Item_Strength6", "Item_StrengthAgility" }
+behaviorLib.LateItems = { "2 Item_Pierce", "Item_Dawnbringer", "Item_BehemothsHeart" }
 
 predator.skills = {}
 local skills = predator.skills
