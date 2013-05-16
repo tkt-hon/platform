@@ -4,8 +4,8 @@ local moonqueen = _G.object
 moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/faulty/bottle_behavior.lua'
-runfile 'bots/teams/faulty/utils.lua'
+runfile 'bots/teams/faulty/lib/bottle_behavior.lua'
+runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format

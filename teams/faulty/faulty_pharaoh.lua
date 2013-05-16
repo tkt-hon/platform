@@ -4,7 +4,7 @@ local pharaoh = _G.object
 pharaoh.heroName = "Hero_Mumra"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/faulty/utils.lua'
+runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = pharaoh.core, pharaoh.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format

@@ -2,8 +2,8 @@ local _G = getfenv(0)
 local shaman = _G.object
 
 runfile 'bots/dementedshaman/dementedshaman_main.lua'
-runfile 'bots/teams/default/utils/sitter.lua'
-runfile 'bots/teams/faulty/utils.lua'
+runfile 'bots/teams/faulty/lib/sitter.lua'
+runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = shaman.core, shaman.behaviorLib
 

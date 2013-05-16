@@ -4,7 +4,7 @@ local plaguerider = _G.object
 plaguerider.heroName = "Hero_DiseasedRider"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/faulty/utils.lua'
+runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
