@@ -5,6 +5,7 @@ moonqueen.heroName = "Hero_Krixi"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/faulty/lib/bottle_behavior.lua'
+runfile 'bots/teams/faulty/lib/sitter.lua'
 runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
@@ -13,10 +14,19 @@ local BotEcho = core.BotEcho
 
 BotEcho("loading faulty_moon_queen.lua")
 
+local function PreGameExecuteOverride(botBrain)
+	local unitSelf = core.unitSelf
+	if not unitSelf.isSitter then
+		return behaviorLib.PreGameExecute(botBrain)
+	end
+	return behaviorLib.PreGameSitterExecute(botBrain)
+end
+behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
+
 behaviorLib.StartingItems = { "Item_Bottle" }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_Soulscream 3" }
-behaviorLib.MidItems = { "Item_PostHaste" }
-behaviorLib.LateItems = { "Item_Evasion", "Item_Intelligence7" }
+behaviorLib.MidItems = { "Item_PostHaste", "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 -- http://honwiki.net/wiki/Moon_Queen:Hit_R_to_Win
 -- desired skillbuild order

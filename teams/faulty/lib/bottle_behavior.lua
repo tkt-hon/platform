@@ -40,7 +40,7 @@ function behaviorLib.BottleRegenUtility(botBrain)
 		local nHeal = core.ATanFn(nHealthMissing, vecHealPoint, vecHealOrigin, 80)
 		local nMana = core.ATanFn(nManaMissing, vecManaPoint, vecManaOrigin, 80)
 
-		BotEcho(format("BottleRegenUtility: %g", Clamp(nHeal + nMana, 0, 35)))
+		--BotEcho(format("BottleRegenUtility: %g", Clamp(nHeal + nMana, 0, 35)))
 		return Clamp(nHeal + nMana, 0, 35)
 	end
 
