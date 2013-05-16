@@ -8,9 +8,7 @@ runfile 'bots/core_herobot.lua'
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 
-
-
-behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_RunesOfTheBlight", "Item_RunesOfTheBlight",  }
+behaviorLib.StartingItems = { "Item_MinorTotem", "Item_PretendersCrown", "Item_RunesOfTheBlight", "Item_MinorTotem", "Item_RunesOfTheBlight"  }
 behaviorLib.LaneItems = { "Item_Marchers", "Item_ManaBattery", "Item_MagicArmor2" }
 behaviorLib.MidItems = { "Item_Striders", "Item_SpellShards", "Item_Intelligence7", "Item_Lightbrand" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
@@ -24,8 +22,8 @@ core.itemWard = nil
 
 plaguerider.tSkills = {
   2, 0, 0, 2, 0,
-  3, 0, 4, 2, 1,
-  4, 3, 1, 2, 4,
+  3, 0, 4, 2, 4,
+  3, 4, 4, 2, 4,
   3, 2, 4, 4, 4,
   3, 4, 4, 4, 4
 }
@@ -54,30 +52,31 @@ function plaguerider:onthinkOverride(tGameVariables)
 
   -- custom code here
 end
+
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
-
+------------------------------------------------------
 
 -- bonus aggro pts if skill/item is available
-plaguerider.nNukeUp = 10
+plaguerider.nNukeUp = 30
 plaguerider.nArmorUp = 0
 plaguerider.nManaUp = 0
-plaguerider.nUltUp = 30
+plaguerider.nUltUp = 25
  
  
 -- These are bonus agression points that are applied to the bot upon successfully using a skill/item
 plaguerider.nNukeUse = 15
 plaguerider.nArmorUse = 5
 plaguerider.nManaUse = 0
-plaguerider.nUltUse = 50
+plaguerider.nUltUse = 35
  
  
 --These are thresholds of aggression the bot must reach to use these abilities
 
-plaguerider.nNukeThreshold = 15
-plaguerider.nArmorThreshold = 35
-plaguerider.nManaThreshold = 12
-plaguerider.nUltThreshold = 55
+plaguerider.nNukeThreshold = 10
+plaguerider.nArmorThreshold = 5
+plaguerider.nManaThreshold = 11
+plaguerider.nUltThreshold = 35
 
 
 ----------------------------------------------
@@ -111,234 +110,152 @@ function plaguerider:oncombateventOverride(EventData)
   
 end
   
-  
-
   -- custom code here
+
 
 -- override combat event trigger function.
 plaguerider.oncombateventOld = plaguerider.oncombatevent
 plaguerider.oncombatevent = plaguerider.oncombateventOverride
+-------------------------------------------------------
+-- Deny
+
+local function IsSiege(unit)
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+end
+
+local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
+  local allies = unitsLocal.AllyCreeps
+  local unitTarget = nil
+  local nDistance = 0
+  for _,unit in pairs(allies) do
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
+      unitTarget = unit
+      nDistance = nNewDistance
+    end
+  end
+  return unitTarget
+end
+
+local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+  return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
+end
+
+local function DenyBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local myPos = unitSelf:GetPosition()
+  local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+    plaguerider.denyTarget = unit
+    return 100
+  end
+  return 0
+end
+
+local function DenyBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local target = plaguerider.denyTarget
+  if target then
+    return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
+  end
+  return false
+end
+
+local DenyBehavior = {}
+DenyBehavior["Utility"] = DenyBehaviorUtility
+DenyBehavior["Execute"] = DenyBehaviorExecute
+DenyBehavior["Name"] = "Denying creep with spell"
+tinsert(behaviorLib.tBehaviors, DenyBehavior)
 -------------------------------------------------------------
 --              CustomHarassUtility Override
 -------------------------------------------------------------
 
 local function CustomHarassUtilityFnOverride(hero)
-	local nUtil = 40
+  local nUtil = 0
 
-	if skills.abilNuke:CanActivate() then
-	  nUtil = nUtil + plaguerider.nNukeUp
-	end
-	
-	if skills.abilDeny:CanActivate() then
-	  nUtil = nUtil + plaguerider.nManaUp
-	end
-	
-	if skills.abilUltimate:CanActivate() then
-	  nUtil = nUtil + plaguerider.nUltUp
-	end
-	
-	if skills.abilShield:CanActivate() then
-	  nUtil = nUtil + plaguerider.nArmorUp
-	end
-	
-	return nUtil
+  if skills.abilNuke:CanActivate() then
+    nUtil = nUtil + 30
+    local damages = {50,100,125,175}
+    if hero:GetHealth() < damages[skills.abilNuke:GetLevel()] then
+      nUtil = nUtil + 30
+    end
+  end
+
+  if skills.abilUltimate:CanActivate() then
+    nUtil = nUtil + 100
+  end
+
+  if core.unitSelf.isSuicide then
+    nUtil = nUtil / 2
+  end
+
+  return nUtil
 end
-behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
-
 ----------------------------------------------------------------
 --              Harass Behaviour
 -- How to to use abilities
 ----------------------------------------------------------------
 
 local function HarassHeroExecuteOverride(botBrain)
-	local unitTarget = behaviorLib.heroTarget
-	if unitTarget == nil then
-		return plaguerider.harassExecuteOld(botBrain)
-	end
-	
-	local unitSelf = core.unitSelf
-	local vecMyPosition = unitSelf:GetPosition()
-	local nAttackRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
-	local nMyExtraRange = core.GetExtraRange(unitSelf)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return plaguerider.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
     
-	local vecTargetPosition = unitTarget:GetPosition()
-	local nTargetExtraRange = core.GetExtraRange(unitTarget)
-	local nTargetDistanceSq = Vector3.Distance2DSq(vecMyPosition, vecTargetPosition)
-
-    
-	local nLastHarassUtility = behaviorLib.lastHarassUtil
-	local bCanSee = core.CanSeeUnit(botBrain, unitTarget)
-	local bActionTaken = false
-    
-    
-    	
-	local bTargetVuln = unitTarget:IsStunned() or unitTarget:IsImmobilized() or unitTarget:IsPerplexed()
-	local abilArmor = skills.abilShield
-	local abilMana = skills.abilDeny
-	local abilNuke = skills.abilNuke
-	local abilUlt = skills.abilUltimate
-	
-   
--- Contagion
-	if not bActionTaken then
-            local nRange = abilNuke:GetRange()
-                if abilNuke:CanActivate() and nLastHarassUtility > botBrain.nNukeThreshold then
-                    if nTargetDistanceSq < (nRange*nRange) then
-                        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-                        
-                    else bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-                    end
-                end
-           
-   
-            if abilUlt:CanActivate() and nLastHarassUtility > botBrain.nUltThreshold then
-                local nRange = abilUlt:GetRange()
-                if nTargetDistanceSq < (nRange * nRange) then
-                    bActionTaken = core.OrderAbilityEntity(botBrain, abilUlt, unitTarget)
-                end
-            end
-	end
-    
-
-
--- Plague Shield
-	if not bActionTaken then
-	   
-           if abilArmor:CanActivate() and nLastHarassUtility > botBrain.nArmorThreshold then
-		local nRange = abilArmor:GetRange()
-		if(unitSelf:GetHealth()<900) then 
-		bActionTaken = core.OrderAbility(botBrain, abilArmor, unitSelf)
-		end
-	   end
-	end
-
--- Plague Carrier
-	if core.CanSeeUnit(botBrain, unitTarget) then
-           
-           if not bActionTaken then --and bTargetVuln then
-		if abilUlt:CanActivate() and nLastHarassUtility > botBrain.nUltThreshold then
-                	local nRange = abilUlt:GetRange()
-                	if nTargetDistanceSq < (nRange * nRange) then 
-                	bActionTaken = core.OrderAbilityEntity(botBrain, abilUlt, unitTarget)
-			else
-                    	bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-                	end
-            	end
-	   end
-	end
-
--- Extinguish
-
-	if core.CanSeeUnit(botBrain, unitTarget) and (unitTarget:GetHealth()>549)then
-		
-		if not bActionTaken then
-			if abilMana:CanActivate() and
-			nLastHarassUtility > botBrain.nManaThreshold then 
-			bActionTaken = core.OrderAbilityEntity(botBrain, abilMana, unitTarget)
-			end
-
-		end
-	end
-
-
-
-    
-    if not bActionTaken then
-        return plaguerider.harassExecuteOld(botBrain)
+    -- Nuke
+    local abilNuke = skills.abilNuke
+    if abilNuke:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
     end
+    
+    --Ulti
+    local abilUltimate = skills.abilUltimate
+    if not bActionTaken then
+      if abilUltimate:CanActivate() then
+        local nRange = abilUltimate:GetRange()
+        if nTargetDistanceSq < (nRange * nRange) then
+          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return plaguerider.harassExecuteOld(botBrain)
+  end
 end
-
-
-	
 plaguerider.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
----------------------------------------------------------------
---           PushExecuteOverride
----------------------------------------------------------------
 
-
-local function PushExecuteOverride(botBrain)
-	self: PushExecuteOld(botBrain)
-	
-	local bDebugLines = false
-
-	--if botBrain.myName == 'ShamanBot' then bDebugLines = true end
-
-	if core.unitSelf:IsChanneling() then
-	return
-	end
-
-	local unitSelf = core.unitSelf
-	local bActionTaken = false
-
-	--Turn on Ring of the Teacher if we have it
-	if bActionTaken == false then
-		local itemRoT = core.itemRoT
-		if itemRoT then
-			itemRoT:Update()
-			local tInventory = unitSelf:GetInventory()
-			if itemRoT.bHeroesOnly then
-				local tRoT = core.InventoryContains(tInventory, itemRoT:GetTypeName())
-				if not core.IsTableEmpty(tRoT) then
-					if bDebugEchos then BotEcho("Turning on RoTeacher") end
-					bActionTaken = core.OrderItemClamp(botBrain, unitSelf, 
-					core.itemRoT)
-				end
-			end
-		end
-	end
-
-	--Attack creeps if we're in range
-	if bActionTaken == false then
-		local unitTarget = core.unitEnemyCreepTarget
-		if unitTarget then
-			if bDebugEchos then BotEcho("Attacking creeps") end
-			local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
-			if unitSelf:GetAttackType() == "melee" then
-			--override melee so they don't stand *just* out of range
-				nRange = 250
-			end
-
-			if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
-				bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
-			end
-
-			if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
-		end
-	end
-
-	if bActionTaken == false then
-		local vecDesiredPos = behaviorLib.PositionSelfLogic(botBrain)
-		if vecDesiredPos then
-			if bDebugEchos then BotEcho("Moving out") end
-			bActionTaken = behaviorLib.MoveExecute(botBrain, vecDesiredPos)
-
-		if bDebugLines then core.DrawXPosition(vecDesiredPos, 'blue') end
-	end
-end
-
-	if bActionTaken == false then
-		return false
-	end
-end
-
-behaviorLib.PushBehavior = {}
-behaviorLib.PushBehavior["Utility"] = behaviorLib.PushUtility
-behaviorLib.PushBehavior["Execute"] = behaviorLib.PushExecute
-behaviorLib.PushBehavior["Name"] = "Push"
-tinsert(behaviorLib.tBehaviors, behaviorLib.PushBehavior)
-
-plaguerider.PushExecuteOld = plaguerider.PushExecute
-plaguerider.PushExecute = plaguerider.PushExecuteOverride
 
 ---------------------------------------------------------
 --		AttackCreepUtility and Execute
 ---------------------------------------------------------
 
 local function AttackCreepsUtilityOverride(botBrain)	
-	local nDenyVal = 21
-	local nLastHitVal = 24
+	local nDenyVal = 15
+	local nLastHitVal = 20
 
 	local nUtility = 0
 
@@ -400,37 +317,6 @@ behaviorLib.AttackCreepsBehavior["Name"] = "AttackCreeps"
 tinsert(behaviorLib.tBehaviors, behaviorLib.AttackCreepsBehavior)
 
 behaviorLib.AttackCreepsExecute = AttackCreepsExecuteOverride
-
-------------------------------------------------------------------
---		ProxToTower
-------------------------------------------------------------------
-
-
-local function ProxToEnemyTowerUtilityOverride(unit, unitClosestEnemyTower)
-	local bDebugEchos = false
-
-	local nUtility = 0
-
-	if unitClosestEnemyTower then
-		local nDist = Vector3.Distance2D(unitClosestEnemyTower:GetPosition(), unit:GetPosition())
-		local nTowerRange = core.GetAbsoluteAttackRangeToUnit(unitClosestEnemyTower, unit)
-		local nBuffers = unit:GetBoundsRadius() + unitClosestEnemyTower:GetBoundsRadius()
-
-		nUtility = -1 * core.ExpDecay((nDist - nBuffers), 100, nTowerRange, 2)
-
-		nUtility = nUtility * 0.32
-
-		if bDebugEchos then BotEcho(format("util: %d nDistance: %d nTowerRange: %d", nUtility, (nDist - 
-		nBuffers), nTowerRange)) 
-		end
-	end
-
-	nUtility = Clamp(nUtility, -100, 0)
-
-	return nUtility
-end
-
-behaviorLib.ProxToEnemyTowerUtility = ProxToEnemyTowerUtilityOverride
 
 
 
