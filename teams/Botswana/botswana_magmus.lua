@@ -1,9 +1,9 @@
 local _G = getfenv(0)
 local magmus = _G.object
 
-runfile 'bots/magmus/magmus_main.lua'
+magmus.heroName = "Hero_Magmar"
 
-local tinsert = _G.table.insert
+runfile 'bots/magmus/magmus_main.lua'
 
 local core, behaviorLib = magmus.core, magmus.behaviorLib
 
@@ -14,6 +14,8 @@ behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
 
 magmus.skills = {}
 local skills = magmus.skills
+
+local tinsert = _G.table.insert
 
 core.itemWard = nil
 
@@ -52,8 +54,6 @@ magmus.SkillBuild = magmus.SkillBuildOverride
 -- @param: tGameVariables
 -- @return: none
 function magmus:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
-
   -- custom code here
 end
 magmus.onthinkOld = magmus.onthink
@@ -66,7 +66,7 @@ magmus.onthink = magmus.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function magmus:oncombateventOverride(EventData)
-  magmus:oncombateventOld(EventData)
+         magmus:oncombateventOld(EventData)
   -- custom code here
 end
 -- override combat event trigger function.
@@ -194,8 +194,22 @@ local unitTarget = behaviorLib.heroTarget
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
+	end
+
+	-- Bath
+	local abilBath = skills.abilBath
+	if abilBath:CanActivate() then
+	  local nRange = abilBath:GetRange()
+	  if nTargetDistanceSq < (nRange * nRange) then	
+	    local bestUnitTarget = funcBestTargetAoE(tEnemyHeroes, unitTarget, nRange)
+		bActionTaken = core.OrderAbilityEntity(botBrain, abilBath, bestUnitTarget)
+	    else
+		bActionTaken = core.OrderMoveToUnitClam(botBrain, unitSelf, bestUnitTarget)
+	   end
+	 end
+   end
     
-    --Ulti
+    -- Ulti
     local abilUltimate = skills.abilUltimate
     if not bActionTaken then
       if abilUltimate:CanActivate() then
@@ -207,6 +221,10 @@ local unitTarget = behaviorLib.heroTarget
         end
       end
     end
+    if not bActionTaken then
+      return magmus.harassExecuteOld(botBrain)
+    end
+  
   end
 
   if not bActionTaken then
@@ -285,3 +303,38 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.AttackCreepsBehavior)
 
 behaviorLib.AttackCreepsExecute = AttackCreepsExecuteOverride
 
+
+local function funcBestTargetAOE(tEnemyHeroes, unitTarget, nRange)
+-- Determines the optimal target for an AoE attack
+    local nHeroes = core.NumberElements(tEnemyHeroes)
+    if nHeroes <= 1 then
+        return unitTarget 
+    end
+ 
+    local tTemp = core.CopyTable(tEnemyHeroes)
+ 
+    local nRangeSq = nRange*nRange
+    local nDistSq = 0
+    local unitBestTarget = nil
+    local nBestTargetsHit = 0
+ 
+    for nTargetID,unitTarget in pairs(tEnemyHeroes) do
+        local nTargetsHit = 1
+        local vecCurrentTargetsPosition = unitTarget:GetPosition()
+        for nHeroID,unitHero in pairs(tTemp) do
+            if nTargetID ~= nHeroID then
+                nDistSq = Vector3.Distance2DSq(vecCurrentTargetsPosition, unitHero:GetPosition())
+                if nDistSq < nRangeSq then
+                    nTargetsHit = nTargetsHit + 1
+                end
+            end
+        end
+ 
+        if nTargetsHit > nBestTargetsHit then
+            nBestTargetsHit = nTargetsHit
+            unitBestTarget = unitTarget
+        end
+    end
+ 
+    return unitTarget
+end
