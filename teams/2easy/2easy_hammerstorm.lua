@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = hammerstorm.core, hammerstorm.behaviorLib
 
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem"}
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
-behaviorLib.LateItems = { "Item_GrimoireOfPower" }
+behaviorLib.StartingItems = { "Item_LoggersHatchet", "Item_IronBuckler", "Item_RunesOfTheBlight"}
+behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_Brutalizer" }
+behaviorLib.MidItems = { "Item_Protect" }
+behaviorLib.LateItems = { "Item_Beastheart" }
 
 local tinsert = _G.table.insert
 

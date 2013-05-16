@@ -9,8 +9,8 @@ local core, behaviorLib = andromeda.core, andromeda.behaviorLib
 
 --paska buildi
 behaviorLib.StartingItems = { "Item_Marchers", "Item_RunesOfTheBlight" }
-behaviorLib.LaneItems = { "Item_Steamboots", "Item_Pierce 3" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_DaemonicBreastplate" }
+behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_Pierce 3" }
+behaviorLib.MidItems = {  "Item_DaemonicBreastplate" }
 behaviorLib.LateItems = { "Item_Evasion" }
 
 andromeda.skills = {

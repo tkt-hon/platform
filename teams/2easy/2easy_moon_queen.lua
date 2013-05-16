@@ -12,10 +12,10 @@ local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 --behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 --behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
-behaviorLib.StartingItems  = {"2 Item_DuckBoots", "2 Item_MinorTotem", "Item_HealthPotion", "Item_RunesOfTheBlight"}
-behaviorLib.LaneItems  = {"Item_Marchers", "Item_HelmOfTheVictim", "Item_Steamboots"}
-behaviorLib.MidItems  = {"Item_Sicarius", "Item_WhisperingHelm", "Item_Immunity"}
-behaviorLib.LateItems  = {"Item_ManaBurn2", "Item_LifeSteal4", "Item_Evasion"}
+behaviorLib.StartingItems  = {"Item_Marchers", "Item_RunesOfTheBlight"}
+behaviorLib.LaneItems  = {"Item_EnhancedMarchers", "Item_Intelligence7", "Item_Protect"}
+behaviorLib.MidItems  = {"Item_SpellShards 3"}
+behaviorLib.LateItems  = {"Item_Beastheart"}
 
 behaviorLib.pushingStrUtilMul = 1
 
