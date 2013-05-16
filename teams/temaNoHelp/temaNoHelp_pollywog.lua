@@ -13,6 +13,7 @@ runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
+runfile 'bots/teams/temaNoHelp/lib/custom_unit_control.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 
 
