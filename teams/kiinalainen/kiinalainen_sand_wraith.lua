@@ -15,8 +15,8 @@ behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 sand.skills = {}
 local skills = sand.skills
 
-sand.bReportBehavior = true
-sand.bDebugUtility = true
+--sand.bReportBehavior = true
+--sand.bDebugUtility = true
 
 behaviorLib.nRecentDamageMul = 0.5
 

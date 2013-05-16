@@ -107,9 +107,9 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local bActionTaken = false
 
-  core.BotEcho(tostring(unitTarget))
+--  core.BotEcho(tostring(unitTarget))
   if core.CanSeeUnit(botBrain, unitTarget) then
-    core.BotEcho("FOOO!")
+--    core.BotEcho("FOOO!")
 
     local abilUltimate = skills.abilUltimate
     local nRange = skills.abilStun:GetRange()

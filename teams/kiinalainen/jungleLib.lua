@@ -98,7 +98,14 @@ function jungleLib.assess(botBrain)
 					nUnitsNearCamp=nUnitsNearCamp+1
 					core.DrawXPosition(unit:GetPosition(), 'red')
 					creepDifficulty=jungleLib.creepDifficulty[unit:GetTypeName()] --add difficult units
-					if addedDifficulty then jungleLib.jungleSpots[i].creepDifficulty=jungleLib.jungleSpots[i].creepDifficulty+creepDifficulty end
+					BotEcho(unit:GetTypeName())
+					local addedDifficulty = jungleLib.creepDifficulty[unit:GetTypeName()]
+					if addedDifficulty then 
+						BotEcho(unit:GetTypeName() .. " added " .. jungleLib.creepDifficulty[unit:GetTypeName()])
+						jungleLib.jungleSpots[i].creepDifficulty=jungleLib.jungleSpots[i].creepDifficulty+creepDifficulty 
+					else 
+						BotEcho("Found new jungle creep: " .. unit:GetTypeName())
+					end
 				end
 			end
 			--local localNeutrals = core.NumberElements(core.localUnits["neutrals"]) --to not confuse with minions
@@ -111,6 +118,9 @@ function jungleLib.assess(botBrain)
 				if (debug) then BotEcho("Camp "..jungleLib.jungleSpots[i].description.." isn't empty, but I thought it was... Maybe I pulled it too far?") end
 				jungleLib.jungleSpots[i].stacks=1
 			end
+			if (nUnitsNearCamp~=0 and jungleLib.jungleSpots[i].stacks~=0 ) then
+				if (debug) then BotEcho("Camp "..jungleLib.jungleSpots[i].description.." difficulty: " .. jungleLib.jungleSpots[i].creepDifficulty) end
+			end
 		end
 	end
 end
@@ -119,6 +129,8 @@ function jungleLib.getNearestCampPos(pos,minimumDifficulty,maximumDifficulty, si
 	minimumDifficulty=minimumDifficulty or 0
 	maximumDifficulty=maximumDifficulty or 999
 	
+	local bDebug = false
+
 	local nClosestCamp = -1
 	local nClosestSq = 9999*9999
 	for i=1,#jungleLib.jungleSpots do
@@ -131,6 +143,7 @@ function jungleLib.getNearestCampPos(pos,minimumDifficulty,maximumDifficulty, si
 			end
 		end
 	end
+	if bDebug then BotEcho(jungleLib.jungleSpots[nClosestCamp].description .. ", difficulty:" .. jungleLib.jungleSpots[nClosestCamp].difficulty .. "+" .. jungleLib.jungleSpots[nClosestCamp].creepDifficulty) end
 	if (nClosestCamp~=-1 and jungleLib.jungleSpots[nClosestCamp].stacks>0) then return jungleLib.jungleSpots[nClosestCamp].pos, nClosestCamp end
 	return nil
 end
@@ -174,6 +187,7 @@ jungleLib.currentMaxDifficulty = 70
 
 -------- Behavior Functions --------
 function jungleUtility(botBrain)
+		print("OLDJUNGLE\n") --DEBUG
         if HoN.GetRemainingPreMatchTime() and HoN.GetRemainingPreMatchTime()>40000 then
                 return 0
         end
@@ -191,6 +205,7 @@ function jungleExecute(botBrain)
         local vecMyPos = unitSelf:GetPosition()
         local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
         if not vecTargetPos then
+        		-- No near camps found
                 return false
                 --[[
                 if core.myTeam == HoN.GetHellbourneTeam() then
@@ -203,21 +218,18 @@ function jungleExecute(botBrain)
         if debugMode then core.DrawDebugArrow(vecMyPos, vecTargetPos, 'green') end
 
         local nTargetDistanceSq = Vector3.Distance2DSq(vecMyPos, vecTargetPos)
-        BotEcho("JUNGLE wut?")
         if nTargetDistanceSq > (600 * 600) or jungleLib.nStacking ~= 0 then
                 -- Move to the next camp
                 local nMins, nSecs = jungleLib.getTime()
                 if jungleLib.nStacking ~= 0 or ((nSecs > 40 or nMins == 0) and nTargetDistanceSq < (800 * 800) and nTargetDistanceSq > (400 * 400)) then
                         -- Stack the camp if possible
                         if nSecs < 53 and (nSecs > 40 or nMins == 0) then
-                                BotEcho("JUNGLE wait")
                                 -- Wait outside the camp
                                 jungleLib.nStacking = 1
                                 jungleLib.nStackingCamp = nCamp
 
                                 return core.OrderMoveToPosAndHoldClamp(botBrain, core.unitSelf, jungleLib.jungleSpots[nCamp].outsidePos, false)
                         elseif jungleLib.nStacking == 1 and unitSelf:IsAttackReady() then
-                                BotEcho("JUNGLE attack")
                                 -- Attack the units in the camp
                                 if nSecs >= 57 then 
                                         -- Missed our chance to stack
@@ -226,7 +238,6 @@ function jungleExecute(botBrain)
 
                                 return core.OrderAttackPosition(botBrain, unitSelf, vecTargetPos,false,false)
                         elseif jungleLib.nStacking ~= 0 and nTargetDistanceSq < (1500 * 1500) and nSecs > 50 then
-                                BotEcho("JUNGLE stack")
                                 -- Move away from the units in the camp
                                 jungleLib.nStacking = 2
                                 local vecAwayPos = jungleLib.jungleSpots[jungleLib.nStackingCamp].pos + (jungleLib.jungleSpots[jungleLib.nStackingCamp].outsidePos - jungleLib.jungleSpots[jungleLib.nStackingCamp].pos) * 5
@@ -238,18 +249,15 @@ function jungleExecute(botBrain)
 
                                 return core.OrderMoveToPosClamp(botBrain, core.unitSelf, vecAwayPos, false)
                         else
-                                BotEcho("JUNGLE stack done")
                                 -- Finished stacking
                                 jungleLib.nStacking = 0
                                 return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, vecTargetPos)
                         end
                 else
-                        BotEcho("JUNGLE derp")
                         -- Otherwise just move to camp
                         return core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, vecTargetPos)
                 end
         else 
-                BotEcho("JUNGLE kill!")
                 -- Kill neutrals in the camp
                 local tUnits = HoN.GetUnitsInRadius(vecMyPos, 800, core.UNIT_MASK_ALIVE + core.UNIT_MASK_UNIT)
                 if tUnits then

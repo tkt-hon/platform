@@ -99,14 +99,14 @@ end
 
 local function isClearTarget(botBrain, hero, unitTarget)
     local startPosition = hero:GetPosition()
-    core.BotEcho(tostring(startPosition))
+    --core.BotEcho(tostring(startPosition))
     local endPosition = unitTarget:GetPosition()
     local creeps = 0
     for i=1,10 do
       local j = i/10
       local position = startPosition * j + endPosition * (1-j)
       position.Z = 0
-      core.BotEcho(tostring(position))
+      --core.BotEcho(tostring(position))
       core.DrawXPosition(position)
       creeps = creeps + NearbyCreepCount(botBrain, position, 25)
     end
