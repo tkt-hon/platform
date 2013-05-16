@@ -85,7 +85,7 @@ local function DeliverItems()
   local beha = unitCourier:GetBehavior()
   if not beha or beha:GetType() == "Guard" then
     if unitCourier:GetStashAccess() then
-      core.OrderAbility(herobot, abilDeliver)
+      core.OrderAbility(herobot, abilDeliver, true, true)
     else
       core.OrderAbility(herobot, abilReturn, true, true)
     end
