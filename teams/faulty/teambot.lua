@@ -196,10 +196,11 @@ local function FindCollisionPoint(teambot, sniper, heroUnit)
 	for i = 1, nIterations, 1 do
 		local currentPos = heroPos + (vecAdd * i)
 
-		local nDistance = Vector3.Distance2D(heroPos, currentPos)
+		local nHeroDistance = Vector3.Distance2D(heroPos, currentPos)
+		local nProjectileDistance = Vector3.Distance2D(sniperPos, currentPos)
 
-		local nHeroArriveTime = nDistance/nHeroSpeed
-		local nProjectileArriveTime = nCastTime + nDistance/nProjectileSpeed
+		local nHeroArriveTime = nHeroDistance/nHeroSpeed
+		local nProjectileArriveTime = nCastTime + nProjectileDistance/nProjectileSpeed
 
 		if not timeMin then
 			vecProjectileMin = currentPos - sniperPos
