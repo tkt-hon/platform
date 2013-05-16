@@ -13,7 +13,7 @@ local object = _G.object
 object.myName = object:GetName()
 
 runfile "bots/teams/kiinalainen/core_kiinalainen_herobot.lua"
-
+runfile "bots/teams/kiinalainen/advancedShopping.lua"
 runfile "bots/teams/kiinalainen/jungleLib.lua"
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
@@ -31,7 +31,7 @@ jungleLib = object.jungleLib or {}
 BotEcho(object:GetName()..' loading Yogi_main...')
 
 local itemHandler = object.itemHandler
-local shopping = object.shoppingHandler
+--local shopping = object.shoppingHandler
 
 BotEcho(object:GetName()..' DEBUG...')
 
@@ -191,6 +191,22 @@ function HealAtWellExecuteOverride(botBrain)
 	if (skills.abilW:CanActivate()) then
 		core.OrderAbility(botBrain, skills.abilW)
 	end
+    Booboo=false
+    for key, unit in pairs(core.tControllableUnits["AllUnits"]) do
+        if unit:GetTypeName()=="Pet_Yogi_Ability1" then
+            Booboo=unit
+            local tEnemyHeroes = core.localUnits["EnemyHeroes"]
+
+            for id, hero in pairs(tEnemyHeroes) do
+                if Vector3.Distance2D(core.unitSelf:GetPosition(), hero:GetPosition()) < 800 then
+                    core.OrderAttack(botBrain, Booboo, hero)
+                    return object.HealAtWellExecuteOld(botBrain)
+                end
+            end
+            core.OrderFollow(botBrain, Booboo, core.unitSelf)
+        end
+    end
+
 	return object.HealAtWellExecuteOld(botBrain)
 end
 object.HealAtWellExecuteOld = behaviorLib.HealAtWellBehavior["Execute"]
@@ -399,6 +415,17 @@ jungleLib.nStackingCamp = 0
 jungleLib.currentMaxDifficulty = 61
 -- jungleLib.currentMaxDifficulty asetus lennossa tilanteen mukaan lienee aika voittoisaa
 
+--[[
+jungleLib.jungleSpots={
+--Leigon
+{pos=Vector3.Create(7200,3600),  description="L closest to well"      ,difficulty=100 ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(6700,4000)    ,corpseBlocking=false, side=legion },
+{pos=Vector3.Create(7800,4500),  description="L easy camp"            ,difficulty=30  ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(7800,5200)    ,corpseBlocking=false, side=legion },
+{pos=Vector3.Create(9800,4200),  description="L mid-jungle hard camp" ,difficulty=100 ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(9800,3500)    ,corpseBlocking=false, side=legion },
+{pos=Vector3.Create(11100,3250), description="L pullable camp"        ,difficulty=55  ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(11100,2700)   ,corpseBlocking=false, side=legion },
+{pos=Vector3.Create(11300,4400), description="L camp above pull camp" ,difficulty=55  ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(11300,3800)   ,corpseBlocking=false, side=legion },
+{pos=Vector3.Create(4900,8100),  description="L ancients"             ,difficulty=250 ,stacks=0, creepDifficulty=0 ,outsidePos=Vector3.Create(5500,7800)    ,corpseBlocking=false, side=legion },
+}
+]]--
 jungleLib.creepDifficulty={
 	Neutral_Catman_leader=40,
 	Neutral_Catman=20,
@@ -419,7 +446,7 @@ jungleLib.creepDifficulty={
 	Neutral_Sporespitter=-2,
 	Neutral_Goat=5,
 	Neutral_Antling=-3,
-	Neutral_Wold=0,
+	Neutral_Wolf=3,
 	Neutral_Dragon=0,
 	Neutral_DragonMaster=0,
 }
@@ -427,29 +454,24 @@ jungleLib.creepDifficulty={
 local function jungleUtilityOverride(botBrain)
 	local nUtility = 0
 
+    jungleLib.currentMaxDifficulty = 80
 	local level = core.unitSelf:GetLevel()
 	if level < 3 then
-		jungleLib.currentMaxDifficulty = 61
 		nUtility = 60
 		if object.bDebugUtility == true then BotEcho("  JungleUtility: " .. nUtility) end
 		return nUtility
-	elseif level > 7 then
-		jungleLib.currentMaxDifficulty = 101
-	elseif level > 10 then
-		jungleLib.currentMaxDifficulty = 251
 	end
 
     local vecMyPos = core.unitSelf:GetPosition()
     local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
     if vecTargetPos then
     	local distanceToCamp = Vector3.Distance2D(vecMyPos, vecTargetPos)
-    	nUtility = Clamp(60 - distanceToCamp/200, 0, 100) -- [0, 100]
+    	nUtility = Clamp(70 - distanceToCamp/200, 0, 100) -- [0, 100]
     end
 
 	if core.unitSelf:GetHealthPercent() < 0.15 then
 		nUtility = 0
 	end
-
 
     local Booboo=false
     for key, unit in pairs(core.tControllableUnits["AllUnits"]) do
@@ -458,10 +480,16 @@ local function jungleUtilityOverride(botBrain)
                     if not skills.abilQ:CanActivate() then
                     	nUtility = nUtility*Booboo:GetHealthPercent()
                     end
+                    local tInv = Booboo:GetInventory(false)
+                    for _, item in pairs(tInv) do
+                        if item:GetTypeName() == "Item_SwordOfTheHigh" or item:GetTypeName() == "Item_Damage10" then
+                            jungleLib.currentMaxDifficulty = jungleLib.currentMaxDifficulty + 100
+                        end
+                    end
             end
     end
 
-    if object.bDebugUtility == true then BotEcho("  JungleUtility: " .. nUtility) end
+    if object.bDebugUtility == true then BotEcho("  JungleUtility: " .. nUtility .. " - " .. jungleLib.currentMaxDifficulty) end
 
  	return nUtility
 end

@@ -78,7 +78,7 @@ function jungleLib.assess(botBrain)
 	jungleLib.minutesPassed=mins
 
 	--CHECK NEUTRAL SPAWN CAMPS
-	local debug=false
+	local debug=true
 	
 	for i=1,#jungleLib.jungleSpots do
 		if (debug) then
