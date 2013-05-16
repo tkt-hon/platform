@@ -8,7 +8,7 @@ runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 flint_beastwood.skills = {}
 local skills = flint_beastwood.skills
 
-flint_beaswood.tSkills = {
+flint_beastwood.tSkills = {
   2, 0, 4, 2, 0,
   3, 2, 4, 4, 0,
   3, 1, 1, 1, 2,

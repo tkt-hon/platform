@@ -35,7 +35,7 @@ core.nDifficulty = core.nHARD_DIFFICULTY
 
 -- local debug = false
 print(herobot.myName)
-local debug = herobot.myName == "DropTableBotsForsakenArcherBot" and herobot:GetTeam() == HoN.GetLegionTeam()
+local debug = herobot.myName == "DropTableBotsWitchSlayerBot" and herobot:GetTeam() == HoN.GetLegionTeam()
 if debug then print("Debug enabled for hero: " .. herobot.myName .. "\n") end
 
 

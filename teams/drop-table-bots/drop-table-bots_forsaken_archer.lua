@@ -48,7 +48,7 @@ function behaviorLib.CustomHarassUtility(heroTarget)
     -- Default 0
     local t = core.AssessLocalUnits(forsaken_archer, nil, 400)
     local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 20 - numCreeps*2
+	local util = 10 - numCreeps*3
   	local unitSelf = core.unitSelf
 
 	local volleyMult = 3
@@ -60,7 +60,7 @@ function behaviorLib.CustomHarassUtility(heroTarget)
 		if skills.abilCripplingVolley:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
 			util = util + 1000 -- Splitfire
 		end
-		if skills.abilUlti:CanActivate() and numCreeps < 3 then
+		if skills.abilUlti:CanActivate() and (heroTarget:GetHealthPercent() < 0.4 or numCreeps < 3) then
 			util = util + 10000 -- Ulti
 		end
 	end
