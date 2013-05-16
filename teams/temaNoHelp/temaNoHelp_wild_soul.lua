@@ -219,15 +219,19 @@ BearBehavior["Execute"] = BearBehaviorExecute
 BearBehavior["Name"] = "Bear using"
 tinsert(behaviorLib.tBehaviors, BearBehavior)
 
+local function IsInBearForm(unit)
+  return unit:HasState("State_Yogi_Ability4") or unit:HasState("State_Yogi_Ability4_HD")
+end
+
 local function UltiBehaviorUtility(botBrain)
-  if skills.abilUltimate:CanActivate() and not (core.unitSelf:HasState("State_Yogi_Ability4") or core.unitSelf:HasState("State_Yogi_Ability4_HD")) then
+  if skills.abilUltimate:CanActivate() and not IsInBearForm(core.unitSelf) then
     return 100
   end
   return 0
 end
 
 local function UltiBehaviorExecute(botBrain)
-  return core.OrderAbility(botBrain, skills.abilUltimate)
+  return IsInBearForm(core.unitSelf) or core.OrderAbility(botBrain, skills.abilUltimate)
 end
 
 local UltiBehavior = {}
