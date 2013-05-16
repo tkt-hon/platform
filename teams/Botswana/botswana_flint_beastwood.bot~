@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Botswana_FlintBeastwood"
+  description="Botswana Plague Rider"
+  heroname="Hero_FlintBeastwood"
+  rootlua="botswana_flint_beastwood.lua"
+  defaultplayername="BotswanaFlint"
+  precachepath="/heroes/diseasedrider/"
+/>
