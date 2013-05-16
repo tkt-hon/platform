@@ -9,7 +9,7 @@ runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
-
+runfile 'bots/teams/temaNoHelp/lib/clamp_overrides.lua'
 
 local core, behaviorLib, eventsLib, shopping, courier = wildsoul.core, wildsoul.behaviorLib, wildsoul.eventsLib, wildsoul.shopping, wildsoul.courier
 
