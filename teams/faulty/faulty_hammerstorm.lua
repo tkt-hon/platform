@@ -30,7 +30,7 @@ local function CustomHarassUtilityOverride2(hero)
 	nUtility = nUtility + HeroStateValueUtility(hero, nNoMana, nNoHealth)
 	nUtility = nUtility - HeroStateValueUtility(core.unitSelf, nNoMana, nNoHealth)
 
-	if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) then
+	if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) and core.unitSelf:GetLevel() < 7 then
 		nUtility = nUtility / 2
 	end
 

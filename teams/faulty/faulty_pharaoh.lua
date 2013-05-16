@@ -4,8 +4,10 @@ local pharaoh = _G.object
 pharaoh.heroName = "Hero_Mumra"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/teams/faulty/lib/utils.lua'
+runfile 'bots/lib/rune_controlling/init.lua'
+runfile 'bots/teams/faulty/lib/bottle_behavior.lua'
 runfile 'bots/teams/faulty/lib/sitter.lua'
+runfile 'bots/teams/faulty/lib/utils.lua'
 
 local core, behaviorLib = pharaoh.core, pharaoh.behaviorLib
 local tinsert, format = _G.table.insert, _G.string.format
@@ -21,9 +23,10 @@ local function PreGameExecuteOverride(botBrain)
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
 
-behaviorLib.StartingItems = { "Item_ManaRegen3", "Item_RunesOfTheBlight" }
-behaviorLib.LaneItems = { "Item_Marchers", "Item_EnhancedMarchers" }
-behaviorLib.MidItems = { "Item_Shield2", "Item_BehemothsHeart" }
+behaviorLib.StartingItems = { "Item_Bottle" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_ManaRegen3", "Item_RunesOfTheBlight" }
+behaviorLib.MidItems = { "Item_Shield2", "Item_BehemothsHeart", "Item_EnhancedMarchers" }
+behaviorLib.LateItems = { "Item_Immunity", "Item_DaemonicBreastplate" }
 
 -- http://honwiki.net/wiki/Pharaoh:Bringing_in_the_Harvest
 -- 0 = Q(Hellfire)
@@ -264,7 +267,7 @@ function behaviorLib.SniperExecute(botBrain)
 	targetPos = core.teamBotBrain.snipeTargetPos
 	if targetPos then
 		if skills.abilTormented:CanActivate() then
-			BotEcho("SNIPING!")
+			BotEcho(format("SNIPING! to pos { %g, %g, %g }", targetPos.x, targetPos.y, targetPos.z))
 			core.OrderAbilityPosition(botBrain, skills.abilTormented, targetPos)
 			core.teamBotBrain.snipeTargetPos = nil
 		end
