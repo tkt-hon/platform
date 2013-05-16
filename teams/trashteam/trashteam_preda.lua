@@ -4,9 +4,10 @@ local predator = _G.object
 predator.heroName = "Hero_Predator"
 
 runfile 'bots/core_herobot.lua'
+runfile 'bots/teams/trashteam/utils/utils.lua'
 
-predator.bReportBehavior = true
-predator.bDebugUtility = true
+predator.bReportBehavior = false
+predator.bDebugUtility = false
 
 local tinsert = _G.table.insert
 
@@ -95,34 +96,60 @@ function predator:oncombateventOverride(EventData)
 		if EventData.InflictorName == "Ability_Predator1" then
 			nAddBonus = nAddBonus + 50
 		end
-		predator.eventsLib.printCombatEvent(EventData)
+		--predator.eventsLib.printCombatEvent(EventData) 
 	end
    if nAddBonus > 0 then
         core.DecayBonus(self)
         core.nHarassBonus = core.nHarassBonus + nAddBonus
     end
 end
+predator.oncombateventOld = predator.oncombatevent
+predator.oncombatevent = predator.oncombateventOverride
 -- override combat event trigger function.
-local function IsSiege(unit)
-  local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+-- Threw bunch of functions to utils/utils.lua which is included in the beginning of this file
+-- so removed duplicates from here making the code easier to read? kept your own special functions
+
+predator.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = predator.PussyUtilityOld(BotBrain)
+  return math.min(26, util*0.5)
 end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
-local function closeToEnemyTowerDist(unit)
-  local unitSelf = unit
-  local myPos = unitSelf:GetPosition()
-  local myTeam = unitSelf:GetTeam()
-
-  local unitsInRange = HoN.GetUnitsInRadius(myPos, 3000, ALIVE + BUILDING)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not(myTeam == unit:GetTeam()) then
-      if unit:GetTypeName() == "Building_HellbourneTower" then
-        return Vector3.Distance2D(myPos, unit:GetPosition())
-      end
-    end
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+  
+  local distToEneTo = closeToEnemyTowerDist(hero)
+  local modifier = 0
+  if distToEneTo < 650 then
+    modifier = 80
   end
-  return 3000
+  return nUtil-modifier
 end
+--behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return predator.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+  if not bActionTaken then
+    return predator.harassExecuteOld(botBrain)
+  end
+end
+predator.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+------------------------------------------------------------------------------------------------
+---                 Your own functions and behaviours after this point                       ---
+------------------------------------------------------------------------------------------------
 
 local function GetHeroToLeap(botBrain, myPos, radius)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
@@ -163,19 +190,6 @@ local function NumberOfEnemyHeroNear(botBrain, position, range)
   return vihu
 end
 
-local function GetArmorMultiplier(unit, magic)
-  --return value of like 0.75 where armor would therefore be 25%
-  --just multiply dmg with this value and you get final result
-  local magicReduc = 0
-  if magic then
-    magicReduc = unit:GetMagicArmor()
-  else
-    magicReduc = unit:GetArmor()
-  end
-  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
-  return magicReduc
-end
-
 local function LaneLeapBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
@@ -204,16 +218,18 @@ local function LaneLeapBehaviorUtility(botBrain)
 		local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(vihu, false)
     predator.LeapTarget = vihu
     local vihuhp = vihu:GetHealth()
-  
+    -- Hiridur, Näitä alla olevia ehtoja on liikaa. Tee yksinkertaisemmin, katoin just ku preda meni
+    -- vihun kimppuun vihuntornin viereen mutta jäi sen jälkeen "en mä kuiteskaan" - tilaan ja kuoli tornin tulitukseen
+    -- en kyl tätä viestiä luettaessa lukenut koko tiedostoa mutta näin huomioidakseni.
 	  local vihuslow = IsSlowed(vihu)
 		if attackdmg*3 > vihu:GetHealth() and nDist<250 then
-			return 100-modifier
+			return 97-modifier
 		end
 		if leapdmg > vihu:GetHealth() and nDist<650 and abilLeap:CanActivate() then
-			return 100
+			return 97
 		end
 	  if leapdmg > vihu:GetHealth()+100 and unitSelf:GetHealthPercent()>0.3 and (abilLeap:CanActivate() or omalkm >vihulkm) then
-	    return 100-modifier
+	    return 97-modifier
 	  end
 	  if leapdmg > vihu:GetHealth()+200 and unitSelf:GetHealthPercent()>0.5 then
 	    return 95-modifier
@@ -256,47 +272,6 @@ LaneLeapBehavior["Execute"] = LaneLeapBehaviorExecute
 LaneLeapBehavior["Name"] = "Attack or leap to slowed enemy heroes"
 tinsert(behaviorLib.tBehaviors, LaneLeapBehavior)
 
-predator.oncombateventOld = predator.oncombatevent
-predator.oncombatevent = predator.oncombateventOverride
-
-
-local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 0
-	
-  local distToEneTo = closeToEnemyTowerDist(hero)
-  local modifier = 0
-  if distToEneTo < 650 then
-    modifier = 80
-  end
-  return nUtil-modifier
-end
---behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
-
-local function HarassHeroExecuteOverride(botBrain)
-
-  local unitTarget = behaviorLib.heroTarget
-  if unitTarget == nil then
-    return predator.harassExecuteOld(botBrain)
-  end
-
-  local unitSelf = core.unitSelf
-  local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), unitTarget:GetPosition())
-  local nLastHarassUtility = behaviorLib.lastHarassUtil
-
-  local bActionTaken = false
-  if not bActionTaken then
-    return predator.harassExecuteOld(botBrain)
-  end
-end
-predator.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
-behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
-
-predator.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
-local function PussyUtilityOverride(BotBrain)
-  local util = predator.PussyUtilityOld(BotBrain)
-  return math.min(26, util*0.5)
-end
-behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
 local function ResqueEating(func)
   return function(botBrain)
@@ -333,8 +308,8 @@ local function CasualEatingBehaviorUtility(botBrain)
 	end
 	if vihu then
 		predator.casualtarget=vihu
-		return 99 
-	end
+		return 99  -- LANELEAP UTILITY voi saada korkeampia arvoja kuin 99, tämä ei välttämättä toimi niinkuin haluat?
+	end          -- PS: kävin vaihtamassa ne luvut alemmiks kuin mitä tämä on, ehkä parempi? 
 	return 0
 end
 

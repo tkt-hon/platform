@@ -446,11 +446,6 @@ local function EiMihinkaanExecute(botBrain)
   local ulti = skills.abilUltimate
   local speed = botBrain.core.speedBoots
   core.AllChat("EI MIHINKÄÄN")
-  core.AllChat("Get")
-  core.AllChat("  on")
-  core.AllChat("   my")
-  core.AllChat("    level")
-  core.AllChat("        hoe!")
   if speed and speed:CanActivate() then
     core.OrderItemClamp(botBrain, unitSelf, speed)
   end

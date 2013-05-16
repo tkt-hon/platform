@@ -5,6 +5,7 @@ shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
+runfile 'bots/teams/trashteam/utils/utils.lua'
 
 local tinsert = _G.table.insert
 
@@ -18,6 +19,7 @@ GADGET = 0x0000010
 ALIVE = 0x0000020
 CORPSE = 0x0000040
 
+--skills!? T0ntsu/fazias
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_DuckBoots", "Item_MinorTotem", "Item_PretendersCrown" }
 behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
@@ -26,9 +28,6 @@ behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 shaman.skills = {}
 local skills = shaman.skills
 
-core.itemGeoBane = nil
-shaman.AdvTarget = nil
-shaman.AdvTargetHero = nil
 
 shaman.tSkills = {
   2, 0, 2, 0, 2,
@@ -69,10 +68,6 @@ shaman.SkillBuild = shaman.SkillBuildOverride
 function shaman:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local unitSelf = self.core.unitSelf
-  if shaman.AdvTarget and shaman.AdvTargetHero and false then
-    HoN.DrawDebugLine(unitSelf:GetPosition(), shaman.AdvTarget:GetPosition(), true, "red")
-    HoN.DrawDebugLine(shaman.AdvTarget:GetPosition(), shaman.AdvTargetHero:GetPosition(), true, "blue")
-  end
   -- custom code here
 end
 shaman.onthinkOld = shaman.onthink
@@ -90,91 +85,78 @@ function shaman:oncombateventOverride(EventData)
   -- custom code here
   local nAddBonus = 0
 
-   if nAddBonus > 0 then
-        core.DecayBonus(self)
-        core.nHarassBonus = core.nHarassBonus + nAddBonus
-    end
 end
+
+shaman.oncombateventOld = shaman.oncombatevent
+shaman.oncombatevent = shaman.oncombateventOverride
 -- override combat event trigger function.
-local function IsSiege(unit)
-  local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+
+
+-- Should shaman be afraid, hmm. This adds a so called MAN UP -behaviour, never run from "threat".
+shaman.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = shaman.PussyUtilityOld(BotBrain)
+  return math.min(26, util*0.5)
 end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 
-local function closeToEnemyTowerDist(unit)
-  local unitSelf = unit
-  local myPos = unitSelf:GetPosition()
-  local myTeam = unitSelf:GetTeam()
+local function CustomHarassUtilityFnOverride(hero)
+  -- "hero" given to this function is enemy hero
+  local nUtil = 0
+  local unitSelf = core.unitSelf -- this is you
+  -- This utility decides wether we try to slow/autoattack enemy hero
+  -- maybe raise nUtil value if hero is already in range for normal attack?
+  -- maybe also raise utility to initiate a kill try, predator should(?) jump in if slow hits
+  -- Help Predator when he is trying to kill someone? or something :D
+  -- We could get more kills if we had more heroes trying to kill one instead of only 1
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
-  local unitsInRange = HoN.GetUnitsInRadius(myPos, 3000, ALIVE + BUILDING)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not(myTeam == unit:GetTeam()) then
-      if unit:GetTypeName() == "Building_HellbourneTower" then
-        return Vector3.Distance2DSq(myPos, unit:GetPosition())
-      end
+local function HarassHeroExecuteOverride(botBrain) 
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return shaman.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nLastHarassUtility = behaviorLib.lastHarassUtil
+
+  local bActionTaken = false
+
+  local abilEntangle = skills.abilEntangle
+
+  if abilEntangle:CanActivate() then
+    local nRange = abilEntangle:GetRange()
+    if nTargetDistanceSq < (nRange*nRange) then
+      bActionTaken = core.OrderAbilityEntity(botBrain, abilEntangle, unitTarget)
+    else
+      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
     end
   end
-  return 3000
-end
 
-local function GetHeroToUlti(botBrain, myPos, radius)
-  local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
-  local vihunmq = nil
-
-  for key,unit in pairs(unitsLocal) do
-    if unit ~= nil and not (botBrain:GetTeam() == unit:GetTeam()) then
-      vihunmq = unit
-    end
+  if not bActionTaken then
+    return shaman.harassExecuteOld(botBrain)
   end
-
-  if not vihunmq then
-    return nil
-  end
-  return vihunmq
 end
+shaman.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
-local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
-  local unitsLocal = HoN.GetUnitsInRadius(myPos, range, ALIVE + UNIT)
-  local count = 0
-  for _,unit in pairs(unitsLocal) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      if not IsSiege(unit) then
-        count = count +1
-      end
-    end
-  end
-
-  return count <= 1
-end
+-- Behaviours only after this point
 
 local function UltimateBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 70
-  end
-
-  local abilUlti = unitSelf:GetAbility(3)
-  local myPos = unitSelf:GetPosition()
-  local vihu = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange() * 0.5)
-  local vihuMax = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange())
-  if vihu then
-    local canUlti = AreThereMaxTwoEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange()*2)
-    if abilUlti:CanActivate() and vihu and canUlti  then
-      return 90 -modifier
-    end
-  end
-  if abilUlti:CanActivate() and vihuMax and vihuMax:GetHealth() < 200 then
-    return 95 - (modifier * 0.5)
-  end
+  --insert utility logic for when and where to use the ulti
   return 0
 end
 
 local function UltimateBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local abilUlti = unitSelf:GetAbility(3)
-  return core.OrderAbility(botBrain, abilUlti, false)
+  local targetPos = Vector3.Create() -- fix this to correct target, ulti is cast on ground
+  return core.OrderAbilityPosition(botBrain, abilUlti, targetPos)
 end
 
 local UltimateBehavior = {}
@@ -182,21 +164,6 @@ UltimateBehavior["Utility"] = UltimateBehaviorUtility
 UltimateBehavior["Execute"] = UltimateBehaviorExecute
 UltimateBehavior["Name"] = "Using ultimate properly"
 --tinsert(behaviorLib.tBehaviors, UltimateBehavior)
-
-shaman.oncombateventOld = shaman.oncombatevent
-shaman.oncombatevent = shaman.oncombateventOverride
-
-local function heroIsInRange(botBrain,enemyCreep, range)
-  local creepPos = enemyCreep:GetPosition()
-  local unitsInRange = HoN.GetUnitsInRadius(creepPos, range, ALIVE + HERO)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      shaman.AdvTargetHero = unit
-      return true
-    end
-  end
-  return false
-end
 
 
 local function castHealingWaveUtility(botBrain)
@@ -227,8 +194,8 @@ local function castHealingWaveUtility(botBrain)
   
 	if allyCreepsInRange > 3 then
 		return 100
-	elseif allyCreepsInRange > 1 then
-		return 80
+	elseif allyCreepsInRange > 2 then -- maybe try for less frequent but bigger dmg, fazias. Save mana etc.
+		return 80                       -- should be changed if debugging
 	end
 
 	return 0	
@@ -247,74 +214,7 @@ healingWaveBehavior["Name"] = "Healingwaveinstakillyo"
 tinsert(behaviorLib.tBehaviors, healingWaveBehavior)
 
 
-local function shouldWeHarassHero(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local myPos = unitSelf:GetPosition()
-  local allyTeam = botBrain:GetTeam()
-  local heroes = HoN.GetUnitsInRadius(myPos, 4000, ALIVE+HERO)
-  for _,unit in pairs(heroes) do
-    if unit and not (allyTeam == unit:GetTeam()) then
-      -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
-      if unit:GetHealthPercent() < 0.2 then
-        return false
-      else
-        return true
-      end
-    end
-  end
-end
-
-local function CustomHarassUtilityFnOverride(hero)
-  local nUtil = 0
-
-  local distToEneTo = closeToEnemyTowerDist(hero)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 80
-  end
-  return nUtil-modifier
-end
-behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
-
-local function HarassHeroExecuteOverride(botBrain)
-
-  local unitTarget = behaviorLib.heroTarget
-  if unitTarget == nil then
-    return shaman.harassExecuteOld(botBrain)
-  end
-
-  local unitSelf = core.unitSelf
-  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
-  local nLastHarassUtility = behaviorLib.lastHarassUtil
-
-  local bActionTaken = false
-  local magicReduc = unitTarget:GetMagicArmor()
-  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
-
-  local abilEntangle = skills.abilEntangle
-  local ultiCost = skills.abilUltimate:GetManaCost()
-  local nukeCost = skills.abilEntangle:GetManaCost()
-  local myMana = unitSelf:GetMana()
-  local nukeDmg = abilEntangle:GetLevel() * 75 * magicReduc
-
-  if abilEntangle:CanActivate() then
-    local nRange = abilEntangle:GetRange()
-    if nTargetDistanceSq < (nRange*nRange) then
-	    bActionTaken = core.OrderAbilityEntity(botBrain, abilEntangle, unitTarget)
-    else
-      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-    end
-  end
-
-  if not bActionTaken then
-    return shaman.harassExecuteOld(botBrain)
-  end
-end
-shaman.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
-behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
-
-
-local function ResqueHealingWaveUtility(botBrain)
+local function ResqueHealingWaveUtility(botBrain) -- done by hiridur, does it work :D?
 	if not skills.abilHeal:CanActivate() then
 		return 0
 	end
