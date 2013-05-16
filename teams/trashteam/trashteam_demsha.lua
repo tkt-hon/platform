@@ -31,9 +31,9 @@ shaman.AdvTarget = nil
 shaman.AdvTargetHero = nil
 
 shaman.tSkills = {
-  2, 2, 2, 2, 1,
-  3, 1, 1, 1, 0,
-  3, 0, 0, 0, 4,
+  2, 0, 2, 0, 2,
+  3, 2, 1, 0, 0,
+  3, 1, 1, 1, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
@@ -181,7 +181,7 @@ local UltimateBehavior = {}
 UltimateBehavior["Utility"] = UltimateBehaviorUtility
 UltimateBehavior["Execute"] = UltimateBehaviorExecute
 UltimateBehavior["Name"] = "Using ultimate properly"
-tinsert(behaviorLib.tBehaviors, UltimateBehavior)
+--tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 
 shaman.oncombateventOld = shaman.oncombatevent
 shaman.oncombatevent = shaman.oncombateventOverride
@@ -312,3 +312,41 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 shaman.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+
+local function ResqueHealingWaveUtility(botBrain)
+	if not skills.abilHeal:CanActivate() then
+		return 0
+	end
+	local unitsLocal, unitsSorted = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 900, ALIVE + HERO, true)
+	if core.NumberElements(unitsSorted.EnemyHeroes)==0 then
+		return 0
+	end
+	local omalkm = core.NumberElements(unitsSorted.AllyHeroes)
+	local resque = nil
+  local hp = nil
+  for key,unit in pairs(unitsSorted.AllyHeroes) do
+		local newhp=unit:GetHealth()
+    if not resque or newhp<hp then
+      resque = unit
+			hp = newhp
+    end
+  end
+	if hp and hp<150 then
+		shaman.resqueTarget=resque
+		return 81
+	end
+	return 0	
+end
+
+local function ResqueHealingWaveExecute(botBrain)
+	core.BotEcho("resquehealingwave")
+  return core.OrderAbilityEntity(botBrain, skills.abilHeal, shaman.resqueTarget)
+end
+
+local ResquehealingWaveBehavior = {}
+ResquehealingWaveBehavior["Utility"] = ResqueHealingWaveUtility
+ResquehealingWaveBehavior["Execute"] = ResqueHealingWaveExecute
+ResquehealingWaveBehavior["Name"] = "HealingwaveEITAPAVITTU"
+tinsert(behaviorLib.tBehaviors, ResquehealingWaveBehavior)
+

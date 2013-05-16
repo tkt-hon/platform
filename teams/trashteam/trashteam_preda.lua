@@ -5,6 +5,9 @@ predator.heroName = "Hero_Predator"
 
 runfile 'bots/core_herobot.lua'
 
+predator.bReportBehavior = true
+predator.bDebugUtility = true
+
 local tinsert = _G.table.insert
 
 local core, behaviorLib = predator.core, predator.behaviorLib
@@ -17,8 +20,8 @@ GADGET = 0x0000010
 ALIVE = 0x0000020
 CORPSE = 0x0000040
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_DuckBoots", "Item_MinorTotem", "Item_PretendersCrown" }
-behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_IronBuckler", "3 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_HealthPotion", "Item_IronShield","Item_HealthPotion", "Item_Marchers", "Item_Steamboots", "Item_Pierce" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
@@ -30,9 +33,9 @@ predator.AdvTarget = nil
 predator.AdvTargetHero = nil
 
 predator.tSkills = {
-  1, 2, 1, 2, 1,
-  3, 1, 2, 2, 0,
-  3, 0, 0, 0, 4,
+  0, 2, 0, 2, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 4,
   3, 4, 4, 4, 4,
   4, 4, 4, 4, 4
 }
@@ -45,10 +48,10 @@ predator.tSkills = {
 -- @return: none
 function predator:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilNuke == nil then
-    skills.abilNuke = unitSelf:GetAbility(0)
-    skills.abilBounce = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
+  if skills.abilLeap == nil then
+    skills.abilLeap = unitSelf:GetAbility(0)
+    skills.abilHide = unitSelf:GetAbility(1)
+    skills.abilCarni = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
     skills.taunt = unitSelf:GetAbility(8)
@@ -88,7 +91,12 @@ function predator:oncombateventOverride(EventData)
 
   -- custom code here
   local nAddBonus = 0
-
+	if EventData.Type=="Ability" then
+		if EventData.InflictorName == "Ability_Predator1" then
+			nAddBonus = nAddBonus + 50
+		end
+		predator.eventsLib.printCombatEvent(EventData)
+	end
    if nAddBonus > 0 then
         core.DecayBonus(self)
         core.nHarassBonus = core.nHarassBonus + nAddBonus
@@ -109,193 +117,160 @@ local function closeToEnemyTowerDist(unit)
   for _,unit in pairs(unitsInRange) do
     if unit and not(myTeam == unit:GetTeam()) then
       if unit:GetTypeName() == "Building_HellbourneTower" then
-        return Vector3.Distance2DSq(myPos, unit:GetPosition())
+        return Vector3.Distance2D(myPos, unit:GetPosition())
       end
     end
   end
   return 3000
 end
 
-local function GetHeroToUlti(botBrain, myPos, radius)
+local function GetHeroToLeap(botBrain, myPos, radius)
   local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
-  local vihunmq = nil
+  local vihu = nil
 
   for key,unit in pairs(unitsLocal) do
     if unit ~= nil and not (botBrain:GetTeam() == unit:GetTeam()) then
-      vihunmq = unit
+      vihu = unit
     end
   end
 
-  if not vihunmq then
+  if not vihu then
     return nil
   end
-  return vihunmq
+  return vihu
 end
 
-local function AreThereMaxTwoEnemyUnitsClose(botBrain, myPos, range)
-  local unitsLocal = HoN.GetUnitsInRadius(myPos, range, ALIVE + UNIT)
-  local count = 0
-  for _,unit in pairs(unitsLocal) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      if not IsSiege(unit) then
-        count = count +1
-      end
+local function IsSlowed(hero)
+  if hero:HasState("State_Shaman_Ability1_Snare") or hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
+    return true
+  end
+  return false
+end
+
+local function NumberOfEnemyHeroNear(botBrain, position, range)
+  local unitsLocal = HoN.GetUnitsInRadius(myPos, radius, ALIVE + HERO)
+  local vihu = nil
+
+  for key,unit in pairs(unitsLocal) do
+    if unit ~= nil and not (botBrain:GetTeam() == unit:GetTeam()) then
+      vihu = unit
     end
   end
 
-  return count <= 1
+  if not vihu then
+    return nil
+  end
+  return vihu
 end
 
-local function UltimateBehaviorUtility(botBrain)
+local function GetArmorMultiplier(unit, magic)
+  --return value of like 0.75 where armor would therefore be 25%
+  --just multiply dmg with this value and you get final result
+  local magicReduc = 0
+  if magic then
+    magicReduc = unit:GetMagicArmor()
+  else
+    magicReduc = unit:GetArmor()
+  end
+  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
+  return magicReduc
+end
+
+local function LaneLeapBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 70
   end
-
-  local abilUlti = unitSelf:GetAbility(3)
+  local abilLeap = unitSelf:GetAbility(0)
   local myPos = unitSelf:GetPosition()
-  local vihu = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange() * 0.5)
-  local vihuMax = GetHeroToUlti(botBrain, myPos, abilUlti:GetRange())
-  if vihu then
-    local canUlti = AreThereMaxTwoEnemyUnitsClose(botBrain, vihu:GetPosition(), abilUlti:GetRange()*2)
-    if abilUlti:CanActivate() and vihu and canUlti  then
-      return 90 -modifier
+
+	local unitsLocal, unitsSorted = HoN.GetUnitsInRadius(myPos, 900, ALIVE + HERO, true)
+	local vihulkm = core.NumberElements(unitsSorted.EnemyHeroes)
+	local omalkm = core.NumberElements(unitsSorted.AllyHeroes)
+	local vihu = nil
+  local hp = 100000
+  for key,unit in pairs(unitsSorted.EnemyHeroes) do
+    if unit ~= nil and unit:GetHealth()<hp then
+      vihu = unit
+			hp = unit:GetHealth()
     end
   end
-  if abilUlti:CanActivate() and vihuMax and vihuMax:GetHealth() < 200 then
-    return 95 - (modifier * 0.5)
+
+  if vihu then
+  	local nDist = Vector3.Distance2D(vihu:GetPosition(), unitSelf:GetPosition())
+		local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(vihu, true)
+		local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(vihu, false)
+    predator.LeapTarget = vihu
+    local vihuhp = vihu:GetHealth()
+  
+	  local vihuslow = IsSlowed(vihu)
+		if attackdmg*3 > vihu:GetHealth() and nDist<250 then
+			return 100-modifier
+		end
+		if leapdmg > vihu:GetHealth() and nDist<650 and abilLeap:CanActivate() then
+			return 100
+		end
+	  if leapdmg > vihu:GetHealth()+100 and unitSelf:GetHealthPercent()>0.3 and (abilLeap:CanActivate() or omalkm >vihulkm) then
+	    return 100-modifier
+	  end
+	  if leapdmg > vihu:GetHealth()+200 and unitSelf:GetHealthPercent()>0.5 then
+	    return 95-modifier
+	  end
+	  if vihuslow and unitSelf:GetHealthPercent()>0.5 and not omalkm < vihulkm then
+	    return 90-modifier
+	  end
+		if not (omalkm < vihulkm) and vihu:GetHealth() < unitSelf:GetHealth() then
+			return 90-modifier
+		end
   end
   return 0
 end
 
-local function UltimateBehaviorExecute(botBrain)
+local function LaneLeapBehaviorExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local abilUlti = unitSelf:GetAbility(3)
-  return core.OrderAbility(botBrain, abilUlti, false)
+  local abilLeap = unitSelf:GetAbility(0)
+	local targetHero = predator.LeapTarget
+	if not targetHero then
+		return false
+	end
+  local nDist = Vector3.Distance2D(targetHero:GetPosition(), unitSelf:GetPosition())
+	local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(targetHero, true)
+	local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(targetHero, false)
+	if abilLeap:CanActivate() and (leapdmg > targetHero:GetHealth() or not IsSlowed(targetHero)) and nDist<650 then
+		core.BotEcho("Leappi")
+		return core.OrderAbilityEntity(botBrain, abilLeap, targetHero)
+	elseif nDist<=128 then
+		core.BotEcho("ATAAK")
+		return core.OrderAttackClamp(botBrain, unitSelf, targetHero) 
+	else
+		core.BotEcho("LIIKU")
+		return core.OrderMoveToUnitClamp(botBrain, unitSelf, targetHero, false)
+	end
 end
 
-local UltimateBehavior = {}
-UltimateBehavior["Utility"] = UltimateBehaviorUtility
-UltimateBehavior["Execute"] = UltimateBehaviorExecute
-UltimateBehavior["Name"] = "Using ultimate properly"
-tinsert(behaviorLib.tBehaviors, UltimateBehavior)
+local LaneLeapBehavior = {}
+LaneLeapBehavior["Utility"] = LaneLeapBehaviorUtility
+LaneLeapBehavior["Execute"] = LaneLeapBehaviorExecute
+LaneLeapBehavior["Name"] = "Attack or leap to slowed enemy heroes"
+tinsert(behaviorLib.tBehaviors, LaneLeapBehavior)
 
 predator.oncombateventOld = predator.oncombatevent
 predator.oncombatevent = predator.oncombateventOverride
 
 
-local function heroIsInRange(botBrain,enemyCreep, range)
-  local creepPos = enemyCreep:GetPosition()
-  local unitsInRange = HoN.GetUnitsInRadius(creepPos, range, ALIVE + HERO)
-  for _,unit in pairs(unitsInRange) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      predator.AdvTargetHero = unit
-      return true
-    end
-  end
-  return false
-end
-
-local function shouldWeHarassHero(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local myPos = unitSelf:GetPosition()
-  local allyTeam = botBrain:GetTeam()
-  local heroes = HoN.GetUnitsInRadius(myPos, 4000, ALIVE+HERO)
-  for _,unit in pairs(heroes) do
-    if unit and not (allyTeam == unit:GetTeam()) then
-      -- core.BotEcho("asdasd: " .. tostring(unit:GetHealthPercent()))
-      if unit:GetHealthPercent() < 0.2 then
-        return false
-      else
-        return true
-      end
-    end
-  end
-end
-
-local function AdvHarassUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  local modifier = 0
-  if distToEneTo < 650*650 then
-    modifier = 80
-  end
-
-  -- 1500 = 0
-  -- 600 = 100
-  local atkRange = unitSelf:GetAttackRange()
-  if not shouldWeHarassHero(botBrain)  then
-    return 0
-  end
-  local myPos = unitSelf:GetPosition()
-  local allUnits = HoN.GetUnitsInRadius(myPos, atkRange*2, ALIVE + UNIT)
-  local allUnitsMax = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + UNIT)
-  local potentialCreep = nil
-  local unitCount = 0
-  for _,unit in pairs(allUnitsMax) do
-    if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-      unitCount = unitCount + 1
-    end
-  end
-  --core.BotEcho("Units around: " .. tostring(unitCount))
-  if unitCount > 0 and unitCount < unitSelf:GetAbility(1):GetLevel() then -- less creeps than our bounce
-    for _,unit in pairs(allUnits) do
-      if unit and unit:GetHealthPercent() <= 0.3 then
-        return 0
-      end
-      if unit and not (botBrain:GetTeam() == unit:GetTeam()) and unit:GetHealthPercent() > 0.55 then
-        if heroIsInRange(botBrain, unit, atkRange * 0.8) then
-          predator.AdvTarget = unit
-          --botBrain.core.BotEcho("HARASS VITTUUU")
-          return 100 - modifier
-        end
-      end
-    end
-  end
-  return 0
-end
-
-local function AdvHarassExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local targetCreep = predator.AdvTarget
-  return core.OrderAttackClamp(botBrain, unitSelf, targetCreep)
-end
-
-local AdvHarassBehavior = {}
-AdvHarassBehavior["Utility"] = AdvHarassUtility
-AdvHarassBehavior["Execute"] = AdvHarassExecute
-AdvHarassBehavior["Name"] = "Using bounce to harass properly"
-tinsert(behaviorLib.tBehaviors, AdvHarassBehavior)
-
-
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
-
-  if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 12*skills.abilNuke:GetLevel()
-  end
-
-  local ultiCost = skills.abilUltimate:GetManaCost()
-  local nukeCost = skills.abilNuke:GetManaCost()
-  local myMana = hero:GetMana()
-  if myMana > ultiCost + nukeCost*1.5 then
-    nUtil = nUtil + 20
-  end
-  nUtil = nUtil * (hero:GetHealthPercent()*0.5 + 0.4)
-
-  if myMana-nukeCost < nukeCost + ultiCost and (not skills.abilUltimate:CanActivate() or skills.abilUltimate:GetLevel() < 1) then
-    nUtil = nUtil*0.5
-  end
+	
   local distToEneTo = closeToEnemyTowerDist(hero)
   local modifier = 0
-  if distToEneTo < 650*650 then
+  if distToEneTo < 650 then
     modifier = 80
   end
   return nUtil-modifier
 end
-behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+--behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function HarassHeroExecuteOverride(botBrain)
 
@@ -305,35 +280,71 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   local unitSelf = core.unitSelf
-  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local nTargetDistance = Vector3.Distance2D(unitSelf:GetPosition(), unitTarget:GetPosition())
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
-  local magicReduc = unitTarget:GetMagicArmor()
-  magicReduc = 1 - (magicReduc*0.06)/(1+0.06*magicReduc)
-
-  local abilNuke = skills.abilNuke
-  local ultiCost = skills.abilUltimate:GetManaCost()
-  local nukeCost = skills.abilNuke:GetManaCost()
-  local myMana = unitSelf:GetMana()
-  local nukeDmg = abilNuke:GetLevel() * 75 * magicReduc
-
-  if abilNuke:CanActivate() then
-    local nRange = abilNuke:GetRange()
-    if nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg > 300 and myMana-nukeCost > nukeCost+ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth()-nukeDmg < 300 and myMana-nukeCost > ultiCost then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    elseif nTargetDistanceSq < (nRange*nRange) and unitTarget:GetHealth() <= nukeDmg then
-      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-    else
-      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-    end
-  end
-
   if not bActionTaken then
     return predator.harassExecuteOld(botBrain)
   end
 end
 predator.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+predator.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+local function PussyUtilityOverride(BotBrain)
+  local util = predator.PussyUtilityOld(BotBrain)
+  return math.min(26, util*0.5)
+end
+behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
+
+local function ResqueEating(func)
+  return function(botBrain)
+		local _, unitsSorted = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 200, ALIVE + HERO, true)
+		local vihu = nil
+		local hp = nil
+		for _, unit in pairs(unitsSorted.EnemyHeroes) do
+			newhp = unit:GetHealth()
+		  if not vihu or newhp>hp then
+		    vihu = unit
+				hp = newhp
+		  end
+		end
+		if vihu then
+			return core.OrderAttackClamp(botBrain, core.unitSelf, vihu) 
+		end
+		return func(botBrain)
+	end
+end
+
+behaviorLib.UseHealthRegenBehavior["Execute"] = ResqueEating(behaviorLib.UseHealthRegenExecute)
+behaviorLib.HealAtWellBehavior["Execute"] = ResqueEating(behaviorLib.HealAtWellExecute)
+
+local function CasualEatingBehaviorUtility(botBrain)
+	local _, unitsSorted = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 128, ALIVE + HERO, true)
+	local vihu = nil
+	local hp = nil
+	for _, unit in pairs(unitsSorted.EnemyHeroes) do
+		newhp = unit:GetHealth()
+	  if not vihu or newhp>hp then
+	    vihu = unit
+			hp = newhp
+	  end
+	end
+	if vihu then
+		predator.casualtarget=vihu
+		return 99 
+	end
+	return 0
+end
+
+local function CasualEatingBehaviorExecute(botBrain)
+	return core.OrderAttackClamp(botBrain, core.unitSelf, predator.casualtarget) 
+end
+
+local CasualEatingBehavior = {}
+CasualEatingBehavior["Utility"] = CasualEatingBehaviorUtility
+CasualEatingBehavior["Execute"] = CasualEatingBehaviorExecute
+CasualEatingBehavior["Name"] = "Casually eating enemy heroes"
+tinsert(behaviorLib.tBehaviors, CasualEatingBehavior)
+

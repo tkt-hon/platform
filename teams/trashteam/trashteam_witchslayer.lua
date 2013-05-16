@@ -388,6 +388,8 @@ GetManaBehavior["Name"] = "DrainMana"
 tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
 local function GetUltiDmg(botBrain)
+  local ulti = skills.abilUltimate
+  local ultiLevel = ulti:GetLevel()
   if botBrain.core.ultiStaff then
     return ultiWithStaff[ultiLevel+1]
   end
@@ -480,12 +482,6 @@ local function getHeroWithLessHealthThan(botBrain, dmg, range)
     end
   end
 end
-
-witchslayer.comboStun
-witchslayer.comboMini
-witchslayer.comboAutoAttack
-witchslayer.comboMorph
-witchslayer.comboNuke
 
 local function ComboUtility(botBrain)
   --core.BotEcho("ManaUtility calc")
