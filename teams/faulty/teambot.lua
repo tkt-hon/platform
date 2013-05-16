@@ -15,7 +15,7 @@ local tCarries = {
 	"Hero_Hammerstorm"
 }
 local tMidHeroes = {
-	"Hero_Magmar"
+	"Hero_Mumra"
 }
 local tSuiciders = {
 	"Hero_DiseasedRider"
@@ -25,7 +25,7 @@ local tSupports = {
 }
 local tSitters = {
 	"Hero_Shaman",
-	"Hero_Mumra"
+	"Hero_Krixi"
 }
 local tSnipers = {
 	"Hero_Mumra"
