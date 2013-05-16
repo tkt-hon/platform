@@ -17,8 +17,8 @@ runfile 'bots/teams/temaNoHelp/lib/custom_unit_control.lua'
 runfile 'bots/lib/rune_controlling/init.lua'
 
 
-pollywog.bReportBehavior = true
-pollywog.bDebugUtility = true
+--pollywog.bReportBehavior = true
+--pollywog.bDebugUtility = true
 
 local core, behaviorLib, shopping, courier = pollywog.core, pollywog.behaviorLib, pollywog.shopping, pollywog.courier
 local eventsLib = pollywog.eventsLib
@@ -49,12 +49,16 @@ local function HasBoots(inventory)
   return false
 end
 
+local function IsEndGame(inventory)
+  return NumberInInventory(inventory, "Item_Lifetube") + NumberInInventory(inventory, "Item_Shield2") > 0
+end
+
 function shopping.GetNextItemToBuy()
   if HoN.GetMatchTime() <= 0 then
     return PreGameItems()
   end
   local inventory = core.unitSelf:GetInventory(true)
-  if NumberInInventory(inventory, "Item_HealthPotion") < 1 and not endGame then
+  if NumberInInventory(inventory, "Item_HealthPotion") < 1 and not IsEndGame(inventory) then
     return "Item_HealthPotion"
   elseif NumberInInventory(inventory, "Item_Bottle") <= 0 then
     if NumberInInventory(inventory, "Item_HealthPotion") < 2 then
@@ -82,7 +86,6 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_Lifetube") <= 0 then
       return "Item_Lifetube"
     elseif NumberInInventory(inventory, "Item_IronBuckler") <= 0 then
-      endGame = true
       return "Item_IronBuckler"
     end
   elseif NumberInInventory(inventory, "Item_Summon") <= 0 then
@@ -143,12 +146,7 @@ local function ItemToSell()
 end
 
 local function ItemCombines(inventory, item)
-  if item == "Item_Scarab" then
-    return true
-  elseif item == "Item_GlovesOfHaste" then
-    return true
-  end
-  return false
+  return item == "Item_Scarab" or item == "Item_GlovesOfHaste" or item == "Item_IronBuckler"
 end
 
 local function GetSpaceNeeded(inventoryHero, inventoryCourier)
@@ -350,6 +348,24 @@ local function runeTakingUtilityOverride(botBrain)
 end
 behaviorLib.RuneTakingBehavior["Utility"] = runeTakingUtilityOverride
 
+local function PuzzleBoxBehaviorUtility(botBrain)
+  local pb = core.itemPB
+  if pb and pb:CanActivate() and core.NumberElements(core.AssessLocalUnits(botBrain).EnemyBuildings) > 0 then
+    return 100
+  end
+  return 0
+end
+
+local function PuzzleBoxBehaviorExecute(botBrain)
+  return core.OrderItemClamp(botBrain, core.unitSelf, core.itemPB)
+end
+
+local PuzzleBoxBehavior = {}
+PuzzleBoxBehavior["Utility"] = PuzzleBoxBehaviorUtility
+PuzzleBoxBehavior["Execute"] = PuzzleBoxBehaviorExecute
+PuzzleBoxBehavior["Name"] = "PuzzleBox using"
+tinsert(behaviorLib.tBehaviors, PuzzleBoxBehavior)
+
 local FindItemsOld = core.FindItems
 local function funcFindItemsOverride(botBrain)
   local bUpdated = FindItemsOld(botBrain)
@@ -357,15 +373,20 @@ local function funcFindItemsOverride(botBrain)
   if core.itemBottle ~= nil and not core.itemBottle:IsValid() then
     core.itemBottle = nil
   end
+  if core.itemPB ~= nil and not core.itemPB:IsValid() then
+    core.itemPB = nil
+  end
 
-  if bUpdated and not core.itemBottle then
-
+  if bUpdated and not (core.itemBottle and core.itemPB) then
     local inventory = core.unitSelf:GetInventory(true)
     for slot = 1, 12, 1 do
       local curItem = inventory[slot]
       if curItem then
-        if core.itemBottle == nil and curItem:GetName() == "Item_Bottle" then
+        local sCurItem = curItem:GetName()
+        if not core.itemBottle and sCurItem == "Item_Bottle" then
           core.itemBottle = core.WrapInTable(curItem)
+        elseif not core.itemPB and sCurItem == "Item_Summon" then
+          core.itemPB = core.WrapInTable(curItem)
         end
       end
     end

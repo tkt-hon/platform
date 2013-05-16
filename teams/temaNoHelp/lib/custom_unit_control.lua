@@ -16,13 +16,28 @@ local function SearchIllues(botBrain)
   end
 end
 
+local function SearchPBMinions(botBrain)
+  local tAllyCreepsNearby = core.AssessLocalUnits(botBrain).AllyCreeps
+  local unitSelf = core.unitSelf
+  local sPlayer = unitSelf:GetOwnerPlayer()
+  for _, creep in pairs(tAllyCreepsNearby) do
+    if creep and creep:IsValid() and creep:GetOwnerPlayer() == sPlayer and (creep:GetTypeName() == "Pet_NecroRanged" or creep:GetTypeName() == "Pet_NecroMelee") then
+      core.OrderFollow(botBrain, creep, unitSelf)
+    end
+  end
+end
+
 local oncombateventOld = herobot.oncombatevent
 local function oncombateventOverride(self, EventData)
   oncombateventOld(self, EventData)
-  if EventData.Type == "Item" and EventData.InflictorName == "Item_Bottle" then
-    local bottle = core.itemBottle
-    if bottle:GetActiveModifierKey() == "bottle_3" then
-      SearchIllues(self)
+  if EventData.Type == "Item" then
+    if EventData.InflictorName == "Item_Bottle" then
+      local bottle = core.itemBottle
+      if bottle:GetActiveModifierKey() == "bottle_3" then
+        SearchIllues(self)
+      end
+    elseif EventData.InflictorName == "Item_Summon" then
+      SearchPBMinions(self)
     end
   end
 end
