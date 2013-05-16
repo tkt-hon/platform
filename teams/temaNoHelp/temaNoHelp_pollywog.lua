@@ -343,9 +343,9 @@ end
 
 local runeTakingUtilityOld = behaviorLib.RuneTakingBehavior["Utility"]
 local function runeTakingUtilityOverride(botBrain)
-  local teambot = core.teamBotBrain
-  if EmptyBottle(botBrain) then
-    return runeTakingUtilityOld(botBrain)
+  local nEnemyCreeps = core.NumberElements(core.AssessLocalUnits(botBrain).EnemyCreeps)
+  if nEnemyCreeps <= 0 and EmptyBottle(botBrain) then
+    return core.Clamp(runeTakingUtilityOld(botBrain), 0, 20.5)
   end
   return 0
 end
