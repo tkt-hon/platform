@@ -6,8 +6,7 @@ shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/utils.lua'
---runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
-runfile 'bots/teams/trashteam/utils/predictiveLastHittingVesa.lua'
+runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
 
 local tinsert = _G.table.insert
 
@@ -63,9 +62,9 @@ shaman.SkillBuild = shaman.SkillBuildOverride
 function shaman:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
   local unitSelf = self.core.unitSelf
-	
-	initTracking(self)
-	updateCreepHistory(self)
+
+	--initTracking(self)
+	--updateCreepHistory(self)
 end
 shaman.onthinkOld = shaman.onthink
 shaman.onthink = shaman.onthinkOverride
@@ -111,7 +110,7 @@ local function CustomHarassUtilityFnOverride(hero)
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
-local function HarassHeroExecuteOverride(botBrain) 
+local function HarassHeroExecuteOverride(botBrain)
 
   local unitTarget = behaviorLib.heroTarget
   if unitTarget == nil then
@@ -167,17 +166,17 @@ UltimateBehavior["Name"] = "Using ultimate properly"
 local function castHealingWaveUtility(botBrain)
 	if skills.abilHeal:GetLevel() < 2 then
 		return 0
- 	end
+end
 
 	local unitSelf = botBrain.core.unitSelf
   local heroesInRange = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 1000, ALIVE + HERO)
 
 	local enemyHeroesInRange = 0
 	local allyCreepsInRange = 0
-  
+
 	for _,unit in pairs(heroesInRange) do
     if unit and botBrain:GetTeam() ~= unit:GetTeam() then
-			
+
 			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(), 180, ALIVE+UNIT)
 			for _,creep in pairs(creepsInRange) do
 				if creep and unitSelf:GetTeam() == creep:GetTeam() and (not IsSiege(creep)) then
@@ -186,17 +185,17 @@ local function castHealingWaveUtility(botBrain)
 					core.DrawDebugArrow(unit:GetPosition(), creep:GetPosition(), 'red')
 				end
 			end
-    	
+
 		end
   end
-  
+
 	if allyCreepsInRange > 3 then
 		return 100
 	elseif allyCreepsInRange > 2 then -- maybe try for less frequent but bigger dmg, fazias. Save mana etc.
 		return 80                       -- should be changed if debugging
 	end
 
-	return 0	
+	return 0
 end
 
 local function castHealingWaveExecute(botBrain)
@@ -234,7 +233,7 @@ local function ResqueHealingWaveUtility(botBrain) -- done by hiridur, does it wo
 		shaman.resqueTarget=resque
 		return 81
 	end
-	return 0	
+	return 0
 end
 
 local function ResqueHealingWaveExecute(botBrain)
