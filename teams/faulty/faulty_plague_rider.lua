@@ -169,7 +169,7 @@ local function CustomHarassUtilityFnOverride(hero)
 		local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
 
 		if targetDistanceSq < (nRange * nRange) then
-			local creeps = NearbyCreepCountUtility(plaguerider, heroPo, 600)
+			local creeps = NearbyCreepCountUtility(plaguerider, heroPos, 600)
 			nPlagueVal = nPlagueVal + nPlagueUp + skills.abilContagion:GetLevel() * nSkillLevelBonus + creeps * nPlagueCreepMod
 		end
 	end
