@@ -242,40 +242,6 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
-
-
---------------------------------------------------------------------------------
--- FindItems Override
---
-local function funcFindItemsOverride(botBrain)
-	local bUpdated = moonqueen.FindItemsOld(botBrain)
-
-	if core.itemBottle ~= nil and not core.itemBottle:IsValid() then
-		core.itemBottle = nil
-	end
-
-	if bUpdated then
-		-- only update if we need to
-		if core.itemBottle then
-			return
-		end
-
-		local inventory = core.unitSelf:GetInventory(true)
-		for slot = 1, 12, 1 do
-			local curItem = inventory[slot]
-			if curItem then
-				if curItem:GetName() == "Item_Bottle" then
-					core.itemBottle = core.WrapInTable(curItem)
-					return
-				end
-			end
-		end
-	end
-end
-
-moonqueen.FindItemsOld = core.FindItems
-core.FindItems = funcFindItemsOverride
-
 --------------------------------------------------------------------------------
 
 BotEcho("finished loading faulty_moon_queen.lua")
