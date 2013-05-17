@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="EKP_Glacius"
-  description="Default Glacius"
-  heroname="Hero_Frosty"
-  rootlua="EKP_glacius.lua"
-  defaultplayername="DefaultGlaciusBot"
-  precachepath="/heroes/frosty/"
-/>

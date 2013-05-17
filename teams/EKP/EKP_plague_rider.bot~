@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
   name="EKP_PlagueRider"
-  description="RIDIN' DIRTY"
+  description="Default Plague Rider"
   heroname="Hero_DiseasedRider"
   rootlua="EKP_plague_rider.lua"
   defaultplayername="EiKaupallistaPotentiaalia PlagueBot"
