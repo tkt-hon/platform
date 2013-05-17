@@ -4,6 +4,6 @@
 	description="bot_description_hammerstorm"
 	heroname="Hero_Hammerstorm"
 	rootlua="mahlalasti_hammerstorm.lua"
-	defaultplayername="HammerBot"
+	defaultplayername="MahlalastiEpicHammerBot"
 	precachepath="/heroes/hammerstorm/"
 />

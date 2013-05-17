@@ -4,6 +4,6 @@
 	description="rar_ses"
 	rootlua="mahlalasti_amunra.lua"
 	heroname="Hero_Ra"
-	defaultplayername="MahlalastiAmunRaBot"
+	defaultplayername="MahlalastiEpicAmunRaBot"
 	precachepath="/heroes/ra/"
 />

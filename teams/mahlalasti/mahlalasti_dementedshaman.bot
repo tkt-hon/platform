@@ -4,6 +4,6 @@
 	description="bot_description_shaman"
 	heroname="Hero_Shaman"
 	rootlua="mahlalasti_dementedshaman.lua"
-	defaultplayername="ShamanBot"
+	defaultplayername="MahlalastiEpicShammyBot"
 	precachepath="/heroes/shaman/"
 />
