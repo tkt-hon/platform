@@ -1,6 +1,6 @@
-# Team Default
+# Team EKP
 
 To enable default team, copy paste these alias commands to your ```startup.cfg```
 
-    Alias "team_default_hellbourne" "set teambotmanager_hellbourne default; AddBot 2 Default_Rampage; AddBot 2 Default_PlagueRider; AddBot 2 Default_MoonQueen; AddBot 2 Default_Glacius; AddBot 2 Default_Rhapsody"
-    Alias "team_default_legion" "set teambotmanager_legion default; AddBot 1 Default_Rampage; AddBot 1 Default_PlagueRider; AddBot 1 Default_MoonQueen; AddBot 1 Default_Glacius; AddBot 1 Default_Rhapsody"
+    Alias "team_EKP_hellbourne" "set teambotmanager_hellbourne EKP; AddBot 2 EKP_Rampage; AddBot 2 EKP_PlagueRider; AddBot 2 EKP_MoonQueen; AddBot 2 EKP_Wildsoul; AddBot 2 EKP_Defiler"
+    Alias "team_EKP_legion" "set teambotmanager_legion EKP; AddBot 1 EKP_Rampage; AddBot 1 EKP_PlagueRider; AddBot 1 EKP_MoonQueen; AddBot 1 EKP_Wildsoul; AddBot 1 EKP_Defiler"
