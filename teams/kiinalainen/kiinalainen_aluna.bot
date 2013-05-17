@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Kiinalainen_Aluna"
+  description="Kiinalainen Aluna"
+  heroname="Hero_Aluna"
+  rootlua="kiinalainen_aluna.lua"
+  defaultplayername="KiinalainenAluna"
+  precachepath="/heroes/aluna/"
+/>

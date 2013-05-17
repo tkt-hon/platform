@@ -177,7 +177,7 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 end
 
 
-function AttackCreepsExecuteOverride(botBrain)
+function herobot.AttackCreepsExecuteOverride(botBrain)
     local unitSelf = core.unitSelf
     local unitCreepTarget = core.unitCreepTarget
 
@@ -213,5 +213,5 @@ function AttackCreepsExecuteOverride(botBrain)
         return false
     end
 end
-object.AttackCreepsExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
-behaviorLib.AttackCreepsBehavior["Execute"] = AttackCreepsExecuteOverride
+herobot.AttackCreepsExecuteOld = behaviorLib.AttackCreepsBehavior["Execute"]
+behaviorLib.AttackCreepsBehavior["Execute"] = herobot.AttackCreepsExecuteOverride

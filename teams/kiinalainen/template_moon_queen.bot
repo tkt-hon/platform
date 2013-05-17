@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Kiinalainen_Template_MoonQueen"
+  description="Kiinalainen Template Moon Queen"
+  heroname="Hero_Krixi"
+  rootlua="template_moon_queen.lua"
+  defaultplayername="KiinalainenTemplateMQBot"
+  precachepath="/heroes/krixi/"
+/>
