@@ -1,1 +1,0 @@
-<bot name="EKP_Wildsoul" description="Urho-Karhun kosto on hirmuinen" heroname="Hero_Yogi" rootlua="EKP_yogi.lua" defaultplayername="Urho-Karhu" precachepath="/heroes/yogi/"/>

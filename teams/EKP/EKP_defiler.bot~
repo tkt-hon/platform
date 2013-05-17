@@ -1,1 +1,0 @@
-<bot name="EKP_Defiler" description="ZOMBIE GHOSTS LEAVE THIS PLACE" heroname="Hero_Defiler" rootlua="EKP_defiler.lua" defaultplayername="Noita-akka" precachepath="/heroes/defiler/"/>
