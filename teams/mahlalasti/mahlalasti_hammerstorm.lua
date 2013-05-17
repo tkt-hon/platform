@@ -4,6 +4,8 @@
 local _G = getfenv(0)
 local object = _G.object
 
+local tinsert = _G.table.insert --pursejuttu
+
 object.myName = object:GetName()
 
 object.bRunLogic 		= true
@@ -36,7 +38,7 @@ runfile "bots/botbraincore.lua"
 runfile "bots/eventsLib.lua"
 runfile "bots/metadata.lua"
 runfile "bots/behaviorLib.lua"
-runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
+runfile "bots/teams/mahlalasti/mahlalasti_courier.lua"
 
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
@@ -205,9 +207,9 @@ function object:onthinkOverride(tGameVariables)
 	end
  	self:onthinkCourier()
 
- 	local courier = self:GetCourier()
- 	local nDist = Vector3.Distance(courier:GetPosition(), core.unitSelf:GetPosition())
- 	local nCourierSpeed = courier:GetMoveSpeed()
+ 	--local courier = self:GetCourier()
+ 	--local nDist = Vector3.Distance(courier:GetPosition(), core.unitSelf:GetPosition())
+ 	--local nCourierSpeed = courier:GetMoveSpeed()
 
  	--BotEcho("Movement time: " .. nDist/nCourierSpeed)
 
@@ -484,4 +486,45 @@ behaviorLib.LateItems = {"Item_Warpcleft", "Item_SolsBulwark", "Item_DaemonicBre
 --]]
 
 BotEcho('finished loading hammerstorm_main')
+
+function behaviorLib.bigPurseUtility(botBrain)
+
+    
+    local level = core.unitSelf:GetLevel()
+
+    object.purseMax = 4400
+    object.purseMin = 2000
+
+    local bDebugEchos = false
+     
+    local Clamp = core.Clamp
+    local m = (100/(object.purseMax - object.purseMin))
+    nUtil = m*botBrain:GetGold() - m*object.purseMin
+    nUtil = Clamp(nUtil,0,100)
+ 
+    if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
+ 
+    return nUtil
+end
+ 
+-- Execute
+function behaviorLib.bigPurseExecute(botBrain)
+	local mana = core.unitSelf:GetManaPercent()
+    local unitSelf = core.unitSelf
+ 
+	
+    local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+	
+    core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
+end
+      
+      
+      
+  
+behaviorLib.bigPurseBehavior = {}
+behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
+behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
+behaviorLib.bigPurseBehavior["Name"] = "bigPurse"
+tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
+
 

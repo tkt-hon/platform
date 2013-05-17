@@ -1,22 +1,4 @@
-----------------------------------------------------------------------
-----------------------------------------------------------------------
---   ____    _	     _____   _____   _____     ____    ________  -----
---  |    \  | |	    /	  \ /     \ |	  \   /	   \  |  _  _  | -----
---  | Ѻ _|  | |___  |  Ѻ  | |  Ѻ  | |  ѻ__/  |   _  | |__    __| -----
---  |   \   |  _  \ |  _  | |  ___/ 3      \ |  (Ѻ) |    |  |    -----
---  | |\ \  | |	| | | | | | | |     |  Ѻ   | |	 ¯  |    |  |	 -----
---  |_| \_\ |_| |_| |_| |_| |_,     |______,  \____,     |__|	 -----
-----------------------------------------------------------------------
-----------------------------------------------------------------------
--- Rhapbot v1.0
 
--- By community member fane_maciuca
-
--- Note from fane_maciuca:
--- I have a new respect for ASCII artists (a damn pain do the header here)
--- Special thanks to: Zerotorescue, spennerino, fahna, etc , etc
--- BIG thanks to Stolen_ID for being an integral part of rhapbot's birth
--- And great big bags of beer to [s2]malloc for being awesome
 
 --####################################################################
 --####################################################################
@@ -75,6 +57,7 @@ local ceil, floor, pi, tan, atan, atan2, abs, cos, sin, acos, max, random
 local BotEcho, VerboseLog, BotLog = core.BotEcho, core.VerboseLog, core.BotLog
 local Clamp = core.Clamp
 
+local tinsert = _G.table.insert --tänne pursejuttu tulleepi
 
 BotEcho(' loading rhapsody_main...')
 
@@ -729,3 +712,44 @@ core.GetDeathKeys = GetDeathKeysOverride
 
 
 BotEcho ('success')
+
+
+function behaviorLib.bigPurseUtility(botBrain)
+
+    
+    local level = core.unitSelf:GetLevel()
+
+    object.purseMax = 4400
+    object.purseMin = 2000
+    local bDebugEchos = false
+     
+    local Clamp = core.Clamp
+    local m = (100/(object.purseMax - object.purseMin))
+    nUtil = m*botBrain:GetGold() - m*object.purseMin
+    nUtil = Clamp(nUtil,0,100)
+ 
+    if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
+ 
+    return nUtil
+end
+ 
+-- Execute
+function behaviorLib.bigPurseExecute(botBrain)
+	local mana = core.unitSelf:GetManaPercent()
+    local unitSelf = core.unitSelf
+ 
+	
+    local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+	
+    core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
+end
+      
+      
+      
+  
+behaviorLib.bigPurseBehavior = {}
+behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
+behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
+behaviorLib.bigPurseBehavior["Name"] = "bigPurse"
+tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
+

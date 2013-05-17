@@ -5,6 +5,8 @@
 local _G = getfenv(0)
 local object = _G.object
 
+local tinsert = _G.table.insert
+
 object.myName = object:GetName()
 
 object.bRunLogic 		= true
@@ -771,6 +773,45 @@ behaviorLib.LaneItems = {"Item_MysticVestments", "Item_Marchers", "Item_TrinketO
 behaviorLib.MidItems = {"Item_Steamboots", "Item_Shield2", "Item_MagicArmor2"} --Item_Shield2 is helm of the black legion || hotbl; Item_MagicArmor2 is shamans headress
 behaviorLib.LateItems = {"Item_BehemothsHeart", "Item_Damage10", "Item_Weapon3", "Item_DaemonicBreastplate", "Item_Damage9"} --Item_Damage9 is doombringer, ...10 is mock, weapon3 is savage mace
 
+function behaviorLib.bigPurseUtility(botBrain)
+
+    
+    local level = core.unitSelf:GetLevel()
+
+    object.purseMax = 4400
+    object.purseMin = 2000
+
+    local bDebugEchos = false
+     
+    local Clamp = core.Clamp
+    local m = (100/(object.purseMax - object.purseMin))
+    nUtil = m*botBrain:GetGold() - m*object.purseMin
+    nUtil = Clamp(nUtil,0,100)
+ 
+    if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
+ 
+    return nUtil
+end
+ 
+-- Execute
+function behaviorLib.bigPurseExecute(botBrain)
+	local mana = core.unitSelf:GetManaPercent()
+    local unitSelf = core.unitSelf
+ 
+	
+    local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+	
+    core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
+end
+      
+      
+      
+  
+behaviorLib.bigPurseBehavior = {}
+behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
+behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
+behaviorLib.bigPurseBehavior["Name"] = "bigPurse"
+tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
 
 BotEcho(object:GetName()..' finished loading amunra_main')
 

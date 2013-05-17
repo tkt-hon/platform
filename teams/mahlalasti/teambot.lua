@@ -13,7 +13,7 @@ local core = teambot.core
 
 local tinsert = _G.table.insert
 
-teambot.myName = 'Mahliksen tiimi ebooon'
+teambot.myName = 'Mahlalasti'
 
 function teambot:GetMemoryUnit(unit)
   return unit and self.tMemoryUnits[unit:GetUniqueID()]
