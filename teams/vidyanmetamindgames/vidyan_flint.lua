@@ -2,18 +2,12 @@ local _G = getfenv(0)
 local flint = _G.object
 
 flint.heroName = "Hero_FlintBeastwood"
-local core, behaviorLib = flint_beastwood.core, flint_beastwood.behaviorLib
-
 runfile 'bots/core_herobot.lua'
 
---------------------------------------------------------------
--- Itembuild - Loggers Hatchet, Iron Buckler, 		    -- 
--- Sword of the high, Mockki (damage10), thunderclaw ja     --
--- ekat bootsit menee nallelle, sen jälkeen loput herolle   --
---------------------------------------------------------------
+local core, behaviorLib = flint.core, flint.behaviorLib
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_duckboots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_Soulscream", "Item_Soulscream", "Item_Marchers", "Item_Steamboots", "Item_Fleetfeet", "Item_Quickblade" , "Item_Sicarius", "Item_Weapon 3", "Item_WhisperingHelm", "Item_Critical1", "Item_Critical2", "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots" }
+behaviorLib.LaneItems = { "Item_Soulscream", "Item_Marchers", "Item_Steamboots", "Item_Fleetfeet", "Item_Quickblade" , "Item_Sicarius", "Item_WhisperingHelm", "Item_Weapon3", "Item_Critical1", "Item_Critical2", "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
 behaviorLib.MidItems = {  }
 behaviorLib.LateItems = { "Item_Critical1", "Item_Critical2", "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
 
@@ -24,16 +18,10 @@ behaviorLib.LateItems = { "Item_Critical1", "Item_Critical2", "Item_DaemonicBrea
 -- @param: none
 -- @return: none
 
+
 flint.skills = {}
 local skills = flint.skills
 
------------------------------------------------------------------
--- Selitys buildin takana: Nallen maksimointi alkuun, tällöin  --
--- saadaan nallesta kestävä ja damagea tekevä, sekä skillit.   --
--- Passiivinen skilli lvl 2 alkuun, jolloin Wild (buffi) pysyy --
--- jatkuvasti yllä, 30sec cd ja 30sec kestävä buffi. Ultimate  --
--- pidetään jatkuvasti toggletettuna kestävyyden lisäämiseksi  --
------------------------------------------------------------------
 
 flint.tSkills = {
   1, 2, 2, 1, 2,
@@ -49,7 +37,7 @@ function flint:SkillBuildOverride()
     skills.abilNuke = unitSelf:GetAbility(0)
     skills.abilHeadshot = unitSelf:GetAbility(1)
     skills.abilRange = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.abilUlti = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
   self:SkillBuildOld()
@@ -82,8 +70,7 @@ function flint:oncombateventOverride(EventData)
 
   -- custom code here
 end
-flint.oncombateventOld = flint.oncombatevent
-flint.oncombatevent = flint.oncombateventOverride
+
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
@@ -114,7 +101,7 @@ local function HarassHeroExecuteOverride(botBrain)
     local abilUlti = skills.abilUlti
 
     if abilUlti:CanActivate() then
-      local nRange = abilNuke:GetRange()
+      local nRange = abilUlti:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilUlti, unitTarget)
       else
@@ -129,3 +116,6 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 flint.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
+
+flint.oncombateventOld = flint.oncombatevent
+flint.oncombatevent = flint.oncombateventOverride
