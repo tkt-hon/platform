@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="TrashTeam_Demsha"
+  description="TrashTeam's demsha"
+  heroname="Hero_Shaman"
+  rootlua="trashteam_demsha.lua"
+  defaultplayername="[TT] healman"
+  precachepath="/heroes/shaman/"
+/>
