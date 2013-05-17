@@ -108,8 +108,7 @@ local function tfind(table, value)
 end
 
 local tGankers = {
-  "Hero_Rampage",
-  "Hero_Magmar"
+  "Hero_Rampage"
 }
 local tCarries = {
   "Hero_Krixi"

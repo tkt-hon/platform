@@ -7,3 +7,6 @@
 [submodule "lib/metadata_manager"]
 	path = lib/metadata_manager
 	url = git://github.com/tkt-hon/metadata_manager.git
+[submodule "libhon"]
+	path = libhon
+	url = git://github.com/dezgeg/libhon.git
