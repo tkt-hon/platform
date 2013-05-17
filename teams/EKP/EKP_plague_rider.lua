@@ -8,8 +8,8 @@ runfile 'bots/core_herobot.lua'
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
 behaviorLib.StartingItems = { "Item_ManaRegen3", "Item_HealthPotion" }
-behaviorLib.LaneItems = { "Item_Strength5", "Item_Astrolabe", "Item_MysticVestments", "Item_Marchers" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
+behaviorLib.LaneItems = { "Item_Strength5", "Item_Astrolabe", "Item_Steamboots" }
+behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_FrostfieldPlate" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower" }
 
 plaguerider.skills = {}
@@ -63,6 +63,36 @@ function plaguerider:onthinkOverride(tGameVariables)
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
+
+
+--------------------------------------
+-- Heal at well utility override    --
+--------------------------------------
+
+local function HealAtWellLogicOverride(botBrain)
+  
+  local nHpPercent = core.unitSelf:GetHealthPercent()
+  local nManaPercent = core.unitSelf:GetManaPercent()
+  local nUtility = 0
+
+  if nManaPercent < 0.15 then 
+	nUtility = 30
+  end
+
+  if nHpPercent < 0.2 then
+	nUtility = 80
+  end
+
+  if nUtility = 0 then
+	return defiler.HealAtWellUtilityOld(botBrain)
+  end
+
+  return nUtility
+
+end
+defiler.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
+behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellLogicOverride
+
 
 ----------------------------------------------
 --            oncombatevent override        --

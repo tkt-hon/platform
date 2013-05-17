@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = yogi.core, yogi.behaviorLib
 
-behaviorLib.StartingItems  = { "Item_RunesOfTheBlight", "Item_IronBuckler", "Item_LoggersHatchet"}
+behaviorLib.StartingItems  = { "6 Item_HealthPotion"}
 behaviorLib.LaneItems  = { "Item_EnhancedMarchers", "Item_Lightning1" } 
-behaviorLib.MidItems  = { "Item_Protect", "Item_Dawnbringer"}
-behaviorLib.LateItems  = { "Item_Lightning2", "Item_FrostfieldPlate", "Item_BehemothsHeart"}
+behaviorLib.MidItems  = { "Item_Lightning2", "Item_Evasion"}
+behaviorLib.LateItems  = { "Item_Weapon3", "Item_FrostfieldPlate", "Item_Damage9"}
 
 
 yogi.skills = {}
@@ -85,8 +85,28 @@ end
 object.onthinkOld = object.onthink
 object.onthink  = object.onthinkOverride
  
- 
- 
+--------------------------------------
+-- Heal at well utility override    --
+--------------------------------------
+
+local function HealAtWellLogicOverride(botBrain)
+  
+  local nHpPercent = core.unitSelf:GetHealthPercent()
+  local nUtility = 0
+
+  if nHpPercent < 0.2 then
+	nUtility = 80
+  end
+
+  if nUtility = 0 then
+	return defiler.HealAtWellUtilityOld(botBrain)
+  end
+
+  return nUtility
+
+end
+defiler.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
+behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellLogicOverride 
  
 ----------------------------------------------
 --            oncombatevent override        --

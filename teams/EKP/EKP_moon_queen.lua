@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "2 Item_HealthPotion", "Item_PretendersCrown", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
-behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
-behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "5 Item_HealthPotion" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Damage9" }
 
 behaviorLib.pushingStrUtilMul = 1
 
@@ -55,6 +55,34 @@ end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
 
+--------------------------------------
+-- Heal at well utility override    --
+--------------------------------------
+
+local function HealAtWellLogicOverride(botBrain)
+  
+  local nHpPercent = core.unitSelf:GetHealthPercent()
+  local nManaPercent = core.unitSelf:GetManaPercent()
+  local nUtility = 0
+
+  if nManaPercent < 0.15 then 
+	nUtility = 30
+  end
+
+  if nHpPercent < 0.2 then
+	nUtility = 80
+  end
+
+  if nUtility = 0 then
+	return defiler.HealAtWellUtilityOld(botBrain)
+  end
+
+  return nUtility
+
+end
+defiler.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
+behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellLogicOverride
+
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
@@ -82,8 +110,9 @@ end
 
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
+  local nLevel = unitSelf:GetLevel()
 
-  if skills.abilNuke:CanActivate() then
+  if skills.abilNuke:CanActivate() and nLevel > 5 then
     nUtil = nUtil + 10*skills.abilNuke:GetLevel()
   end
 
