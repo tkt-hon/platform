@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="Faulty_Pharaoh"
+	description="bot_description_pharaoh"
+	heroname="Hero_Mumra"
+	rootlua="faulty_pharaoh.lua"
+	defaultplayername="Faulty_Pharaoh"
+	precachepath="/heroes/pharaoh/"
+/>

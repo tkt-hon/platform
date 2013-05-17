@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="Faulty_DementedShaman"
+	description="ASDjsalkdjaslkdsalk"
+	heroname="Hero_Shaman"
+	rootlua="faulty_demented_shaman.lua"
+	defaultplayername="Faulty_DementedShaman"
+	precachepath="/heroes/shaman/"
+/>
