@@ -259,9 +259,6 @@ local function LaneLeapBehaviorUtility(botBrain)
       predator.LeapTarget = vihu
       predator.nDist = nDist
       local vihuhp = vihu:GetHealth()
-      -- Hiridur, Näitä alla olevia ehtoja on liikaa. Tee yksinkertaisemmin, katoin just ku preda meni
-      -- vihun kimppuun vihuntornin viereen mutta jäi sen jälkeen "en mä kuiteskaan" - tilaan ja kuoli tornin tulitukseen
-      -- en kyl tätä viestiä luettaessa lukenut koko tiedostoa mutta näin huomioidakseni.
       local vihuslow = IsSlowed(vihu)
       if not (omalkm < vihulkm) and (unitSelf:GetHealthPercent()>0.7 or vihuslow) and nDist<600 then
         return 94-modifier
