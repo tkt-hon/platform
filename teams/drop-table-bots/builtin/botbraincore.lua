@@ -676,9 +676,13 @@ function core.UpdateCreepTargets(botBrain)
 	--consider lasthits
 	local lowestEnemyHP = 9999
 	local lowestEnemyCreep = nil
+
     -- consider nearby full-HP enemies for small XP boost
 	local highestEnemyDist = 99999999
 	local highestEnemyCreep = nil
+
+    -- but only if we have ranged attack ourselves
+    local isRanged = unitSelf:GetAttackType() == 'ranged'
 	for id, creep in pairs(enemyCreeps) do
 		curHP = creep:GetHealth()
 		--BotEcho('creepHealth '..curHP)
@@ -686,13 +690,15 @@ function core.UpdateCreepTargets(botBrain)
 			lowestEnemyHP = curHP
 			lowestEnemyCreep = creep
 		end
-        local dist = Vector3.Distance2DSq(myPos, creep:GetPosition())
-		if dist < highestEnemyDist and creep:GetHealthPercent() > 0.9 then
-			highestEnemyDist = dist
-			highestEnemyCreep = creep
-        elseif creep:GetAttackType() == 'ranged' then
-			highestEnemyDist = 0.001 -- die fuckers
-			highestEnemyCreep = creep
+        if isRanged then
+            local dist = Vector3.Distance2DSq(myPos, creep:GetPosition())
+            if dist < highestEnemyDist and creep:GetHealthPercent() > 0.85 then
+                highestEnemyDist = dist
+                highestEnemyCreep = creep
+            elseif creep:GetAttackType() == 'ranged' then
+                highestEnemyDist = 0.001 -- die fuckers
+                highestEnemyCreep = creep
+            end
         end
 	end
 
