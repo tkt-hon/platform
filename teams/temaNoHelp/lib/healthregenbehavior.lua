@@ -27,7 +27,7 @@ end
 function behaviorLib.PowerSupplyUtilFn(nHealthMissing)
   --Roughly 20+ when we are down 138 hp (which is when we want to use a rune)
   -- Fn which crosses 20 at x=138 and is 30 at roughly x=600, convex down
-  if nHealthMissing > 10
+  if nHealthMissing > 10 then
     return 100
   end
   return 0

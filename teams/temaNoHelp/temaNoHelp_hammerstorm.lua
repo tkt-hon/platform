@@ -8,6 +8,8 @@ runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 
 local core, behaviorLib, eventsLib, shopping, courier = hammer.core, hammer.behaviorLib, hammer.eventsLib, hammer.shopping, hammer.courier
 

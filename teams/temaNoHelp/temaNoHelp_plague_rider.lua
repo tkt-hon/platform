@@ -12,6 +12,8 @@ runfile 'bots/teams/temaNoHelp/lib/courier.lua'
 runfile 'bots/teams/temaNoHelp/lib/shopping.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 
 local core, behaviorLib, shopping, courier = plaguerider.core, plaguerider.behaviorLib, plaguerider.shopping, plaguerider.courier
 

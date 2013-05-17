@@ -8,6 +8,9 @@ runfile 'bots/teams/temaNoHelp/lib/antichronos.lua'
 
 teambot.myName = 'temaNoHelp'
 
+teambot.bGroupAndPush = false
+teambot.bDefense = false
+
 local core, metadata = teambot.core, teambot.metadata
 
 ------------------------------------------------------

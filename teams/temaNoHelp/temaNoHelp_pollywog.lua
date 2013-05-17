@@ -14,8 +14,10 @@ runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/custom_unit_control.lua'
-runfile 'bots/lib/rune_controlling/init.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
+runfile 'bots/lib/rune_controlling/init.lua'
 
 --pollywog.bReportBehavior = true
 --pollywog.bDebugUtility = true
@@ -302,7 +304,7 @@ local function WardTrapBehaviorUtility(botBrain)
     return 200
   end
 
-  if unitTarget then
+  if unitTarget and core.CanSeeUnit(botBrain, unitTarget) then
     if(unitTarget:HasState("State_PollywogPriest_Ability2") and abilUltimate:CanActivate() or botBrain.trapTongue) then
       return 200
     end
@@ -317,17 +319,21 @@ local function WardTrapBehaviorExecute(botBrain)
   if core.unitSelf:IsChanneling() then
     return true
   end
-  if target then
-    if abilUltimate:CanActivate() then
-      return core.OrderAbilityPosition(botBrain, abilUltimate, target:GetPosition())
-    elseif abilTongue:CanActivate() then
-      core.BotEcho("KIELI")
+  if target and target:IsAlive() then
+    local unitSelf = core.unitSelf
+    local targetPosition = target:GetPosition()
+    local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), targetPosition)
+    local nUltiRange = abilUltimate:GetRange()
+    local nTongueRange = abilTongue:GetRange()
+    if abilUltimate:CanActivate() and nTargetDistanceSq < nUltiRange * nUltiRange then
+      return core.OrderAbilityPosition(botBrain, abilUltimate, targetPosition)
+    elseif abilTongue:CanActivate() and nTargetDistanceSq < nTongueRange * nTongueRange then
       return core.OrderAbilityEntity(botBrain, abilTongue, target)
     end
   end
   botBrain.trapTarget = nil
   botBrain.trapTongue = false
-  return false
+  return true
 end
 
 local WardTrapBehavior = {}

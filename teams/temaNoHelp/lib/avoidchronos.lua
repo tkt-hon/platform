@@ -7,7 +7,7 @@ local PositionSelfLogicOld = behaviorLib.PositionSelfLogic
 function behaviorLib.PositionSelfLogic(botBrain)
   local antichronos = core.teamBotBrain.antichronos
   local vecWanted, unitTarget = PositionSelfLogicOld(botBrain)
-  if antichronos.IsDangerZone(vecWanted) then
+  if antichronos and antichronos.IsDangerZone(vecWanted) then
     vecWanted = antichronos.GetBetterPosition(core.unitSelf:GetPosition(), vecWanted)
   end
   return vecWanted, unitTarget

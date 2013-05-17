@@ -10,7 +10,8 @@ runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
-
+runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 
 local core, behaviorLib, eventsLib, shopping, courier = forsaken.core, forsaken.behaviorLib, forsaken.eventsLib, forsaken.shopping, forsaken.courier
 
@@ -49,7 +50,7 @@ function shopping.GetNextItemToBuy()
   if NumberInInventory(inventory, "Item_HealthPotion") < 2 then
     return "Item_HealthPotion"
   elseif not HasBoots(inventory) then
-    return "Item_Marchers" 
+    return "Item_Marchers"
   elseif NumberInInventory(inventory, "Item_PowerSupply") <= 0 then
     if NumberInInventory(inventory, "Item_ManaBattery") <= 0 then
       return"Item_ManaBattery"

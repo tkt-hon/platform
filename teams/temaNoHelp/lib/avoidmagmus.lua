@@ -18,8 +18,9 @@ local function FallBack(botBrain)
   return true
 end
 
-function herobot:oncombateventOverride(EventData)
-  self:oncombateventOld(EventData)
+local oncombateventOld = herobot.oncombatevent
+local function oncombateventOverride(self, EventData)
+  oncombateventOld(self, EventData)
 
   if EventData.Type == "Debuff" and EventData.StateName == "State_Magmar_Ability2_Damageeffects" then
     local hero = EventData.TargetUnit
@@ -40,9 +41,7 @@ function herobot:oncombateventOverride(EventData)
     avoidMagmusPosition = nil
   end
 end
--- override combat event trigger function.
-herobot.oncombateventOld = herobot.oncombatevent
-herobot.oncombatevent = herobot.oncombateventOverride
+herobot.oncombatevent = oncombateventOverride
 
 local PositionSelfLogicOld = behaviorLib.PositionSelfLogic
 function behaviorLib.PositionSelfLogic(botBrain)
