@@ -12,7 +12,6 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
         return nil
     end
 
-
     local unitSelf = core.unitSelf
 
 
@@ -23,6 +22,9 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
     local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
     local nTargetHealth = unitCreepTarget:GetHealth()
     local nDamageMin = unitSelf:GetFinalAttackDamageMin()
+      local armor = unitCreepTarget:GetArmor()
+      local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
+      nDamageMin = nDamageMin*dmgReduc
 
 
     --Get projectile info
@@ -56,7 +58,7 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
     end
 
 
-    --Determine the damage expected on the creep by other towers
+    --Determine the damage expected on the creep by other tower
     for i, unitTower in pairs(tNearbyAttackingTowers) do
         if unitTower:GetAttackTarget() == unitCreepTarget then
             local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
@@ -65,11 +67,15 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
     end
 
 
-    return nExpectedCreepDamage + nExpectedTowerDamage
+    return dmgReduc*(nExpectedCreepDamage + nExpectedTowerDamage)
 end
 
 
 function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep) --called pretty much constantly
+    local enableLastHits = false
+    if botBrain.LHEnabled then
+        enableLastHits = true
+    end
     local bDebugEchos = false
 
 
@@ -78,8 +84,8 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
     local nDamageMin = unitSelf:GetFinalAttackDamageMin()
 
 
-    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-        local nTargetHealth = unitEnemyCreep:GetHealth()
+    if enableLastHits and unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+      local nTargetHealth = unitEnemyCreep:GetHealth()
       local armor = unitEnemyCreep:GetArmor() -- 5
       local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
       nDamageMin = nDamageMin*dmgReduc
@@ -94,7 +100,7 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
 
 
     if unitAllyCreep then
-        local nTargetHealth = unitAllyCreep:GetHealth()
+      local nTargetHealth = unitAllyCreep:GetHealth()
       local armor = unitAllyCreep:GetArmor() -- 5
       local dmgReduc = 1 - (armor*0.06)/(1+0.06*armor)
       nDamageMin = nDamageMin*dmgReduc
@@ -104,13 +110,9 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
         -- the damage done by other sources brings the target's health
         -- below our minimum damage
         if nDamageMin >= (nTargetHealth - dmgReduc * GetAttackDamageOnCreep(botBrain, unitAllyCreep)) then
-            local bActuallyDeny = true
+          if bDebugEchos then BotEcho("Returning an ally") end
+          return unitAllyCreep
 
-
-            if bActuallyDeny then
-                if bDebugEchos then BotEcho("Returning an ally") end
-                return unitAllyCreep
-            end
         end
     end
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="TrashTeam_trollo"
+	description="trollobotti"
+	heroname="Hero_Pyromancer"
+	rootlua="trollo_main.lua"
+	defaultplayername="trollo"
+	precachepath="/heroes/pyromancer"
+/>

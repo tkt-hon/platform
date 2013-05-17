@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="TrashTeam_preda"
+  description="TrashTeam's PredatorBot"
+  heroname="Hero_Predator"
+  rootlua="trashteam_preda.lua"
+  defaultplayername="[TT] omnomnom"
+  precachepath="/heroes/predator/"
+/>
