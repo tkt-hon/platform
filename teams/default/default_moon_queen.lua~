@@ -13,9 +13,6 @@ behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Ite
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
 behaviorLib.pushingStrUtilMul = 1
-moonqueen.bReportBehavior = false
-moonqueen.bDebugUtility = false
-
 
 moonqueen.skills = {}
 local skills = moonqueen.skills
@@ -83,19 +80,8 @@ local function NearbyCreepCount(botBrain, center, radius)
   return count
 end
 
-local function NearbyHeroCount(botBrain, center, radius)
-  local count = 0
-  local unitsLocal = core.AssessLocalUnits(botBrain, center, radius)
-  local enemies = unitsLocal.EnemyHeroes
-  for _,unit in pairs(enemies) do
-    count = count + 1
-  end
-  return count
-end
-
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
-
 
   local leveli = moonqueen:GetHeroUnit():GetLevel()
   local ultimana = 0  
@@ -105,15 +91,14 @@ local function CustomHarassUtilityFnOverride(hero)
 	ultimana = 200
 	elseif leveli == 16 then
 	ultimana = 250
-	end
-  ultimana = ultimana+120 
+  ultimana = ultimana+120
   if skills.abilNuke:CanActivate() and moonqueen:GetHeroUnit():GetMana() > ultimana and leveli > 4 then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
   end
 
   local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
-  local heroes = NearbyHeroCount(moonqueen, hero:GetPosition(), 700)
-  if skills.abilUltimate:CanActivate() and creeps < 3 and heroes < 3 then
+
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
 
