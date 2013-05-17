@@ -79,7 +79,7 @@ local function VectorAngle(vec1, vec2)
 	local nDot = Vector3.Dot(vec1, vec2)
 	nDot = nDot/(Vector3.Length(vec1) * Vector3.Length(vec2))
 	local nAcos = acos(nDot)
-	return nAcos * 180/math.pi
+	return nAcos * 180/pi
 end
 
 local function UID2Name(teambot, nUID)
@@ -155,7 +155,7 @@ local function IsPredictable(array)
 	local nAngle2 = VectorAngle(firstToThird, vecMovement)
 	local nAngle3 = VectorAngle(firstToFourth, vecMovement)
 
-	if nAngle1 < 15 or nAngle2 < 15 or nAngle3 < 15 then
+	if nAngle1 > 15 or nAngle2 > 15 or nAngle3 > 15 then
 		return false
 	end
 
@@ -165,7 +165,7 @@ local function IsPredictable(array)
 	nSqrt = nSqrt - Vector3.Dot(vecProjection, vecProjection)
 	nSqrt = nSqrt + Vector3.Dot(vecToWell, vecToWell)
 
-	if nSqrt > 0 and VectorAngle(vecMovement, vecToWell) < 10 then
+	if nSqrt > 0 and VectorAngle(vecMovement, vecToWell) < 10 and Vector3.Dot(vecMovement, vecToWell) > 0 then
 		core.DrawDebugArrow(array[4], array[0], 'blue')
 		core.DrawDebugLine(vecCurrentPos, wellPos, 'red')
 		return true
