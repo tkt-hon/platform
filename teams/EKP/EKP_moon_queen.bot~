@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
   name="EKP_MoonQueen"
-  description="HERP DERP QUEEN MOON"
+  description="EKP Moon Queen"
   heroname="Hero_Krixi"
   rootlua="EKP_moon_queen.lua"
   defaultplayername="EiKaupallistaPotentiaalia Moon Queen"
