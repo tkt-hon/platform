@@ -13,7 +13,7 @@ local core = teambot.core
 
 local tinsert = _G.table.insert
 
-teambot.myName = 'Default Team'
+teambot.myName = 'Mahliksen tiimi ebooon'
 
 function teambot:GetMemoryUnit(unit)
   return unit and self.tMemoryUnits[unit:GetUniqueID()]
@@ -108,24 +108,24 @@ local function tfind(table, value)
 end
 
 local tGankers = {
-  "Hero_Rampage"
+  "Hero_HellDemon"
 }
 local tCarries = {
-  "Hero_Krixi"
+  "Hero_Hammerstorm",
+  "Hero_Rhapsody"
 }
 local tMidHeros = {
-  "Hero_Rampage",
-  "Hero_Krixi"
+  "Hero_HellDemon"
 }
 local tSuiciders = {
-  "Hero_DiseasedRider"
+  "Hero_Rhapsody"
 }
 local tSitters = {
-  "Hero_Frosty",
   "Hero_Rhapsody"
 }
 local tSupports = {
-  "Hero_Frosty"
+  "Hero_Shaman",
+  "Hero_Rhapsody"
 }
 
 function teambot:CreateMemoryUnitOverride(unit)
