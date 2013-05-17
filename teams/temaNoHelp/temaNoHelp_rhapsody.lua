@@ -10,9 +10,23 @@ runfile 'bots/teams/temaNoHelp/lib/healthregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/manaregenbehavior.lua'
 runfile 'bots/teams/temaNoHelp/lib/lasthitting.lua'
 runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
-
+runfile 'bots/teams/temaNoHelp/lib/avoidmagmus.lua'
+runfile 'bots/teams/temaNoHelp/lib/avoidchronos.lua'
 
 local core, behaviorLib, eventsLib, shopping, courier = rhapsody.core, rhapsody.behaviorLib, rhapsody.eventsLib, rhapsody.shopping, rhapsody.courier
+
+--rhapsody.bReportBehavior = true
+--rhapsody.bDebugUtility = true
+
+local function IsSpotCounterWarded(spot)
+  local gadgets = HoN.GetUnitsInRadius(spot, 800, core.UNIT_MASK_GADGET + core.UNIT_MASK_ALIVE)
+  for k, gadget in pairs(gadgets) do
+    if gadget:GetTypeName() == "Gadget_Item_ManaEye" then
+      return true
+    end
+  end
+  return false
+end
 
 behaviorLib.StartingItems = {"Item_RunesOfTheBlight", "Item_HealthPotion", "Item_ManaPotion", "Item_ManaPotion", "Item_MinorTotem", "Item_MinorTotem"}
 
@@ -47,10 +61,14 @@ function shopping.GetNextItemToBuy()
   end
 
   local inventory = core.unitSelf:GetInventory(true)
-  if NumberInInventory(inventory, "Item_HealthPotion") < 2 then
+  local spot = core.teamBotBrain.antimagmus and core.teamBotBrain.antimagmus.GetAntiMagmusWardSpot() or false
+  if spot and not IsSpotCounterWarded(spot) and NumberInInventory(inventory, "Item_ManaEye") <= 0 then
+    core.BotEcho("need ward")
+    return "Item_ManaEye"
+  elseif NumberInInventory(inventory, "Item_HealthPotion") < 2 then
     return "Item_HealthPotion"
   elseif not HasBoots(inventory) then
-    return "Item_Marchers" 
+    return "Item_Marchers"
   elseif NumberInInventory(inventory, "Item_PowerSupply") <= 0 then
     if NumberInInventory(inventory, "Item_ManaBattery") <= 0 then
       return"Item_ManaBattery"
@@ -161,3 +179,52 @@ local function onthinkOverride(self, tGameVariables)
   -- custom code here
 end
 rhapsody.onthink = onthinkOverride
+
+local function RevealBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local vecAntiMagSpot = core.teamBotBrain.antimagmus and core.teamBotBrain.antimagmus.GetAntiMagmusWardSpot() or false
+  if vecAntiMagSpot and not IsSpotCounterWarded(vecAntiMagSpot) and core.itemCounterWard then
+    return 50
+  end
+  return 0
+end
+
+local function RevealBehaviorExecute(botBrain)
+  local vecAntiMagSpot = core.teamBotBrain.antimagmus and core.teamBotBrain.antimagmus.GetAntiMagmusWardSpot() or false
+  local ward = core.itemCounterWard
+  if vecAntiMagSpot and ward then
+    return core.OrderItemPosition(botBrain, core.unitSelf, ward, vecAntiMagSpot, false)
+  end
+  return false
+end
+
+local RevealBehavior = {}
+RevealBehavior["Utility"] = RevealBehaviorUtility
+RevealBehavior["Execute"] = RevealBehaviorExecute
+RevealBehavior["Name"] = "Revealing creep with spell"
+tinsert(behaviorLib.tBehaviors, RevealBehavior)
+
+local FindItemsOld = core.FindItems
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = FindItemsOld(botBrain)
+
+  if core.itemCounterWard ~= nil and not core.itemCounterWard:IsValid() then
+    core.itemCounterWard = nil
+  end
+
+  if core.itemCounterWard then
+    return
+  end
+
+  local inventory = core.unitSelf:GetInventory(true)
+  for slot = 1, 12, 1 do
+    local curItem = inventory[slot]
+    if curItem then
+      if core.itemCounterWard == nil and curItem:GetName() == "Item_ManaEye" then
+        core.itemCounterWard = core.WrapInTable(curItem)
+      end
+    end
+  end
+  return bUpdated or core.itemCounterWard or false
+end
+core.FindItems = funcFindItemsOverride
