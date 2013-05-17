@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="drop-table-bots_ForsakenArcher"
+  description="Drop Table Bots' ForsakenArcher"
+  heroname="Hero_ForsakenArcher"
+  rootlua="drop-table-bots_forsaken_archer.lua"
+  defaultplayername="DropTableBotsForsakenArcherBot"
+  precachepath="/heroes/forsaken_archer/"
+/>

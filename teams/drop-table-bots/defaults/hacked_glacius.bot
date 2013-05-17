@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="DropTableBots_Hacked_Glacius"
+  description="Drop Table Bots' Hacked Default Glacius"
+  heroname="Hero_Frosty"
+  rootlua="hacked_glacius.lua"
+  defaultplayername="Drop Table Bots' Hacked DefaultGlaciusBot"
+  precachepath="/heroes/frosty/"
+/>

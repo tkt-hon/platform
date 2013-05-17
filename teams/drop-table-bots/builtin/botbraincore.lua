@@ -18,6 +18,7 @@ local ceil, floor, pi, tan, atan, atan2, abs, cos, sin, acos, max, random
 local BotEcho, VerboseLog, BotLog = core.BotEcho, core.VerboseLog, core.BotLog
 	
 local nSqrtTwo = math.sqrt(2)
+local getMatchTime = HoN.GetMatchTime
 	
 core.unitSelf = nil
 core.teamBotBrain = nil
@@ -90,7 +91,7 @@ function object:onthink(tGameVariables)
 	
 	--[Tutorial] After the reset time, switch legion to different behaviors. 
 	--  This also stop doing some tutorial-specific crutches
-	if core.bIsTutorial and core.bTutorialBehaviorReset == false and HoN.GetMatchTime() > core.nbTutorialBehaviorResetTime then
+	if core.bIsTutorial and core.bTutorialBehaviorReset == false and getMatchTime() > core.nbTutorialBehaviorResetTime then
 		if core.myTeam == HoN.GetLegionTeam() then
 			core.nDifficulty = core.nMEDIUM_DIFFICULTY
 			behaviorLib.harassUtilityWeight = 0.65
@@ -585,7 +586,7 @@ function core.ProcessRespawnChat()
 
 	local nChance = random()
 	if core.bDebugChats then BotEcho("Respawn: "..nChance.." < "..core.nRespawnChatChance.." is "..tostring(nChance < core.nRespawnChatChance)) end
-	if nChance < core.nRespawnChatChance and HoN.GetMatchTime() > 0 then
+	if nChance < core.nRespawnChatChance and getMatchTime() > 0 then
 		local nDelay = random(core.nChatDelayMin, core.nChatDelayMax) 
 		
 		local tChatKeys = core.GetRespawnKeys()
@@ -675,9 +676,13 @@ function core.UpdateCreepTargets(botBrain)
 	--consider lasthits
 	local lowestEnemyHP = 9999
 	local lowestEnemyCreep = nil
+
     -- consider nearby full-HP enemies for small XP boost
 	local highestEnemyDist = 99999999
 	local highestEnemyCreep = nil
+
+    -- but only if we have ranged attack ourselves
+    local isRanged = unitSelf:GetAttackType() == 'ranged'
 	for id, creep in pairs(enemyCreeps) do
 		curHP = creep:GetHealth()
 		--BotEcho('creepHealth '..curHP)
@@ -685,13 +690,15 @@ function core.UpdateCreepTargets(botBrain)
 			lowestEnemyHP = curHP
 			lowestEnemyCreep = creep
 		end
-        local dist = Vector3.Distance2DSq(myPos, creep:GetPosition())
-		if dist < highestEnemyDist and creep:GetHealthPercent() > 0.9 then
-			highestEnemyDist = dist
-			highestEnemyCreep = creep
-        elseif creep:GetAttackType() == 'ranged' then
-			highestEnemyDist = 0.001 -- die fuckers
-			highestEnemyCreep = creep
+        if isRanged then
+            local dist = Vector3.Distance2DSq(myPos, creep:GetPosition())
+            if dist < highestEnemyDist and creep:GetHealthPercent() > 0.85 then
+                highestEnemyDist = dist
+                highestEnemyCreep = creep
+            elseif creep:GetAttackType() == 'ranged' then
+                highestEnemyDist = 0.001 -- die fuckers
+                highestEnemyCreep = creep
+            end
         end
 	end
 

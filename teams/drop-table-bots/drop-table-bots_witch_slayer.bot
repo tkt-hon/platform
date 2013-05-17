@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="drop-table-bots_WitchSlayer"
+  description="Drop Table Bots' WitchSlayer"
+  heroname="Hero_WitchSlayer"
+  rootlua="drop-table-bots_witch_slayer.lua"
+  defaultplayername="DropTableBotsWitchSlayerBot"
+  precachepath="/heroes/witch_slayer/"
+/>

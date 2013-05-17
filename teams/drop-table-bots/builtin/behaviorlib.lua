@@ -22,7 +22,7 @@ behaviorLib.nNextBehaviorTime = HoN.GetGameTime()
 behaviorLib.nBehaviorAssessInterval = 250
 
 local BotEcho, VerboseLog, Clamp = core.BotEcho, core.VerboseLog, core.Clamp
-
+local getMatchTime = HoN.GetMatchTime
 
 
 ---------------------------------------------------
@@ -898,7 +898,7 @@ end
 function behaviorLib.PreGameUtility(botBrain)
 	local utility = 0
 
-	if HoN:GetMatchTime() <= 0 then
+	if getMatchTime() <= 0 then
 		utility = 98
 	end
 
@@ -1071,7 +1071,7 @@ function behaviorLib.LethalityDifferenceUtility(nLethalityDifference)
 end
 
 function behaviorLib.ProxToEnemyTowerUtility(unit, unitClosestEnemyTower)
-	local bDebugEchos = true
+	local bDebugEchos = object.bDebugUtility
 	
 	local nUtility = 0
 
@@ -1083,7 +1083,8 @@ function behaviorLib.ProxToEnemyTowerUtility(unit, unitClosestEnemyTower)
 		nUtility = -1 * core.ExpDecay((nDist - nBuffers), 100, nTowerRange, 2)
 		
 		local divisor = 1 + core.CountAlliesNearTower(unitClosestEnemyTower)
-		nUtility = nUtility * 0.32 / divisor
+        -- used to be 0.32
+		nUtility = nUtility * 0.90 / divisor
 		
 		if bDebugEchos then BotEcho(format("util: %d  nDistance: %d  nTowerRange: %d divisor: %d",
 			nUtility, (nDist - nBuffers), nTowerRange, divisor)) end
@@ -1182,7 +1183,7 @@ behaviorLib.rangedHarassBuffer = 300
 behaviorLib.harassUtilityWeight = 1.0
 
 function behaviorLib.HarassHeroUtility(botBrain)
-	local bDebugEchos = true
+	local bDebugEchos = object.bDebugUtility
 	
 	--if core.unitSelf:GetTypeName() == "Hero_Predator" then bDebugEchos = true end
 		
@@ -1332,7 +1333,7 @@ function behaviorLib.HarassHeroUtility(botBrain)
 	behaviorLib.lastHarassUtil = nUtility
 	behaviorLib.heroTarget = unitTarget
 	
-	if bDebugEchos or botBrain.bDebugUtility and nUtility ~= 0 then
+	if (bDebugEchos or botBrain.bDebugUtility) and nUtility ~= 0 then
 		if core.nDifficulty == core.nEASY_DIFFICULTY then 
 			BotEcho("RandomAggression: "..tostring(core.bEasyRandomAggression)) 
 		end
@@ -3140,7 +3141,7 @@ function behaviorLib.ShopExecute(botBrain)
 		if nextItemDef:GetName() ~= core.idefHomecomingStone:GetName() then		
 			--Seed a TP stone into the buy items after 1 min
 			local sName = "Item_HomecomingStone"
-			local nTime = HoN.GetMatchTime()
+			local nTime = getMatchTime()
 			if nTime > core.MinToMS(1) then
 				tinsert(behaviorLib.curItemList, 1, sName)
 				nextItemDef = behaviorLib.DetermineNextItemDef(botBrain)

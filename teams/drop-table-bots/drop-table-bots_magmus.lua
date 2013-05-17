@@ -1,12 +1,21 @@
 local _G = getfenv(0)
-local plaguerider = _G.object
+local magmus = _G.object
 
-plaguerider.heroName = "Hero_DiseasedRider"
+magmus.heroName = "Hero_Magmar"
 
 runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
-plaguerider.skills = {}
-local skills = plaguerider.skills
+magmus.skills = {}
+local skills = magmus.skills
+
+magmus.tSkills = {
+  1, 0, 1, 0, 4,
+  3, 1, 0, 1, 0,
+  3, 2, 4, 2, 4,
+  3, 2, 4, 2, 4,
+  4, 4, 4, 4, 4
+}
+
 
 ---------------------------------------------------------------
 --            SkillBuild override                            --
@@ -14,11 +23,11 @@ local skills = plaguerider.skills
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
-function plaguerider:SkillBuildOverride()
-  plaguerider:SkillBuildOld()
+function magmus:SkillBuildOverride()
+  self:SkillBuildOld()
 end
-plaguerider.SkillBuildOld = plaguerider.SkillBuild
-plaguerider.SkillBuild = plaguerider.SkillBuildOverride
+magmus.SkillBuildOld = magmus.SkillBuild
+magmus.SkillBuild = magmus.SkillBuildOverride
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -26,13 +35,13 @@ plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 ------------------------------------------------------
 -- @param: tGameVariables
 -- @return: none
-function plaguerider:onthinkOverride(tGameVariables)
+function magmus:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
   -- custom code here
 end
-plaguerider.onthinkOld = plaguerider.onthink
-plaguerider.onthink = plaguerider.onthinkOverride
+magmus.onthinkOld = magmus.onthink
+magmus.onthink = magmus.onthinkOverride
 
 ----------------------------------------------
 --            oncombatevent override        --
@@ -40,11 +49,10 @@ plaguerider.onthink = plaguerider.onthinkOverride
 ----------------------------------------------
 -- @param: eventdata
 -- @return: none
-function plaguerider:oncombateventOverride(EventData)
+function magmus:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
 
   -- custom code here
 end
--- override combat event trigger function.
-plaguerider.oncombateventOld = plaguerider.oncombatevent
-plaguerider.oncombatevent = plaguerider.oncombateventOverride
+magmus.oncombateventOld = magmus.oncombatevent
+magmus.oncombatevent = magmus.oncombateventOverride

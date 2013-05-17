@@ -1,5 +1,5 @@
 local _G = getfenv(0)
-local moonqueen = _G.object
+moonqueen = _G.object
 
 moonqueen.heroName = "Hero_Krixi"
 
@@ -83,8 +83,6 @@ function behaviorLib.CustomHarassUtility(heroTarget)
 		if skills.abilMoonbeam:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
 			util = util + 1000 -- Moonbeam
 		end
-		p(numCreeps)
-		p(Vector3.Distance2D(unitSelf:GetPosition(), heroTarget:GetPosition()))
 		if skills.abilUlti:CanActivate() and numCreeps < 3 then
 			util = util + 10000 -- Ulti
 		end
@@ -111,20 +109,12 @@ local function executeBehavior(botBrain)
   	local success = false
 	local ultiRange = 600
     if behaviorLib.lastHarassUtil >= 5000 then
-    	if nTargetDistanceSq < ultiRange * ultiRange then
-			success = core.OrderAbility(botBrain, skills.abilUlti)
-        else
-        	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
+        success = core.OrderAbility(botBrain, skills.abilUlti)
     end
 
 	if not success and behaviorLib.lastHarassUtil >= 500 then
 		local range = skills.abilMoonbeam:GetRange()
-		if nTargetDistanceSq < range * range then
-			success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
-		else
-			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-		end
+        success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
 	end
 
 	if not success then
@@ -134,16 +124,42 @@ local function executeBehavior(botBrain)
 end
 behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
-function moonqueen:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
+local lastChatMessageIndex = nil
 
-  -- custom code here
+function sanitizeChat(msg)
+    -- remove leading space & color codes
+    msg = msg:sub(2)
+    msg = msg:gsub("%^%*", "")
+    msg = msg:gsub("%^%d%d%d", "")
+    return msg
+end
+
+function moonqueen:onthinkOverride(tGameVariables)
+    self:onthinkOld(tGameVariables)
+
+    local chat = GameChat.gameChat
+    if lastChatMessageIndex ~= nil then
+        for i = lastChatMessageIndex + 1, #chat do
+            local msg = chat[i]
+            if msg.senderName == "dezgeg" then
+                local code = sanitizeChat(msg.message)
+                local func, err = loadstring(code)
+
+                if not func then
+                    self:Chat('^900Parse Error: ^*' .. err)
+                else
+                    local status, err = pcall(function()
+                            self:Chat(str(func()))
+                        end)
+                    if not status then
+                        self:Chat('^900Lua Error: ^*' .. err)
+                    end
+                end
+            end
+        end
+    end
+    lastChatMessageIndex = #chat
+
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
@@ -158,7 +174,7 @@ function moonqueen:oncombateventOverride(eventData)
     self:oncombateventOld(eventData)
 
     -- Uncomment this to print the combat events
-    p(eventData)
+    -- p(eventData)
 end
 -- override combat event trigger function.
 moonqueen.oncombateventOld = moonqueen.oncombatevent

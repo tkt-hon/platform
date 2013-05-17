@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="drop-table-bots_Magmus"
+  description="Drop Table Bots' Magmus"
+  heroname="Hero_Magmar"
+  rootlua="drop-table-bots_magmus.lua"
+  defaultplayername="DropTableBotsMagmusBot"
+  precachepath="/heroes/magmar/"
+/>
