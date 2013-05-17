@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="MahlalastiEpicDementedShamanBot"
+	description="bot_description_shaman"
+	heroname="Hero_Shaman"
+	rootlua="mahlalasti_dementedshaman.lua"
+	defaultplayername="MahlalastiEpicShammyBot"
+	precachepath="/heroes/shaman/"
+/>

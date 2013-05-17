@@ -20,10 +20,13 @@ M.CORPSE = 0x0000040
 MASKS = M
 
 
-local function ComeToCourierUtility(botBrain)
+--[[local function ComeToCourierUtility(botBrain)
   local matchTime = HoN.GetMatchTime()
+  if botBrain.bCourierOnWay and not courier:GetBehavior() then
+    botBrain.bCourierOnWay = false
+  end
   if botBrain.bCourierOnWay and matchTime > botBrain.nCourierMeetupTime then 
-    return 65
+    return 55
   end
   return 0
 end
@@ -38,19 +41,21 @@ CourierBehavior["Utility"] = ComeToCourierUtility
 CourierBehavior["Execute"] = ComeToCourierExecute
 CourierBehavior["Name"] = "My people need me"
 tinsert(object.behaviorLib.tBehaviors, CourierBehavior)
+]]
+
 
 -- https://github.com/samitheberber/honbotstack/blob/master/utils/courier_controlling/selector.lua
 local function GetCourier(bot)
   local teamId = bot:GetTeam()
   local allUnits = HoN.GetUnitsInRadius(Vector3.Create(), 99999, MASKS.ALIVE + MASKS.UNIT)
   for key, unit in pairs(allUnits) do
-    local typeName = unit:GetTypeName()
     if unit:GetTeam() == teamId and core.IsCourier(unit) then
       return unit
     end
   end
   return nil
 end
+object.GetCourier = GetCourier
 
 local function ReturnHome(bot, courier)
   bot:OrderAbility(courier:GetAbility(3))
@@ -154,7 +159,9 @@ local function onthinkCourier(bot)
   local hero = bot:GetHeroUnit()
 
   -- TODO: buy new?
-  if not courier then return end
+  if not courier then 
+    return 
+  end
   
   if not hero:IsAlive() then 
     ReturnHome(bot, courier)
@@ -171,6 +178,9 @@ local function onthinkCourier(bot)
 
   local itemsInCourier = ItemsInInventory(courier:GetInventory())
   if itemsInCourier > 0 then
+    if not courier:GetBehavior() then
+      DeliverItems(bot, courier)
+    end
     return
   end
   local items = ItemIndexes(hero)
