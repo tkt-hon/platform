@@ -53,7 +53,8 @@ BotEcho(object:GetName()..' DEBUG...')
 
 -- hero_<hero>  to reference the internal hon name of a hero, Hero_Yogi ==wildsoul
 
-behaviorLib.StartingItems  = 	{"Item_IronBuckler", "Item_LoggersHatchet", "Item_SwordOfTheHigh", "Item_Damage10", "Item_Marchers", "Item_EnhancedMarchers", "Item_Lightning1", "Item_Lightning2", "Item_Sicarius", "Item_StrengthAgility", "Item_FrostfieldPlate", "Item_BehemothsHeart"}
+behaviorLib.StartingItems  = 	{"Item_IronBuckler", "Item_LoggersHatchet", "Item_Marchers", "Item_SwordOfTheHigh", "Item_Damage10", "Item_Lightning1", "Item_Lightning2", "Item_Sicarius", "Item_StrengthAgility", "Item_BehemothsHeart"}
+behaviorLib.StartingCosts  = 	{250, 225, 1000, 3400, 1350, 2900, 2500, 2200, 2200, 5500}
 behaviorLib.LaneItems  = 		{}
 behaviorLib.MidItems  = 		{}
 behaviorLib.LateItems  = 		{}
@@ -67,7 +68,7 @@ behaviorLib.LateItems  = 		{}
 -- skillbuild table, 0=q, 1=w, 2=e, 3=r, 4=attri
 object.tSkills ={
 	0, 2, 0, 2, 0,
-	2, 0, 3, 2, 1,
+	3, 0, 2, 2, 1,
 	1, 1, 1, 3, 4,
 	3, 4, 4, 4, 4,
 	4, 4, 4, 4, 4,
@@ -105,6 +106,7 @@ function object:SkillBuild()
         skills.abilW = unitSelf:GetAbility(1)
         skills.abilE = unitSelf:GetAbility(2)
         skills.abilR = unitSelf:GetAbility(3)
+        skills.abil5 = unitSelf:GetAbility(5)
         skills.abilAttributeBoost = unitSelf:GetAbility(4)
     end
     if unitSelf:GetAbilityPointsAvailable() <= 0 then
@@ -149,7 +151,13 @@ function object:onthinkOverride(tGameVariables)
 		--pullExecute(object)
 	end
 
-    -- custom code here
+	local ulti = skills.abilR
+	if ulti:GetLevel() > 0 and not (core.unitSelf:HasState("State_Yogi_Ability4") or core.unitSelf:HasState("State_Yogi_Ability4_HD")) and core.unitSelf:GetManaPercent() > 0.9 then
+                if core.unitSelf:IsChanneling() then 
+                        return
+                end
+		core.OrderAbility(object, ulti, true, true)
+	end
 end
 object.onthinkOld = object.onthink
 object.onthink  = object.onthinkOverride
@@ -217,7 +225,7 @@ object.HealAtWellExecuteOld = behaviorLib.HealAtWellBehavior["Execute"]
 behaviorLib.HealAtWellBehavior["Execute"] = HealAtWellExecuteOverride
 
 function debugUtility(botBrain)
-	local inventory = core.unitSelf:GetInventory(false)
+    local inventory = core.unitSelf:GetInventory(false)
     for i,v in ipairs(inventory) do
     	if v then
     		return 0
@@ -464,7 +472,13 @@ local function jungleUtilityOverride(botBrain)
     local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
     if vecTargetPos then
     	local distanceToCamp = Vector3.Distance2D(vecMyPos, vecTargetPos)
-        nUtility = 24-(distanceToCamp/3000)-(HoN.GetGameTime()/60000) -- remove 1 every 10mins
+        nUtility = 10
+        if distanceToCamp < 1000 then
+            nUtility = nUtility + 10
+        elseif distanceToCamp < 3000 then
+            nUtility = nUtility + 5
+        end
+        --(HoN.GetGameTime()/60000) -- remove 1 every 10mins
     	--nUtility = Clamp(70 - distanceToCamp/200, 0, 100) -- [0, 100]
     end
 
@@ -612,8 +626,8 @@ local function jungleExecuteOverride(botBrain)
                         		keepAtDistance(unitSelf, unitStrongest, 400)
                         	end
                         	if Vector3.Distance2D(Booboo:GetPosition(), unitSelf:GetPosition())>900 and Booboo:GetHealthPercent()>0.7 then
-								return core.OrderAbility(botBrain, Booboo:GetAbility(0))
-							end
+                                        return core.OrderAbility(botBrain, Booboo:GetAbility(0))
+                                end
                         end
 
                         -- Attack the strongest unit
@@ -720,11 +734,12 @@ function donotuse_onlyhereforreference()
 end
 
 local function ShopUtilityOverride(botBrain)
-	local item = HoN.GetItemDefinition(behaviorLib.StartingItems[1])
+--	local item = HoN.GetItemDefinition(behaviorLib.StartingItems[1])
 	local gold = botBrain:GetGold()
 
-	if gold > item:GetCost() then
-		if object.bDebugUtility == true then BotEcho("  ShopUtility: " .. 100 .. " (" .. item:GetName() .. " " .. item:GetCost() .. " " .. gold.. ")") end
+--	if gold > item:GetCost() then
+	if #behaviorLib.StartingCosts > 0 and gold > behaviorLib.StartingCosts[1] then
+		if object.bDebugUtility == true then BotEcho("  ShopUtility: " .. 100 .. " (" .. behaviorLib.StartingItems[1] .. " " .. behaviorLib.StartingCosts[1] .. " " .. gold.. ")") end
 		return 100
 	end
 	if object.bDebugUtility == true then BotEcho("  ShopUtility: " .. 0) end
@@ -753,7 +768,7 @@ local function ShopExecuteOverride(botBrain)
 		return
 	end
 
-    local inventory = core.unitSelf:GetInventory(true)
+        local inventory = core.unitSelf:GetInventory(true)
 
 	local bCanAccessShop = core.unitSelf:CanAccessStash()
 	if not bCanAccessShop or Vector3.Distance2D(Booboo:GetPosition(), core.allyWell:GetPosition()) > 200 then
@@ -778,24 +793,38 @@ local function ShopExecuteOverride(botBrain)
 
 	local bChanged = false
 	local bGoldReduced = false
+
 	local nextItemDef =  HoN.GetItemDefinition(behaviorLib.StartingItems[1])
 
 	if nextItemDef then
 		core.teamBotBrain.bPurchasedThisFrame = true
-
 		local goldAmtBefore = botBrain:GetGold()
-		Booboo:PurchaseRemaining(nextItemDef)
+
+                local inventory = core.unitSelf:GetInventory(false)
+                local found = false
+                for i,v in ipairs(inventory) do
+                    if v then
+                        found = true
+                    end
+                end
+                if not found and goldAmtBefore > 700 then
+        	        nextItemDef =  HoN.GetItemDefinition("Item_Marchers")
+                	unitSelf:PurchaseRemaining(nextItemDef)
+                else
+                    Booboo:PurchaseRemaining(nextItemDef)
+                end
 
 		local goldAmtAfter = botBrain:GetGold()
 		bGoldReduced = (goldAmtAfter < goldAmtBefore)
 		bChanged = bChanged or bGoldReduced
-	end
+        end
 
 	if bChanged == false then
 		BotEcho("Finished Buying!")
 		behaviorLib.finishedBuying = true
 	else
 		tremove(behaviorLib.StartingItems, 1)
+		tremove(behaviorLib.StartingCosts, 1)
         jungleLib.currentMaxDifficulty = jungleLib.currentMaxDifficulty + 45
 		--BotEcho(nextItemDef:GetName() .. " next: " .. HoN.GetItemDefinition(behaviorLib.StartingItems[1]):GetName())
 	end
@@ -880,10 +909,7 @@ end
 
 
 local function HarassHeroExecuteOverride(botBrain)
-	local bDebugEchos = true
-
-	local ulti = skills.abilR
-	printf("%s d:%s r:%s a:%s", ulti:GetTypeName(), tostring(ulti:IsDisabled()), tostring(ulti:IsReady()), tostring(ulti:IsActive()))
+	local bDebugEchos = false
 
 	local Booboo=false
 	for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
@@ -910,6 +936,16 @@ local function HarassHeroExecuteOverride(botBrain)
 		local nBAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(Booboo, unitTarget, true)
 
 		local itemGhostMarchers = core.itemGhostMarchers
+
+                if skills.abilW:CanActivate() then
+                        return core.OrderAbility(object, skills.abilW)
+                end
+                if skills.abilE:CanActivate() then
+                        return core.OrderAbility(object, skills.abilE)
+                end
+                if skills.abil5:CanActivate() then
+                        return core.OrderAbility(object, skills.abil5)
+                end
 
 		--only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
 		if nBDistSq < nBAttackRangeSq and Booboo:IsAttackReady() and core.CanSeeUnit(botBrain, unitTarget) then
@@ -1090,7 +1126,7 @@ local function RetreatFromThreatUtilityOverride(botBrain)
 	local tEnemyHeroes = core.localUnits["EnemyHeroes"]
 
 	for id, hero in pairs(tEnemyHeroes) do
-		if Vector3.Distance2D(hero:GetPosition(), unitSelf:GetPosition()) < 1500 then
+		if Vector3.Distance2D(hero:GetPosition(), unitSelf:GetPosition()) < 1200 then
 			nUtility = nUtility + 20
 		end
 	end
@@ -1106,10 +1142,17 @@ local function RetreatFromThreatExecuteOverride(botBrain)
 		return
 	end
 
-	local ulti = skills.abilR
-	if ulti:GetLevel() > 0 and not ulti:IsActive() and ulti:CanActivate() then
-		return core.OrderAbility(botBrain, ulti, true)
+	local Booboo=false
+	for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
+		if unit2:GetTypeName()=="Pet_Yogi_Ability1" then
+			Booboo=unit2
+		end
 	end
+        if Booboo then 
+            if Vector3.Distance2D(Booboo:GetPosition(), core.unitSelf:GetPosition())>1000 and Booboo:GetAbility(0):CanActivate() then
+                    return core.OrderAbility(botBrain, Booboo:GetAbility(0))
+            end
+        end
 
 	local vecPos = behaviorLib.PositionSelfBackUp()
 	core.OrderMoveToPosClamp(botBrain, core.unitSelf, vecPos, false)

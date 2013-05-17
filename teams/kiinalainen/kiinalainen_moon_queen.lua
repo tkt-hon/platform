@@ -3,12 +3,12 @@ local moonqueen = _G.object
 
 moonqueen.heroName = "Hero_Krixi"
 
-runfile 'bots/teams/kiinalainen/core_kiinalainen_herobot.lua'
+runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
-behaviorLib.StartingItems = { "Item_Punchdagger", "Item_HealthPotion"}
-behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_HungrySpirit", "Item_WhisperingHelm" }
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
+behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
 
@@ -20,10 +20,10 @@ local skills = moonqueen.skills
 core.itemGeoBane = nil
 
 moonqueen.tSkills = {
-  2, 1, 2, 0, 2,
-  3, 2, 0, 0, 0,
-  3, 1, 1, 1, 4,
-  3, 4, 4, 4, 4,
+  0, 4, 0, 4, 0,
+  3, 0, 2, 2, 1,
+  3, 1, 1, 1, 2,
+  3, 2, 4, 4, 4,
   4, 4, 4, 4, 4
 }
 
@@ -40,29 +40,6 @@ function moonqueen:SkillBuildOverride()
 end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
-
-function moonqueen.CustomHarassHeroUtilityOverride(botBrain)
-  local nUtil = behaviorLib.HarassHeroUtility(botBrain)
-
-  local unitSelf = core.unitSelf
-  local selfPos = unitSelf:GetPosition()
-  local selfHealth = unitSelf:GetHealth()
-  local tLocalUnits = core.AssessLocalUnits(botBrain, selfPos, 600)
-
-  if tLocalUnits.EnemyHeroes then
-    local tEnemies = tLocalUnits.EnemyHeroes
-    local nTotalEnemyHealth = nil
-    for k,v in pairs(tEnemies) do
-      nTotalEnemyHealth = nTotalEnemyHealth or 0 + v:GetHealth()
-    end
-    if (nTotalEnemyHealth or 9999 < unitSelf:GetHealth()) then
-      nUtil = nUtil + (unitSelf:GetHealth() - nTotalEnemyHealth) * 0.05
-    end
-  end
-
-  return nUtil
-end
-behaviorLib.HarassHeroBehavior["Utility"] = moonqueen.CustomHarassHeroUtilityOverride
 
 ------------------------------------------------------
 --            onthink override                      --
@@ -107,12 +84,12 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 10
+    nUtil = nUtil + 5*skills.abilNuke:GetLevel()
   end
 
-  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 1000)
+  local creeps = NearbyCreepCount(moonqueen, hero:GetPosition(), 700)
 
-  if skills.abilUltimate:CanActivate() and creeps < 2 then
+  if skills.abilUltimate:CanActivate() and creeps < 3 then
     nUtil = nUtil + 100
   end
 

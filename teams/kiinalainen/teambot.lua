@@ -84,9 +84,9 @@ function teambot:BuildLanesOverride()
   self.tMiddleLane = tMiddleLane
   self.tBottomLane = tBottomLane
 
-  printLanes(self.tTopLane, "top")
-  printLanes(self.tMiddleLane, "middle")
-  printLanes(self.tBottomLane, "bottom")
+--  printLanes(self.tTopLane, "top")
+--  printLanes(self.tMiddleLane, "middle")
+--  printLanes(self.tBottomLane, "bottom")
 end
 teambot.BuildLanesOld = teambot.BuildLanes
 teambot.BuildLanes = teambot.BuildLanesOverride
@@ -110,7 +110,8 @@ local tGankers = {
   "Hero_Aluna"
 }
 local tCarries = {
-  "Hero_SandWraith"
+  "Hero_SandWraith",
+  "Hero_DiseasedRider"
 }
 local tMidHeros = {
   "Hero_Mumra",
@@ -121,6 +122,7 @@ local tSuiciders = {
 }
 local tSitters = {
   "Hero_HellDemon",
+  "Hero_Krixi",
   "Hero_Aluna"
 }
 local tSupports = {
