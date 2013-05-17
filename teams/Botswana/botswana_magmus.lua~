@@ -15,6 +15,9 @@ local skills = magmus.skills
 local tinsert = _G.table.insert
 
 core.itemWard = nil
+magmus.bReportBehavior = true
+magmus.bDebugUtility = true
+
 
 magmus.tSkills = {
   0, 1, 0, 1, 0,
@@ -165,6 +168,20 @@ local function HarassHeroExecuteOverride(botBrain)
     local bActionTaken = false
 
     if core.CanSeeUnit(botBrain, unitTarget) then
+    -- Ulti
+    local abilEruption = skills.abilEruption
+    if not bActionTaken then
+      if abilEruption:CanActivate() then
+          bActionTaken = core.OrderAbility(botBrain, abilEruption)
+ 	local nRange = abilSurge:GetRange()
+	if abilSurge:CanActivate() and nTargetDistanceSq < (nRange * nRange) then
+         bActionTaken = core.OrderAbilityEntity(botBrain, abilSurge, unitTarget)
+          else
+            bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+          end
+      end
+end
+
         -- Surge
         local abilSurge = skills.abilSurge
         if abilSurge:CanActivate() then
@@ -181,7 +198,7 @@ local function HarassHeroExecuteOverride(botBrain)
 	local abilBath = skills.abilBath
 	if abilBath:CanActivate() then
 	  local nRange = abilBath:GetRange()
-	  if nTargetDista/nceSq < (nRange * nRange) then	
+	  if nTargetDistanceSq < (nRange * nRange) then	
 	    local bestUnitTarget = funcBestTargetAoE(tEnemyHeroes, unitTarget, nRange)
 		bActionTaken = core.OrderAbilityEntity(botBrain, abilBath, bestUnitTarget)
 	  else
@@ -189,18 +206,6 @@ local function HarassHeroExecuteOverride(botBrain)
 	  end
 	end
     
-    -- Ulti
-    local abilEruption = skills.abilEruption
-    if not bActionTaken then
-      if abilEruption:CanActivate() then
-        local nRange = abilEruption:GetRange()
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilEruption, unitTarget)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
-      end
-end
 
   if not bActionTaken then
     return harassExecuteOld(botBrain)
@@ -235,9 +240,6 @@ local function AttackCreepsUtilityOverride(botBrain)
 	core.unitCreepTarget = unitTarget
 	end
 
-		if botBrain.bDebugUtility == true and nUtility ~= 0 then
-			BotEcho(format(" AttackCreepsUtility: %g", nUtility))
-		end
 
 	return nUtility
 end
