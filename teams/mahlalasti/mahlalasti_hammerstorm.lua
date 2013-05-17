@@ -36,6 +36,8 @@ runfile "bots/botbraincore.lua"
 runfile "bots/eventsLib.lua"
 runfile "bots/metadata.lua"
 runfile "bots/behaviorLib.lua"
+runfile 'bots/teams/mahlalasti/mahlalasti_courier.lua'
+
 
 local core, eventsLib, behaviorLib, metadata, skills = object.core, object.eventsLib, object.behaviorLib, object.metadata, object.skills
 
@@ -157,11 +159,11 @@ end
 ---------------------------------------------------
 
 --[[for testing
---object.bHeld = false
+--object.bHeld = false]]
 function object:onthinkOverride(tGameVariables)
 	self:onthinkOld(tGameVariables)
 	
-	if false then
+	--[[if false then
 		core.UpdateCreepTargets(self)
 	end
 	
@@ -195,7 +197,21 @@ function object:onthinkOverride(tGameVariables)
 			--	self.bHeld = true
 			--end
 		end
+	end]]
+
+	local matchtime = HoN.GetMatchTime()
+	if matchtime > 0 and matchtime % 5000 == 0 then
+		behaviorLib.ShopExecute(self)
 	end
+ 	self:onthinkCourier()
+
+ 	local courier = self:GetCourier()
+ 	local nDist = Vector3.Distance(courier:GetPosition(), core.unitSelf:GetPosition())
+ 	local nCourierSpeed = courier:GetMoveSpeed()
+
+ 	--BotEcho("Movement time: " .. nDist/nCourierSpeed)
+
+
 end
 object.onthinkOld = object.onthink
 object.onthink 	= object.onthinkOverride
