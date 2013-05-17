@@ -8,9 +8,6 @@ runfile 'bots/teams/temaNoHelp/lib/antichronos.lua'
 
 teambot.myName = 'temaNoHelp'
 
-teambot.bGroupAndPush = false
-teambot.bDefense = false
-
 local core, metadata = teambot.core, teambot.metadata
 
 ------------------------------------------------------
@@ -139,44 +136,6 @@ function teambot:GetDefenseBuildings()
 
 	return tBuildings
 end
-
-function teambot:ShouldPush()
-  return false
-end
-
---TEIN TÄHÄ TÄMMÖSTÄ JOKA MELKEIN VARMAA LASKEE ET MONTA OMAA ON MILLÄKI LINJALLA LÄHEN NUKKUU MOI
-function teambot:ShouldChangeLane()
-  local allyTeam = core.myTeam
-  local nTop = core.NumberElements(self.tTopLane)
-  local nMid = core.NumberElements(self.tMiddleLane)
-  local nBot = core.NumberElements(self.tBottomLane)
-  local alliesTop = 0
-  local alliesMid = 0
-  local alliesBot = 0
-  for element in pairs(nTop) do
-    if element:GetTeam() == allyTeam and element:IsHero() then
---      alliesTop++
-    end
-  end
-  for element in pairs(nMid) do
-    if element:GetTeam() == allyTeam and element:IsHero() then
---      alliesMid++
-    end
-  end
-  for element in pairs(nBot) do
-    if element:GetTeam() == allyTeam and element:IsHero() then
---      alliesBot++
-    end
-  end
-end
-
-function teambot:GroupAndPushLogic()
-  if self:ShouldPush() then
-    if self:ShouldChangeLane() then
-    end
-  end
-end
-
 
 --TYKITÄN TÄHÄ VÄHÄ COPYPASTEE JA SIT SITÄ VÄHÄ MUUTAN JA TOIVON PARASTA T: MASA KLO 5.50
 --EI SE TOIMI COPYPASTELLA KU JEP EIS XD

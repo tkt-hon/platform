@@ -1,5 +1,0 @@
-Alias "team_temaNoHelp_legion" "set teambotmanager_hellbourne temaNoHelp; AddBot 1 temaNoHelp_wild_soul; AddBot 1 temaNoHelp_pollywog; AddBot 1 temaNoHelp_rhapsody; AddBot 1 temaNoHelp_hammerstorm; AddBot 1 temaNoHelp_forsakenarcher; ReloadTeamBots; ReloadBots"
-
-Alias "team_temaNoHelp_hellbourne" "set teambotmanager_hellbourne temaNoHelp; AddBot 2 temaNoHelp_wild_soul; AddBot 2 temaNoHelp_pollywog; AddBot 2 temaNoHelp_rhapsody; AddBot 2 temaNoHelp_hammerstorm; AddBot 2 temaNoHelp_forsakenarcher; ReloadTeamBots; ReloadBots"
-
-Alias "kikkeli" "set teambotmanager_mode; set teambotmanager_legion; set teambotmanager_hellbourne; BotDebugEnable; StartGame practice test mode:botmatch map:caldavar teamsize:5 spectators:1 allowduplicate:true; fast; hard; setup;"
