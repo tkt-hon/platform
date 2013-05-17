@@ -289,6 +289,7 @@ local function WaveBehaviorUtility(botBrain)
   local abilWave = unitSelf:GetAbility(0)
   local myPos = unitSelf:GetPosition()
   local vihu = GetWaveTarget(botBrain, myPos, abilWave:GetRange())
+  local radius = 1000
   core.FindItems(botBrain)	
 	local itemRing = core.itemRing
   if not vihu then
@@ -556,7 +557,7 @@ local function funcFindItemsOverride(botBrain)
 		end
 
 		local inventory = core.unitSelf:GetInventory(true)
-		for slot = 1, 12, 1 do
+		for slot = 1, 6, 1 do
 			local curItem = inventory[slot]
 			if curItem then
 				if core.itemRing == nil and curItem:GetName() == "Item_Replenish" then
