@@ -78,7 +78,7 @@ behaviorLib.LaneItems  =
 	{"Item_ManaRegen3", "Item_Marchers", "Item_Intelligence5", "Item_Replenish"} 
 	--Item_ManaRegen3 is Ring of the Teacher, Intelligence5 is Talisman of the Exile, Item_Replenish is Ring of Sorcery
 behaviorLib.MidItems  = 
-	{"Item_Steamboots", "Item_HealthMana2", "Item_Morph"}
+	{"Item_PlatedGreaves", "Item_HealthMana2", "Item_Morph"}
 	--Item_HealthMana2 is Icon of the Goddess, Item_Morph is Sheepstick
 behaviorLib.LateItems  = 
 	{"Item_FrostfieldPlate", "Item_BehemothsHeart"}
