@@ -105,15 +105,13 @@ local function DeliverItems()
   end
 end
 
-local function UpgradeCourier()
+function courier.UpgradeCourier()
   local unitCourier = courier.unitCourier
-  if not CourierFlys(unitCourier) then
-    if HoN.GetMatchTime() > 0 then
-      local abilFly = unitCourier:GetAbility(0)
-      if herobot:GetGold() >= 200 then
+  if unitCourier and not CourierFlys(unitCourier) then
+    local abilFly = unitCourier:GetAbility(0)
+    if herobot:GetGold() >= 200 then
         core.OrderAbility(herobot, abilFly)
-      end
-    end
+    end    
   end
 end
 
@@ -122,7 +120,6 @@ function herobot:onthink(tGameVariables)
   onthinkOld(self, tGameVariables)
 
   if courier.HasCourier() then
-    UpgradeCourier()
     DeliverItems()
   end
 end

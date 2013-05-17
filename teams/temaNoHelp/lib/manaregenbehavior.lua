@@ -12,7 +12,7 @@ behaviorLib.nRoSUtility = 0
 behaviorLib.nBottleManaUtility = 0
 
 function behaviorLib.BottleManaUtilFn(nManaMissing)
-  local nManaAmount = 50
+  local nManaAmount = 70
   local nUtilityThreshold = 20
 
   local vecPoint = Vector3.Create(nManaAmount, nUtilityThreshold)
@@ -24,6 +24,17 @@ end
 
 function behaviorLib.RoSUtilFn(nManaMissing)
   local nManaAmount = 135
+  local nUtilityThreshold = 20
+
+  local vecPoint = Vector3.Create(nManaAmount, nUtilityThreshold)
+  local vecOrigin = Vector3.Create(-1000, -20)
+
+  local nUtility = core.ATanFn(nManaMissing, vecPoint, vecOrigin, 100)
+  return nUtility
+end
+
+function behaviorLib.ManaPotUtilFn(nManaMissing)
+  local nManaAmount = 100
   local nUtilityThreshold = 20
 
   local vecPoint = Vector3.Create(nManaAmount, nUtilityThreshold)
@@ -55,7 +66,6 @@ function behaviorLib.UseManaRegenUtility(botBrain)
 
   StartProfile("Mana pot")
   local tInventory = unitSelf:GetInventory()
-  local idefManaPotion = core.idefManaPotion
   local tManaPots = core.InventoryContains(tInventory, "Item_ManaPotion")
   if #tManaPots > 0 and not unitSelf:HasState("State_ManaPotion") then
     nManaPotUtility = behaviorLib.ManaPotUtilFn(nManaMissing)
@@ -111,7 +121,7 @@ function behaviorLib.UseManaRegenExecute(botBrain)
       return
     end
   elseif behaviorLib.nManaPotUtility > behaviorLib.nRoSUtility and behaviorLib.nManaPotUtility > behaviorLib.nBottleUtility then
-    if not unitSelf:HasState(idefManaPotion.stateName) and #tManaPots > 0 then
+    if not unitSelf:HasState("State_ManaPotion") and #tManaPots > 0 then
       --assess local units to see if they are in nRange, retreat until out of nRange * 1.15
       --also don't use if we are taking DOT damage
       local threateningUnits = {}

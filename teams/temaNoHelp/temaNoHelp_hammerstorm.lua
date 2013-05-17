@@ -11,7 +11,7 @@ runfile 'bots/teams/temaNoHelp/lib/ranges.lua'
 
 local core, behaviorLib, eventsLib, shopping, courier = hammer.core, hammer.behaviorLib, hammer.eventsLib, hammer.shopping, hammer.courier
 
-behaviorLib.StartingItems = { "Item_MinorTotem", "Item_Guardian_Ring", "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem"}
+behaviorLib.StartingItems = { "Item_MinorTotem", "Item_GuardianRing", "Item_RunesOfTheBlight", "Item_HealthPotion", "Item_MinorTotem"}
 
 local function PreGameItems()
   for _, item in ipairs(behaviorLib.StartingItems) do
@@ -69,8 +69,8 @@ function shopping.GetNextItemToBuy()
   elseif NumberInInventory(inventory, "Item_ElderParasite") <= 0 then
     if NumberInInventory(inventory, "Item_GlovesOfHaste") <= 0 then
       return "Item_GlovesOfHaste"
-    elseif NumberInInventory(inventory, "Item_BeastHeart") <= 0 then
-      return "Item_BeastHeart"
+    elseif NumberInInventory(inventory, "Item_Beastheart") <= 0 then
+      return "Item_Beastheart"
     else
       return "Item_ElderParasite"
     end

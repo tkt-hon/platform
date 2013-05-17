@@ -8,6 +8,7 @@ local core, behaviorLib, eventsLib = object.core, object.behaviorLib, object.eve
 local Clamp = core.Clamp
 
 behaviorLib.nBottleUtility = 0
+behaviorLib.nPowerSupplyUtility = 0
 
 function behaviorLib.BottleUtilFn(nHealthMissing)
   --Roughly 20+ when we are down 138 hp (which is when we want to use a rune)
@@ -21,6 +22,15 @@ function behaviorLib.BottleUtilFn(nHealthMissing)
 
   local nUtility = core.ATanFn(nHealthMissing, vecPoint, vecOrigin, 100)
   return nUtility
+end
+
+function behaviorLib.PowerSupplyUtilFn(nHealthMissing)
+  --Roughly 20+ when we are down 138 hp (which is when we want to use a rune)
+  -- Fn which crosses 20 at x=138 and is 30 at roughly x=600, convex down
+  if nHealthMissing > 10
+    return 100
+  end
+  return 0
 end
 
 function behaviorLib.UseHealthRegenUtility(botBrain)
@@ -38,6 +48,7 @@ function behaviorLib.UseHealthRegenUtility(botBrain)
   local nHealthPotUtility = 0
   local nBlightsUtility = 0
   local nBottleUtility = 0
+  local nPowerSupplyUtility = 0
   StopProfile()
 
   if unitSelf:HasState("State_PowerupRegen") then
@@ -79,6 +90,13 @@ function behaviorLib.UseHealthRegenUtility(botBrain)
   end
   StopProfile()
 
+  StartProfile("PowerSupply")
+  local tPower = core.InventoryContains(tInventory, "Item_PowerSupply")
+  if #tPower > 0 and tPower[1]:CanActivate() then
+    nPowerSupplyUtility = behaviorLib.PowerSupplyUtilFn(nHealthMissing)
+  end
+  StopProfile()
+
   StartProfile("End")
   nUtility = max(nHealthPotUtility, nBlightsUtility, nBottleUtility)
   nUtility = Clamp(nUtility, 0, 100)
@@ -90,6 +108,7 @@ function behaviorLib.UseHealthRegenUtility(botBrain)
   behaviorLib.nHealthPotUtility = nHealthPotUtility
   behaviorLib.nBlightsUtility = nBlightsUtility
   behaviorLib.nBottleUtility = nBottleUtility
+  behaviorLib.nPowerSupplyUtility = nPowerSupplyUtility
 
   return nUtility
 end
