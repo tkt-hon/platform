@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="drop-table-bots_FlintBeastwood"
+  description="Drop Table Bots' FlintBeastwood"
+  heroname="Hero_FlintBeastwood"
+  rootlua="drop-table-bots_flint_beastwood.lua"
+  defaultplayername="DropTableBotsFlintBeastwoodBot"
+  precachepath="/heroes/flint_beastwood/"
+/>

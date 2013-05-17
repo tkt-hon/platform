@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="DropTableBots_Hacked_Rhapsody"
+  description="Drop Table Bots' Hacked Default Rhapsody (extended Fane's bot)"
+  heroname="Hero_Rhapsody"
+  rootlua="hacked_rhapsody.lua"
+  defaultplayername="Drop Table Bots' Hacked DefaultRhapsodyBot"
+  precachepath="/heroes/rhapsody/"
+/>

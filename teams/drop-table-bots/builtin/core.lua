@@ -761,7 +761,7 @@ function core.CountAlliesNearTower(tower)
 	local nTowerRange = core.GetAbsoluteAttackRangeToUnit(tower, core.unitSelf)
 	local nTowerRangeSq = nTowerRange * nTowerRange
 	
-	local tAllies = core.localUnits["AllyUnits"]
+	local tAllies = core.localUnits["AllyCreeps"]
 	local nAlliesInRange = 0
 	local nHighHpAlliesInRange = 0
 	for id, unitAlly in pairs(tAllies) do
@@ -783,8 +783,8 @@ function core.AdjustMovementForTowerLogic(vecDesiredPos, bCanEnterRange)
 		bCanEnterRange = true
 	end
 
-	local bDebugEchos = true
-	local bDebugLines = true
+	local bDebugEchos = core.bDebugTowers
+	local bDebugLines = core.bDebugTowers
 	local lineLen = 150
 
 	--if object.myName == 'ShamanBot' then bDebugEchos = true bDebugLines = true end

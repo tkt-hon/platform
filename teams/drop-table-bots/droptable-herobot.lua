@@ -2,8 +2,6 @@ local _G = getfenv(0)
 local herobot = _G.object
 
 herobot.myName = herobot:GetName()
-local debug = string.find(herobot.myName, "DropTable") ~= nil
-if debug then print("Debug enabled for hero: " .. herobot.myName .. "\n") end
 
 herobot.bRunLogic = true
 herobot.bRunBehaviors = true
@@ -15,11 +13,6 @@ herobot.bMoveCommands = true
 herobot.bAttackCommands = true
 herobot.bAbilityCommands = true
 herobot.bOtherCommands = true
-
-object.bDebugUtility = debug
-object.bReportBehavior = debug
-object.bDebugLines = debug
-object.bDebugPositioning = debug
 
 herobot.logger = {}
 herobot.logger.bWriteLog = false
@@ -37,12 +30,25 @@ runfile "bots/teams/drop-table-bots/builtin/eventslib.lua"
 runfile "bots/teams/drop-table-bots/builtin/metadata.lua"
 runfile "bots/teams/drop-table-bots/builtin/behaviorlib.lua"
 
-object.behaviorLib.nBehaviorAssessInterval = 50 -- MORE APM!!!! default 250
-object.behaviorLib.nPositionSelfAllySeparation = 250 -- Useful for team AI
-object.behaviorLib.nCreepPushbackMul = 0.2 -- Stay closer to creep wave, default 1
-
 local core = herobot.core
 core.nDifficulty = core.nHARD_DIFFICULTY
+
+local debug = false
+-- print(herobot.myName)
+-- local debug = herobot.myName == "DropTableBotsFlintBeastwoodBot" and herobot:GetTeam() == HoN.GetLegionTeam()
+if debug then print("Debug enabled for hero: " .. herobot.myName .. "\n") end
+
+
+object.bDebugUtility = debug
+object.bReportBehavior = debug
+object.bDebugLines = debug
+object.bDebugPositioning = debug
+
+object.core.bDebugTeambot = true
+
+object.behaviorLib.nBehaviorAssessInterval = 50 -- MORE APM!!!! default 250
+object.behaviorLib.nPositionSelfAllySeparation = 250 -- Useful for team AI
+object.behaviorLib.nCreepPushbackMul = 0.4 -- Stay closer to creep wave, default 1
 
 object.tSkills = {
   0, 1, 0, 1, 0,
@@ -53,8 +59,6 @@ object.tSkills = {
 }
 
 function herobot:SkillBuild()
-  core.VerboseLog("skillbuild()")
-
   local unitSelf = self.core.unitSelf
   if unitSelf:GetAbilityPointsAvailable() <= 0 then
     return
