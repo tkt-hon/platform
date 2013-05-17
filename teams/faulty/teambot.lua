@@ -223,7 +223,7 @@ local nTicks = 0
 local nUpdateInterval = 5
 
 -- health must be below this to start predicting enemy movements
-local nHealthPreThreshold = 0.4
+local nHealthPreThreshold = 0.35
 
 ------------------------------------------------------
 --            onthink override                      --
