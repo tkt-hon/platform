@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
   name="EKP_Rampage"
-  description="BASHIN' NIGGAS ALL DAY"
+  description="Default Rampage"
   heroname="Hero_Rampage"
   rootlua="EKP_rampage.lua"
   defaultplayername="EiKaupallistaPotentiaalia RampageBot"
