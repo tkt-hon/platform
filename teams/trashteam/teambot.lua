@@ -1,6 +1,7 @@
 local _G = getfenv(0)
 local teambot = _G.object
 
+runfile "bots/teambot/tournament_options.lua"
 runfile 'bots/core_teambot.lua'
 runfile 'bots/lib/rune_controlling/init_team.lua'
 
@@ -49,6 +50,11 @@ function teambot:BuildLanesOverride()
     memUnits[nUID] = self.tMemoryUnits[nUID]
   end
 
+  if self.Is1v1() then
+    self.tMiddleLane = tUnits
+    return
+  end
+
   if core.NumberElements(memUnits) <= 0 then
     self:BuildLanesOld()
     self.laneReassessInterval = 1000
@@ -68,6 +74,11 @@ function teambot:BuildLanesOverride()
   else
     tExposedLane = tBottomLane
     tSafeLane = tTopLane
+  end
+
+  if self.Is1v1() then
+    self.tMiddleLane = tUnits
+    return
   end
 
   local suiciders = FindLonglane(memUnits)
@@ -99,6 +110,13 @@ function teambot:BuildLanesOverride()
 end
 teambot.BuildLanesOld = teambot.BuildLanes
 teambot.BuildLanes = teambot.BuildLanesOverride
+
+function teambot.CalculateThreatOverride(unitHero)
+  return 0
+end
+teambot.CalculateThreatOld = teambot.CalculateThreat
+teambot.CalculateThreat = teambot.CalculateThreatOverride
+
 
 function teambot:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)

@@ -164,9 +164,12 @@ UltimateBehavior["Name"] = "Using ultimate properly"
 
 
 local function castHealingWaveUtility(botBrain)
+  if not skills.abilHeal:CanActivate() then
+    return 0
+  end
 	if skills.abilHeal:GetLevel() < 2 then
 		return 0
-end
+  end
 
 	local unitSelf = botBrain.core.unitSelf
   local heroesInRange = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 1000, ALIVE + HERO)
@@ -177,12 +180,12 @@ end
 	for _,unit in pairs(heroesInRange) do
     if unit and botBrain:GetTeam() ~= unit:GetTeam() then
 
-			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(), 180, ALIVE+UNIT)
+			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(), 180, ALIVE+UNIT+HERO)
 			for _,creep in pairs(creepsInRange) do
 				if creep and unitSelf:GetTeam() == creep:GetTeam() and (not IsSiege(creep)) then
 					allyCreepsInRange = allyCreepsInRange + 1
 					shaman.healTarget = creep
-					core.DrawDebugArrow(unit:GetPosition(), creep:GetPosition(), 'red')
+					--core.DrawDebugArrow(unit:GetPosition(), creep:GetPosition(), 'red')
 				end
 			end
 

@@ -43,7 +43,7 @@ function closeToEnemyTowerDist(unit) -- returns pythagoras result , not somethin
   local myPos = unitSelf:GetPosition()
   local myTeam = unitSelf:GetTeam()
 
-  local unitsInRange = HoN.GetUnitsInRadius(myPos, 3000, ALIVE + BUILDING)
+  local unitsInRange = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + BUILDING)
   for _,unit in pairs(unitsInRange) do
     if unit and not(myTeam == unit:GetTeam()) then
       if unit:GetTypeName() == "Building_HellbourneTower" then
@@ -51,7 +51,7 @@ function closeToEnemyTowerDist(unit) -- returns pythagoras result , not somethin
       end
     end
   end
-  return 3000
+  return 2000
 end
 
 function GetHeroInRange(botBrain, myPos, radius)

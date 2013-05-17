@@ -10,7 +10,7 @@ local tinsert = _G.table.insert
 local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
 runfile 'bots/teams/trashteam/utils/utils.lua'
---runfile 'bots/teams/trashteam/utils/predLastHit.lua'
+--runfile 'bots/teams/trashteam/utils/predictiveLasthittingVesa.lua'
 runfile 'bots/teams/trashteam/utils/attackUtils.lua'
 
 witchslayer.bRunLogic         = true
@@ -24,8 +24,8 @@ witchslayer.bAttackCommands     = true
 witchslayer.bAbilityCommands = true
 witchslayer.bOtherCommands     = true
 
-witchslayer.bReportBehavior = false
-witchslayer.bDebugUtility = false
+witchslayer.bReportBehavior = true
+witchslayer.bDebugUtility = true
 
 witchslayer.logger = {}
 witchslayer.logger.bWriteLog = false
@@ -123,24 +123,63 @@ function witchslayer:oncombateventOverride(EventData)
   -- custom code here
   local nAddBonus = 0
   --witchslayer.eventsLib.printCombatEvent(EventData)
-
-   if nAddBonus > 0 then
-        core.DecayBonus(self)
-        core.nHarassBonus = core.nHarassBonus + nAddBonus
-    end
 end
 witchslayer.oncombateventOld = witchslayer.oncombatevent
 witchslayer.oncombatevent = witchslayer.oncombateventOverride
 -- override combat event trigger function.
+witchslayer.cancelChannel = false
+witchslayer.cancelTime = 0
 
+local function DontBreakChannelUtilityOverride(botBrain)
+  local utility = 0
+  local currentTime = HoN.GetMatchTime()
+
+  if currentTime > botBrain.cancelTime then
+    botBrain.cancelChannel = true
+    botBrain.cancelTime = 9999999
+  end
+
+  if core.unitSelf:IsChanneling() and not botBrain.cancelChannel then
+    utility = 100
+  else
+    botBrain.cancelChannel = false
+  end
+
+  if botBrain.bDebugUtility == true and utility ~= 0 then
+    core.BotEcho("  DontBreakChannelUtility: ".. tostring(utility))
+  end
+
+  return utility
+end
+witchslayer.DontBreakChannelUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
+behaviorLib.DontBreakChannelBehavior["Utility"] = DontBreakChannelUtilityOverride
 
 -- MAN UP BEHAVIOUR
 witchslayer.PussyUtilityOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
 local function PussyUtilityOverride(BotBrain)
   local util = witchslayer.PussyUtilityOld(BotBrain)
-  return math.min(30, util*0.5)
+  return core.Clamp(util, 0, 30) 
 end
 behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
+
+witchslayer.permissionToUseForce = false
+witchslayer.PussyHarUtilityOld = behaviorLib.HarassHeroBehavior["Utility"]
+local function PussyHarUtilityOverride(BotBrain)
+  local util = witchslayer.PussyHarUtilityOld(BotBrain)
+  if util < 5 then
+    witchslayer.permissionToUseForce = true
+  else
+    witchslayer.permissionToUseForce = false
+  end
+  if witchslayer.HarassUtility > 0 then
+    if util < witchslayer.HarassUtility then
+      util = witchslayer.HarassUtility
+    end
+    witchslayer.HarassUtility = -5
+  end
+  return core.Clamp(util, 0, 100) 
+end
+behaviorLib.HarassHeroBehavior["Utility"] = PussyHarUtilityOverride
 
 
 local function usefulstuff() -- misc stuff, for reminder of stuff
@@ -156,13 +195,15 @@ local function usefulstuff() -- misc stuff, for reminder of stuff
   return
 end
 
+witchslayer.HarassUtility = -5
 local function CustomHarassUtilityFnOverride(hero)
   -- LOL tää funktio saiki ton vastustajan sankarin wtf
   local unitSelf = core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   local modifier = 0
   if distToEneTo < 750 then
-    modifier = 100
+    core.BotEcho("WTF")
+    modifier = 50
   end
 
   local nUtil = 0
@@ -183,45 +224,73 @@ local function CustomHarassUtilityFnOverride(hero)
   local myPHealth = unitSelf:GetHealthPercent()
   local eHeroPos = hero:GetPosition()
   local myPos = unitSelf:GetPosition()
+  local nuke = skills.abilNuke
+  local ulti = skills.abilUltimate
+  local mini = skills.abilMini
   if myPos.z-eHeroPos.z > 80 then
-    nUtil = nUtil + 30
+    nUtil = nUtil + 20
   end
   if eHeroPos.z-myPos.z > 80 then
-    nUtil = nUtil - 30
+    nUtil = nUtil - 20
   end
-  if heroPHealth > myPHealth then
-    nUtil = nUtil * 0.6
-  elseif heroPHealth > myPHealth*2 then
-    nUtil = nUtil * 0.3
-  elseif heroPHealth <= myPHealth and heroPHealth > 0.3 then
-    nUtil = nUtil * 1.6
+  if heroPHealth > myPHealth and not ulti:CanActivate() then
+    nUtil = nUtil * 0.9
+  elseif heroPHealth > myPHealth*2 and not ulti:CanActivate()then
+    nUtil = nUtil * 0.7
+  elseif heroPHealth <= myPHealth and heroPHealth > 0.2 then
+    nUtil = nUtil * 1.3
   end
-  if heroPHealth < 0.3 and not skills.abilNuke:CanActivate() then
-    if not skills.abilUltimate:CanActivate() then
-      nUtil = 0
-    end
+  if heroPHealth < 0.3 and not (nuke:CanActivate() or mini:CanActivate() or ulti:CanActivate()) then
+    nUtil = 0
   end
-  local nuke = skills.abilNuke
   local nukedmg = nukeDmg[nuke:GetLevel()+1]
   local ultiCost = skills.abilUltimate:GetManaCost()
   local nukeCost = skills.abilNuke:GetManaCost()
   local myMana = unitSelf:GetMana()
-  core.BotEcho("CustomHarassUtility")
+  local nuke = skills.abilNuke
+  local nukeRange = nuke:GetRange()+800
+  local nTargetDistanceSq = Vector3.Distance2D(myPos, eHeroPos)
+  if nTargetDistanceSq < nukeRange and nuke:CanActivate() then
+    nUtil = nUtil + 20
+  end
+
   if core.CanSeeUnit(witchslayer, hero) then
     local targetMA = GetArmorMultiplier(hero, true)
     if  heroHealth < targetMA*(GetUltiDmg(core)+(nukedmg*1.5)) and myMana > ultiCost + nukeCost and skills.abilUltimate:CanActivate() and skills.abilNuke:CanActivate() then
       nUtil = 70
     end
+    if hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
+      nUtil = 70
+      modifier = modifier*0.4 -- GO IN!?
+    end
   end
-  if hero:IsStunned() or hero:IsPerplexed() or hero:IsSilenced() then
-    nUtil = 70
-    modifier = modifier*0.4 -- GO IN!?
+  if nUtil < 0 then 
+    core.BotEcho("WTF MAN")
   end
-
-
-  return math.min(70,nUtil-modifier) -- Never be more important than 70
+  if unitSelf:GetLevel() < 6 then
+    nUtil = nUtil * 0.5
+  end
+  if AmountOfCreepsInRange(unitSelf, myPos, 300, true) < 1 then
+    nUtil = nUtil * 0.6
+  end
+  if witchslayer.bDebugUtility == true and utility ~= 0 then
+     core.BotEcho("  HarassUtility: " .. tostring(nUtil))
+  end
+  witchslayer.HarassUtility = core.Clamp(nUtil-modifier, 0, 70)
+  return core.Clamp(nUtil-modifier, 0, 100) -- Never be more important than 70
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+witchslayer.stunTime = 0
+
+local function CanUseCC()
+  local matchTime = HoN.GetMatchTime()
+  if matchTime - witchslayer.stunTime > 500 then
+    witchslayer.stunTime = 0
+    return true
+  end
+  return false
+end
 
 local function HarassHeroExecuteOverride(botBrain)
 
@@ -232,6 +301,8 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local unitSelf = core.unitSelf
   local nTargetDistanceSq = Vector3.Distance2D(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local targetDirection = Vector3.Normalize(unitTarget:GetPosition()- unitSelf:GetPosition())*100 + unitSelf:GetPosition()
+  --core.DrawDebugArrow(unitSelf:GetPosition(), targetDirection, "silver")
   local nLastHarassUtility = behaviorLib.lastHarassUtil
 
   local bActionTaken = false
@@ -240,9 +311,15 @@ local function HarassHeroExecuteOverride(botBrain)
   local ulti = skills.abilUltimate
   local mini = skills.abilMini
   local ultiCost = skills.abilUltimate:GetManaCost()
+  local ultiLevel = ulti:GetLevel()
+  if ultiLevel == 0 or not ulti:CanActivate() then
+    ultiCost = 0
+  end
   local nukeCost = skills.abilNuke:GetManaCost()
-  local miniCost = skills.abilNuke:GetManaCost()
+  local miniCost = mini:GetManaCost()
   local myMana = unitSelf:GetMana()
+  local drain = skills.abilDrain
+  local ultiLevel = ulti:GetLevel()
   local ultdmg = ultiDmg[ulti:GetLevel()+1]
   local nukedmg = nukeDmg[nuke:GetLevel()+1]
   local speed = botBrain.core.speedBoots
@@ -250,24 +327,54 @@ local function HarassHeroExecuteOverride(botBrain)
   if speed and speed:CanActivate() then
     core.OrderItemClamp(botBrain, unitSelf, speed)
   end
-  core.BotEcho("HarassHeroExecute")
-	if core.CanSeeUnit(botBrain, unitTarget) then -- removed mini cost, not using yet
-    if nuke:CanActivate() and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) then
+  botBrain.currentStunDur = 0
+
+	if core.CanSeeUnit(botBrain, unitTarget) then
+    if drain:CanActivate() and (ultiCost-myMana > 0) or (nukeCost-myMana > 0) and (unitTarget:IsStunned()or unitTarget:IsPerplexed()) and ultiLevel > 0 then
+      botBrain.cancelTime = HoN.GetMatchTime() + 1000
+      local nRange = drain:GetRange()
+      if nTargetDistanceSq < nRange then
+        bActionTaken = core.OrderAbilityEntity(botBrain, drain, unitTarget)
+      end
+    end
+    if nuke:CanActivate() and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
       local nRange = nuke:GetRange()
       if nTargetDistanceSq < nRange then
+        witchslayer.stunTime = HoN.GetMatchTime()
         bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
+      elseif nTargetDistanceSq < nRange+150 then
+        witchslayer.stunTime = HoN.GetMatchTime()
+        bActionTaken = core.OrderAbilityPosition(botBrain, nuke, targetDirection)
       end
     end
-    if taunt and taunt:CanActivate() and unitTarget:GetHealthPercent() < 0.7 then
-      local nRange = taunt:GetRange()
-      if nTargetDistanceSq < nRange then
-        bActionTaken = core.OrderAbilityEntity(botBrain, taunt, unitTarget)
-      end
+    if taunt and taunt:IsReady() and taunt:CanActivate() then
+      core.BotEcho("taunt")
+      bActionTaken = core.OrderAbilityEntity(botBrain, taunt, unitTarget)
     end
-    if mini:CanActivate() and myMana-miniCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) then
+    if mini:CanActivate() and myMana-miniCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
       local nRange = mini:GetRange()
       if nTargetDistanceSq < nRange then
+        witchslayer.stunTime = HoN.GetMatchTime()
         bActionTaken = core.OrderAbilityEntity(botBrain, mini, unitTarget)
+      end
+    end
+    if core.itemCodex and core.itemCodex:CanActivate() then
+      local nRange = core.itemCodex:GetRange()
+      if nTargetDistanceSq < nRange then
+        bActionTaken = core.OrderItemEntityClamp(botBrain, unitSelf, core.itemCodex, unitTarget)
+      end
+    end
+    if core.sheepStick and core.sheepStick:CanActivate() and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
+      local nRange = core.sheepStick:GetRange()
+      if nTargetDistanceSq < nRange then
+        witchslayer.stunTime = HoN.GetMatchTime()
+        bActionTaken = core.OrderItemEntityClamp(botBrain, unitSelf, core.sheepStick, unitTarget)
+      end
+    end
+    if botBrain.permissionToUseForce and ulti:CanActivate() then
+      local nRange = ulti:GetRange()
+      if nTargetDistanceSq < nRange then
+        bActionTaken = core.OrderAbilityEntity(botBrain, ulti, unitTarget)
       end
     end
   end
@@ -295,12 +402,16 @@ end
 --- MY BEHAVIOURS ONLY AFTER THIS POINT ---
 
 local function GetManaUtility(botBrain)
+  -- use only if no heroes nearby
   --core.BotEcho("ManaUtility calc")
+  local unitSelf = botBrain.core.unitSelf
   local drainMana = skills.abilDrain
   local util = 0
   local modifier = 0
-  if drainMana:CanActivate() then
-    local unitSelf = botBrain.core.unitSelf
+  local myPos = unitSelf:GetPosition()
+  local _,lol = HoN.GetUnitsInRadius(myPos, 1000, ALIVE + HERO, true)
+  local enemyHeros = core.NumberElements(lol.EnemyHeroes)
+  if drainMana:CanActivate() and enemyHeros < 1 then
     local myMana = unitSelf:GetMana()
     local ultiCost = skills.abilUltimate:GetManaCost()
     local nukeCost = skills.abilNuke:GetManaCost()
@@ -313,12 +424,11 @@ local function GetManaUtility(botBrain)
       end
 
       local drainRange = skills.abilDrain:GetRange()
-      local myPos = unitSelf:GetPosition()
       local allUnitsMax = HoN.GetUnitsInRadius(myPos, drainRange, ALIVE + UNIT)
       local potentialCreep = nil
       for _,unit in pairs(allUnitsMax) do
         if unit and not (botBrain:GetTeam() == unit:GetTeam()) then
-          if IsRanged(unit) then
+          if unit:GetMana() > 200 then
             potentialCreep = unit
           end
         end
@@ -340,6 +450,7 @@ local function GetManaExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local targetCreep = witchslayer.DrainTarget
   local manaDrain = skills.abilDrain
+  botBrain.cancelTime = HoN.GetMatchTime() + 5000
   return core.OrderAbilityEntity(botBrain, manaDrain, targetCreep)
 end
 
@@ -366,9 +477,8 @@ local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shru
   local myPos = unitSelf:GetPosition()
   if ulti:CanActivate() then
     local unitsInRange = HoN.GetUnitsInRadius(myPos, range+200, ALIVE + HERO)
-    core.BotEcho("EiMihinkaan")
     for _,unit in pairs(unitsInRange) do
-      if unit and not (ownTeam == unit:GetTeam()) and core.CanSeeUnit(botBrain, unit) then
+      if unit and not (ownTeam == unit:GetTeam()) and core.CanSeeUnit(botBrain, unit) and not targetHasShrunkenActive(unit) then
         local nTargetDistance = Vector3.Distance2D(myPos, unit:GetPosition())
         local targetArmor = GetArmorMultiplier(unit,true)
         local targetHealth = unit:GetHealth()
