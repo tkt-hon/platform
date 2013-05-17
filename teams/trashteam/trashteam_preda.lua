@@ -229,11 +229,6 @@ end
 
 local function LaneLeapBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local distToEneTo = closeToEnemyTowerDist(unitSelf)
-  local modifier = 0
-  if distToEneTo < 650 then
-    modifier = 70
-  end
   local abilLeap = unitSelf:GetAbility(0)
   local myPos = unitSelf:GetPosition()
 
@@ -241,42 +236,51 @@ local function LaneLeapBehaviorUtility(botBrain)
 	local vihulkm = core.NumberElements(unitsSorted.EnemyHeroes)
 	local omalkm = core.NumberElements(unitsSorted.AllyHeroes)
 	local vihu = nil
-  local hp = 100000
-  for key,unit in pairs(unitsSorted.EnemyHeroes) do
-    if unit ~= nil and unit:GetHealth()<hp then
+  local hp = nil
+  for _,unit in pairs(unitsSorted.EnemyHeroes) do
+    local newhp = unit:GetHealth()
+    if not vihu or newhp<hp then
       vihu = unit
-			hp = unit:GetHealth()
+			hp = newhp
     end
   end
 
   if vihu then
-  	local nDist = Vector3.Distance2D(vihu:GetPosition(), unitSelf:GetPosition())
-		local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(vihu, true)
-		local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(vihu, false)
-    predator.LeapTarget = vihu
-    local vihuhp = vihu:GetHealth()
-    -- Hiridur, NÃ¤itÃ¤ alla olevia ehtoja on liikaa. Tee yksinkertaisemmin, katoin just ku preda meni
-    -- vihun kimppuun vihuntornin viereen mutta jÃ¤i sen jÃ¤lkeen "en mÃ¤ kuiteskaan" - tilaan ja kuoli tornin tulitukseen
-    -- en kyl tÃ¤tÃ¤ viestiÃ¤ luettaessa lukenut koko tiedostoa mutta nÃ¤in huomioidakseni.
-	  local vihuslow = IsSlowed(vihu)
-		if attackdmg*3 > vihu:GetHealth() and nDist<250 then
-			return 97-modifier
-		end
-		if leapdmg > vihu:GetHealth() and nDist<650 and abilLeap:CanActivate() then
-			return 97
-		end
-	  if leapdmg > vihu:GetHealth()+100 and unitSelf:GetHealthPercent()>0.3 and (abilLeap:CanActivate() or omalkm >vihulkm) then
-	    return 97-modifier
-	  end
-	  if leapdmg > vihu:GetHealth()+200 and unitSelf:GetHealthPercent()>0.5 then
-	    return 95-modifier
-	  end
-	  if vihuslow and unitSelf:GetHealthPercent()>0.5 and omalkm < vihulkm then
-	    return 90-modifier
-	  end
-		if not (omalkm < vihulkm) and vihu:GetHealth() < unitSelf:GetHealth() then
-			return 90-modifier
-		end
+    if core.CanSeeUnit(botBrain, vihu) then
+      local distToEneTo = closeToEnemyTowerDist(unitSelf)
+      local distToEneToE = closeToEnemyTowerDist(vihu)
+      local modifier = 0
+      if distToEneTo < 650 or distToEneToE < 650 then
+        modifier = 75
+      end
+      local nDist = Vector3.Distance2D(vihu:GetPosition(), unitSelf:GetPosition())
+      local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(vihu, true)
+      local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(vihu, false)
+      predator.LeapTarget = vihu
+      predator.nDist = nDist
+      local vihuhp = vihu:GetHealth()
+      -- Hiridur, Näitä alla olevia ehtoja on liikaa. Tee yksinkertaisemmin, katoin just ku preda meni
+      -- vihun kimppuun vihuntornin viereen mutta jäi sen jälkeen "en mä kuiteskaan" - tilaan ja kuoli tornin tulitukseen
+      -- en kyl tätä viestiä luettaessa lukenut koko tiedostoa mutta näin huomioidakseni.
+      local vihuslow = IsSlowed(vihu)
+      if not (omalkm < vihulkm) and (unitSelf:GetHealthPercent()>0.7 or vihuslow) and nDist<600 then
+        return 94-modifier
+      end
+      local vihuhp = vihu:GetHealth()
+      if abilLeap:CanActivate() and nDist<640 then
+        if leapdmg > vihuhp then
+      --core.BotEcho("haluan hypata")
+          return 97
+        end
+        if (vihuhp - leapdmg)/(vihuhp / vihu:GetHealthPercent()) < 0.3 then
+          return 97-(modifier*0.5)
+        end
+      end
+      if nDist<250 then
+        return 92-modifier
+      end
+    end
+    return 0
   end
   return 0
 end
@@ -284,23 +288,23 @@ end
 local function LaneLeapBehaviorExecute(botBrain) -- core.CanSeeUnit(botBrain, unitTarget) Try to use this... Cannot say how.
   local unitSelf = botBrain.core.unitSelf
   local abilLeap = unitSelf:GetAbility(0)
-	local targetHero = predator.LeapTarget
-	if not targetHero then
+	local vihu = predator.LeapTarget
+  local nDist = predator.nDist
+	if not vihu or not vihu:GetPosition() then
 		return false
 	end
-  local nDist = Vector3.Distance2D(targetHero:GetPosition(), unitSelf:GetPosition())
-	local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(targetHero, true)
-	local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(targetHero, false)
+	local leapdmg = ((abilLeap:GetLevel()*50)+25)*GetArmorMultiplier(vihu, true)
+	local attackdmg = (unitSelf:GetAttackDamageMin())*GetArmorMultiplier(vihu, false)
 
-	if abilLeap:CanActivate() and (leapdmg > targetHero:GetHealth() or not IsSlowed(targetHero)) and nDist<650 then
+	if abilLeap:CanActivate() and (leapdmg > vihu:GetHealth() or not IsSlowed(vihu)) and nDist<650 then
 		--core.BotEcho("Leappi")
-		return core.OrderAbilityEntity(botBrain, abilLeap, targetHero)
-	elseif nDist<=128 then
+		return core.OrderAbilityEntity(botBrain, abilLeap, vihu)
+	elseif nDist < 210 then
 		--core.BotEcho("ATAAK")
-		return core.OrderAttackClamp(botBrain, unitSelf, targetHero) 
+		return core.OrderAttackClamp(botBrain, unitSelf, vihu) 
 	else
 		--core.BotEcho("LIIKU")
-		return core.OrderMoveToUnitClamp(botBrain, unitSelf, targetHero, false)
+		return core.OrderMoveToUnitClamp(botBrain, unitSelf, vihu, false)
 	end
 end
 
