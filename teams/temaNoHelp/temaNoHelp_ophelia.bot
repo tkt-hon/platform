@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="temaNoHelp_Ophelia"
+  description="temaNoHelp testiliha"
+  heroname="Hero_Ophelia"
+  rootlua="temaNoHelp_ophelia.lua"
+  defaultplayername="Testiliha"
+  precachepath="/heroes/ophelia/"
+/>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="temaNoHelp_pollywog"
+  description="temaNoHelp Pollywog"
+  heroname="Hero_PollywogPriest"
+  rootlua="temaNoHelp_pollywog.lua"
+  defaultplayername="[tema]skottilaine"
+  precachepath="/heroes/pollywogpriest/"
+/>
