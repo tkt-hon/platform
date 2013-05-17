@@ -7,10 +7,10 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = plaguerider.core, plaguerider.behaviorLib
 
-behaviorLib.StartingItems = { "Item_TrinketOfRestoration", "Item_RunesOfTheBlight", "3 Item_MinorTotem"}
-behaviorLib.LaneItems = { "Item_Marchers", "Item_MysticVestments", "Item_EnhancedMarchers", "Item_MagicArmor2" }
-behaviorLib.MidItems = { "Item_SpellShards 3", "Item_Intelligence7", "Item_Lightbrand" }
-behaviorLib.LateItems = { "Item_GrimoireOfPower" }
+behaviorLib.StartingItems = { "Item_Marchers", "Item_RunesOfTheBlight" }
+behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_Intelligence7", "Item_Protect" }
+behaviorLib.MidItems = { "Item_SpellShards 3" }
+behaviorLib.LateItems = { "Item_FrostfieldPlate" }
 
 plaguerider.skills = {
   2, 0, 2, 0, 2,
@@ -111,7 +111,8 @@ local function DenyBehaviorUtility(botBrain)
   local abilDeny = skills.abilDeny
   local myPos = unitSelf:GetPosition()
   local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
-  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+  local mana = unitSelf:GetMana()
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) and mana < 500 then
     plaguerider.denyTarget = unit
     return 90
   end

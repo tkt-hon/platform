@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-  name="2easy_Moon_Queen"
-  description="2easy Moon Queen"
+  name="2easy_5v5_MoonQueen"
+  description="2easy Moon Moon"
   heroname="Hero_Krixi"
   rootlua="2easy_moon_queen.lua"
   defaultplayername="Moon Moon"
