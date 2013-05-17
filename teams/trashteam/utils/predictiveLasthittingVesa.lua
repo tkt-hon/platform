@@ -20,7 +20,7 @@ end
 function DmgInfo:update(hp)
 	local timeNow = HoN.GetMatchTime()
 
-	if self.hpList and self.hpList[#self.hpList] - hp > 0 then
+	if hp and self.hpList and self.hpList[#self.hpList] - hp > 0 then
 		table.insert(self.hpList, hp)
 		table.insert(self.timeList, timeNow)
 	end
@@ -105,14 +105,13 @@ function lastHitter:updateAllCreepHistory()
       self.trackedCreeps[unit] = dmgInfo
     end
     local matchTime = HoN.GetMatchTime()
-    if dmgInfo.m ~= 0.0 and dmgInfo.c ~= 0.0 then
-      BotEcho(string.format("		- %s dead in: %g", tostring(unit), -dmgInfo.c/dmgInfo.m))
-      BotEcho("                                         " .. tostring(matchTime))
-      local lifeExpectancy = -dmgInfo.c/dmgInfo.m-matchTime
-      if lifeExpectancy < 1800 then
-        --self.focusCreeps[unit] = lifeExpectancy
-        self.focusCreeps[unit] = dmgInfo
-      end
+--    if dmgInfo.m ~= 0.0 and dmgInfo.c ~= 0.0 then
+--      BotEcho(string.format("		- %s dead in: %g", tostring(unit), -dmgInfo.c/dmgInfo.m))
+--      BotEcho("                                         " .. tostring(matchTime))
+    local lifeExpectancy = -dmgInfo.c/dmgInfo.m-matchTime
+    if lifeExpectancy < 3000 then
+      --self.focusCreeps[unit] = lifeExpectancy
+      self.focusCreeps[unit] = dmgInfo
     end
 	end
 
@@ -153,8 +152,8 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
     nProjectileSpeed = unitSelf:GetAttackProjectileSpeed()
   end
 
-  for unit,dmgInfo in pairs(botBrain.focusCreeps) do
-    if unit and core.CanSeeUnit(botBrain, unit) then
+  for unit,dmgInfo in pairs(botBrain.trackedCreeps) do
+    if unit then --and core.CanSeeUnit(botBrain, unit) then
       if isRanged then
         local nProjectileTravelTime = Vector3.Distance2D(myPos, unit:GetPosition()) / nProjectileSpeed
       end
@@ -164,7 +163,11 @@ function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCree
       nDamageMin = nDamageMin*dmgReduc
 
 
-      local killTime = (nDamageMin-dmgInfo.c)/dmgInfo.c
+      local killTime = (nDamageMin-dmgInfo.c)/dmgInfo.m - 1800/unitSelf:GetLevel() - 500
+			BotEcho("Killtime vs matchtime: " .. tostring(killTime) .. " / " .. tostring(HoN.GetMatchTime()))	
+		--	if isRanged then
+		--		killTime = killTime - nProjectileSpeed
+		--	end
 
       if not(myTeam == unit:GetTeam()) then
         --Only attack if, by the time our attack reaches the target
@@ -231,14 +234,14 @@ function AttackCreepsExecuteOverride(botBrain)
 
     -- getkillTime if attacked now
     -- TODO: add ranged and some delay
-    local killTime = (nDamageMin-dmgInfo.c)/dmgInfo.c
-    core.BotEcho("killTime vs Matchtime : " .. tostring(killTime) .. " / " .. tostring(matchTime))
+    local killTime = (nDamageMin-dmgInfo.c)/dmgInfo.m
+    --core.BotEcho("killTime vs Matchtime : " .. tostring(killTime) .. " / " .. tostring(matchTime))
     killTime = killTime - LastHitDelay
-    core.BotEcho("killTime vs Matchtime : " .. tostring(killTime) .. " / " .. tostring(matchTime) .. " with delay")
+    --core.BotEcho("killTime vs Matchtime : " .. tostring(killTime) .. " / " .. tostring(matchTime) .. " with delay")
     --Only attack if, by the time our attack reaches the target
     -- the damage done by other sources brings the target's health
     -- below our minimum damage, and we are in range and can attack right now
-    if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and killTime <= matchTime  then
+    if nDistSq < nAttackRangeSq then --and unitSelf:IsAttackReady() then
       core.OrderAttackClamp(botBrain, unitSelf, unitCreepTarget)
 
     --Otherwise get within 70% of attack range if not already

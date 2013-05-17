@@ -6,7 +6,8 @@ shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/utils.lua'
-runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
+--runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
+runfile 'bots/teams/trashteam/utils/predictiveLasthittingVesa.lua'
 
 local tinsert = _G.table.insert
 
@@ -161,7 +162,7 @@ local function castHealingWaveUtility(botBrain)
 	for _,unit in pairs(heroesInRange) do
     if unit and botBrain:GetTeam() ~= unit:GetTeam() then
 
-			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(), 180, ALIVE+UNIT+HERO)
+			local creepsInRange = HoN.GetUnitsInRadius(unit:GetPosition(),220, ALIVE+UNIT+HERO)
 			for _,creep in pairs(creepsInRange) do
 				if creep and unitSelf:GetTeam() == creep:GetTeam() and (not IsSiege(creep)) then
 					allyCreepsInRange = allyCreepsInRange + 1
@@ -172,14 +173,9 @@ local function castHealingWaveUtility(botBrain)
 
 		end
   end
+	
+return 35*allyCreepsInRange                       -- should be changed if debugging
 
-	if allyCreepsInRange > 3 then
-		return 100
-	elseif allyCreepsInRange > 2 then -- maybe try for less frequent but bigger dmg, fazias. Save mana etc.
-		return 80                       -- should be changed if debugging
-	end
-
-	return 0
 end
 
 local function castHealingWaveExecute(botBrain)
