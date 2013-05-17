@@ -107,3 +107,72 @@ function teambot.CalculateThreat(unitHero)
   local nThreat = nDPSThreat + nRangeThreat
   return nThreat
 end
+
+function teambot:GetDefenseBuildings()
+	local tBuildings = {}
+	local bDamageableOnly = self.bDamageableDefenseOnly
+	
+	--Towers
+	local tTowers = core.allyTowers
+	for nID, unitTower in pairs(tTowers) do
+		if unitTower:IsAlive() and (not bDamageableOnly or not unitTower:IsInvulnerable()) and unitTower:GetLevel() >= 3 then
+			tBuildings[nID] = unitTower
+		end
+	end
+	
+	--Main base structure
+	local unitMainBase = core.allyMainBaseStructure
+	if (not bDamageableOnly or not unitMainBase:IsInvulnerable()) then
+		tBuildings[unitMainBase:GetUniqueID()] = unitMainBase
+	end
+
+	--Rax (ignore ranged)
+	local tRax = core.allyRax
+	for nID, unitRax in pairs(tRax) do
+		if unitRax:IsAlive() and (not bDamageableOnly or not unitRax:IsInvulnerable()) and unitRax:IsUnitType("MeleeRax") then
+			tBuildings[nID] = unitRax
+		end
+	end
+
+	return tBuildings
+end
+
+function teambot:ShouldPush()
+  return false
+end
+
+--TEIN TÄHÄ TÄMMÖSTÄ JOKA MELKEIN VARMAA LASKEE ET MONTA OMAA ON MILLÄKI LINJALLA LÄHEN NUKKUU MOI
+function teambot:ShouldChangeLane()
+  local allyTeam = core.myTeam
+  local nTop = core.NumberElements(self.tTopLane)
+  local nMid = core.NumberElements(self.tMiddleLane)
+  local nBot = core.NumberElements(self.tBottomLane)
+  local alliesTop = 0
+  local alliesMid = 0
+  local alliesBot = 0
+  for element in pairs(nTop) do
+    if element:GetTeam() == allyTeam and element:IsHero() then
+      alliesTop++
+    end
+  for element in pairs(nMid) do
+    if element:GetTeam() == allyTeam and element:IsHero() then
+      alliesMid++
+    end
+  for element in pairs(nBot) do
+    if element:GetTeam() == allyTeam and element:IsHero() then
+      alliesBot++
+    end
+end
+
+function teambot:GroupAndPushLogic()
+  if self:ShouldPush() then
+    if self:ShouldChangeLane() then
+    end
+  end
+end
+
+
+--TYKITÄN TÄHÄ VÄHÄ COPYPASTEE JA SIT SITÄ VÄHÄ MUUTAN JA TOIVON PARASTA T: MASA KLO 5.50
+--EI SE TOIMI COPYPASTELLA KU JEP EIS XD
+
+
