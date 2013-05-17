@@ -36,6 +36,8 @@ Step 2: Copy teams/template to teams/nameOfTeam
     Alias "team_temaNoHelp_legion" "set teambotmanager_legion temaNoHelp; AddBot 1 temaNoHelp_forsakenarcher; AddBot 1 temaNoHelp_hammerstorm; AddBot 1 temaNoHelp_rhapsody; AddBot 1 temaNoHelp_pollywog; AddBot 1 temaNoHelp_PlagueRider"
     Alias "team_vidyan_hellbourne" "set teambotmanager_hellbourne vidyanmetamindgames; AddBot 2 Vidyan_Tempest; AddBot 2 Vidyan_VoodooJester; AddBot 2 Vidyan_PollywogPriest; AddBot 2 Vidyan_Beastwood; AddBot 2 Vidyan_Yogi"
     Alias "team_vidyan_legion" "set teambotmanager_legion vidyanmetamindgames; AddBot 1 Vidyan_Tempest; AddBot 1 Vidyan_VoodooJester; AddBot 1 Vidyan_PollywogPriest; AddBot 1 Vidyan_Beastwood; AddBot 1 Vidyan_Yogi"
+    Alias "team_kiinalainen_legion" "set teambotmanager_legion kiinalainen; AddBot 1 Kiinalainen_Pharao; AddBot 1 Kiinalainen_Aluna; AddBot 1 Kiinalainen_PlagueRider; AddBot 1 Kiinalainen_Wildsoul; AddBot 1 Kiinalainen_MoonQueen;"
+Alias "team_kiinalainen_legion" "set teambotmanager_hellbourne kiinalainen; AddBot 2 Kiinalainen_Pharao; AddBot 2 Kiinalainen_Aluna; AddBot 2 Kiinalainen_PlagueRider; AddBot 2 Kiinalainen_Wildsoul; AddBot 2 Kiinalainen_MoonQueen;"
 
 
 Remember to ```ReloadTeamBots ; ReloadBots```

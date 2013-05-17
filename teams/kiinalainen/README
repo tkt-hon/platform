@@ -1,2 +1,2 @@
-Alias "kiinalainen1" "AddBot 1 Kiinalainen_Pharao; AddBot 1 Kiinalainen_Aluna; AddBot 1 Kiinalainen_PlagueRider; AddBot 1 Kiinalainen_Wildsoul; AddBot 1 Kiinalainen_MoonQueen; set teambotmanager_legion kiinalainen"
-Alias "kiinalainen2" "AddBot 2 Kiinalainen_Pharao; AddBot 2 Kiinalainen_Aluna; AddBot 2 Kiinalainen_PlagueRider; AddBot 2 Kiinalainen_Wildsoul; AddBot 2 Kiinalainen_MoonQueen; set teambotmanager_hellbourne kiinalainen"
+Alias "team_kiinalainen_legion" "AddBot 1 Kiinalainen_Pharao; AddBot 1 Kiinalainen_Aluna; AddBot 1 Kiinalainen_PlagueRider; AddBot 1 Kiinalainen_Wildsoul; AddBot 1 Kiinalainen_MoonQueen; set teambotmanager_legion kiinalainen"
+Alias "team_kiinalainen_legion" "AddBot 2 Kiinalainen_Pharao; AddBot 2 Kiinalainen_Aluna; AddBot 2 Kiinalainen_PlagueRider; AddBot 2 Kiinalainen_Wildsoul; AddBot 2 Kiinalainen_MoonQueen; set teambotmanager_hellbourne kiinalainen"
