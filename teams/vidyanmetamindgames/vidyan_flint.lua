@@ -1,7 +1,7 @@
 local _G = getfenv(0)
 local flint = _G.object
 
-yogi.heroName = "Hero_FlintBeastwood"
+flint.heroName = "Hero_FlintBeastwood"
 local core, behaviorLib = flint_beastwood.core, flint_beastwood.behaviorLib
 
 runfile 'bots/core_herobot.lua'
@@ -13,7 +13,7 @@ runfile 'bots/core_herobot.lua'
 --------------------------------------------------------------
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_duckboots", "2 Item_MinorTotem" }
-behaviorLib.LaneItems = { "Item_Soulscream", "Item_Soulscream", "Item_Marchers", "Item_Steamboots", "Item_Fleetfeet", "Item_Quickblade" , "Item_Sicarius", "Item_Weapon 3", "Item_WhisperingHelm" }
+behaviorLib.LaneItems = { "Item_Soulscream", "Item_Soulscream", "Item_Marchers", "Item_Steamboots", "Item_Fleetfeet", "Item_Quickblade" , "Item_Sicarius", "Item_Weapon 3", "Item_WhisperingHelm", "Item_Critical1", "Item_Critical2", "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
 behaviorLib.MidItems = {  }
 behaviorLib.LateItems = { "Item_Critical1", "Item_Critical2", "Item_DaemonicBreastplate", "Item_LifeSteal4", "Item_Sasuke", "Item_Damage9" }
 
@@ -35,7 +35,7 @@ local skills = flint.skills
 -- pidetään jatkuvasti toggletettuna kestävyyden lisäämiseksi  --
 -----------------------------------------------------------------
 
-yogi.tSkills = {
+flint.tSkills = {
   1, 2, 2, 1, 2,
   3, 2, 1, 1, 4,
   3, 4, 4, 4, 4,
@@ -84,3 +84,48 @@ function flint:oncombateventOverride(EventData)
 end
 flint.oncombateventOld = flint.oncombatevent
 flint.oncombatevent = flint.oncombateventOverride
+
+local function CustomHarassUtilityFnOverride(hero)
+  local nUtil = 0
+
+  if skills.abilUlti:CanActivate() then
+    nUtil = nUtil + 30
+    if hero:GetHealthPercent() < 0.4 then
+      nUtil = nUtil + 100
+    end
+  end
+  return nUtil
+end
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
+
+local function HarassHeroExecuteOverride(botBrain)
+
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return flint.harassExecuteOld(botBrain)
+  end
+
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+
+  local bActionTaken = false
+
+  if core.CanSeeUnit(botBrain, unitTarget) then
+    local abilUlti = skills.abilUlti
+
+    if abilUlti:CanActivate() then
+      local nRange = abilNuke:GetRange()
+      if nTargetDistanceSq < (nRange * nRange) then
+        bActionTaken = core.OrderAbilityEntity(botBrain, abilUlti, unitTarget)
+      else
+        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+      end
+    end
+  end
+
+  if not bActionTaken then
+    return flint.harassExecuteOld(botBrain)
+  end
+end
+flint.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
+behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
