@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="Template_Rampage"
-  description="Template Rampage"
-  heroname="Hero_Rampage"
-  rootlua="template_rampage.lua"
-  defaultplayername="TemplateRampageBot"
-  precachepath="/heroes/rampage/"
-/>
