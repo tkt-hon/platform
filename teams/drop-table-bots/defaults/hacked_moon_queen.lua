@@ -7,10 +7,17 @@ runfile 'bots/teams/drop-table-bots/droptable-herobot.lua'
 
 local core, behaviorLib = moonqueen.core, moonqueen.behaviorLib
 
+<<<<<<< HEAD:teams/drop-table-bots/defaults/hacked_moon_queen.lua
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_DuckBoots", "2 Item_MinorTotem" }
 behaviorLib.LaneItems = { "Item_IronShield", "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
 behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion", "Item_Immunity", "Item_Stealth" }
 behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Sasuke" }
+=======
+behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "5 Item_HealthPotion" }
+behaviorLib.LaneItems = { "Item_Marchers", "Item_Steamboots", "Item_WhisperingHelm" }
+behaviorLib.MidItems = { "Item_ManaBurn2", "Item_Evasion" }
+behaviorLib.LateItems = { "Item_LifeSteal4", "Item_Damage9" }
+>>>>>>> 95b16822074e952e92ef4324793421ef14ef1d5c:teams/EKP/EKP_moon_queen.lua~
 
 behaviorLib.pushingStrUtilMul = 1
 

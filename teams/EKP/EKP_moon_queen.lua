@@ -55,34 +55,6 @@ end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
 
---------------------------------------
--- Heal at well utility override    --
---------------------------------------
-
-local function HealAtWellLogicOverride(botBrain)
-  
-  local nHpPercent = core.unitSelf:GetHealthPercent()
-  local nManaPercent = core.unitSelf:GetManaPercent()
-  local nUtility = 0
-
-  if nManaPercent < 0.15 then 
-	nUtility = 30
-  end
-
-  if nHpPercent < 0.2 then
-	nUtility = 80
-  end
-
-  if nUtility = 0 then
-	return defiler.HealAtWellUtilityOld(botBrain)
-  end
-
-  return nUtility
-
-end
-defiler.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
-behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellLogicOverride
-
 ----------------------------------------------
 --            oncombatevent override        --
 -- use to check for infilictors (fe. buffs) --
