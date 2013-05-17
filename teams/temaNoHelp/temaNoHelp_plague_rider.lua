@@ -64,29 +64,55 @@ function shopping.GetNextItemToBuy()
     elseif NumberInInventory(inventory, "Item_TrinketOfRestoration") < 2 then
       return "Item_TrinketOfRestoration"
     end
-  elseif NumberInInventory(inventory, "Item_LifeSteal5") <= 0 then
-    if NumberInInventory(inventory, "Item_TrinketOfRestoration") <= 0 then
-      return "Item_TrinketOfRestoration"
-    elseif NumberInInventory(inventory, "Item_HungrySpirit") <= 0 then
-      return "Item_HungrySpirit"
-    elseif NumberInInventory(inventory, "Item_ManaRegen3") <= 0 then
-      if NumberInInventory(inventory, "Item_GuardianRing") <= 0 then
-        return "Item_GuardianRing"
-      elseif NumberInInventory(inventory, "Item_Scarab") <= 0 then
-        return "Item_Scarab"
-      end
-    else
-      return "Item_LifeSteal5"
-    end
-  elseif NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
-    return "Item_SolsBulwark"
   elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
-    if NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
+    if NumberInInventory(inventory, "Item_SolsBulwark") <= 0 then
+      if NumberInInventory(inventory, "Item_Ringmail") < 2 then
+        return "Item_Ringmail"
+      else
+        return "Item_SolsBulwark"
+      end
+    elseif NumberInInventory(inventory, "Item_Warpcleft") <= 0 then
       return "Item_Warpcleft"
     elseif NumberInInventory(inventory, "Item_Ringmail") <= 0 then
       return "Item_Ringmail"
     elseif NumberInInventory(inventory, "Item_DaemonicBreastplate") <= 0 then
       return "Item_DaemonicBreastplate"
+    end
+  elseif NumberInInventory(inventory, "Item_Dawnbringer") <= 0 then
+    if NumberInInventory(inventory, "Item_Frozenlight") <= 0 then
+      if NumberInInventory(inventory, "Item_Lightbrand") <= 0 then
+        if NumberInInventory(inventory, "Item_NeophytesBook") <= 0 then
+          return "Item_NeophytesBook"
+        elseif NumberInInventory(inventory, "Item_ApprenticesRobe") <= 0 then
+          return "Item_ApprenticesRobe"
+        else
+          return "Item_Lightbrand"
+        end
+      elseif NumberInInventory(inventory, "Item_Strength6") <= 0 then
+        if NumberInInventory(inventory, "Item_MightyBlade") <= 0 then
+          return "Item_MightyBlade"
+        elseif NumberInInventory(inventory, "Item_BlessedArmband") <= 0 then
+          return "Item_BlessedArmband"
+        else
+          return "Item_Strength6"
+        end
+      end
+    elseif NumberInInventory(inventory, "Item_Sicarius") <= 0 then
+      if NumberInInventory(inventory, "Item_Quickblade") <= 0 then
+        return "Item_Quickblade"
+      elseif NumberInInventory(inventory, "Item_Fleetfeet") <= 0 then
+        return "Item_Fleetfeet"
+      else
+        return "Item_Sicarius"
+      end
+    end
+  elseif NumberInInventory(inventory, "Item_BehemothsHeart") <= 0 then
+    if NumberInInventory(inventory, "Item_Beastheart") <= 0 then
+      return "Item_Beastheart"
+    elseif NumberInInventory(inventory, "Item_AxeOfTheMalphai") <= 0 then
+      return "Item_AxeOfTheMalphai"
+    else
+      return "Item_BehemothsHeart"
     end
   end
 
@@ -182,7 +208,7 @@ local function CustomHarassUtilityFnOverride(hero)
   end
 
   if skills.abilNuke:CanActivate() then
-    nUtil = nUtil + 30
+    nUtil = nUtil + 15
     local damages = {50,100,125,175}
     if hero:GetHealth() < damages[skills.abilNuke:GetLevel()] then
       return 40

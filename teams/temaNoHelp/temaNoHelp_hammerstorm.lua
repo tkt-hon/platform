@@ -155,8 +155,74 @@ end
 local onthinkOld = hammer.onthink
 local function onthinkOverride(self, tGameVariables)
   onthinkOld(self, tGameVariables)
-
+  courier.UpgradeCourier()
   SellItems()
   -- custom code here
 end
 hammer.onthink = onthinkOverride
+
+local function ElderBehaviorUtility(botBrain)
+  local elder = core.itemElder
+  if elder and elder:CanActivate() and core.unitSelf:HasState("State_Hammerstorm_Ability4") then
+    return 100
+  end
+  return 0
+end
+
+local function ElderBehaviorExecute(botBrain)
+  return core.OrderItemClamp(botBrain, core.unitSelf, core.itemElder)
+end
+
+local ElderBehavior = {}
+ElderBehavior["Utility"] = ElderBehaviorUtility
+ElderBehavior["Execute"] = ElderBehaviorExecute
+ElderBehavior["Name"] = "Elder using"
+tinsert(behaviorLib.tBehaviors, ElderBehavior)
+
+
+local FindItemsOld = core.FindItems
+local function funcFindItemsOverride(botBrain)
+  local bUpdated = FindItemsOld(botBrain)
+
+  if core.itemElder ~= nil and not core.itemElder:IsValid() then
+    core.itemElder = nil
+  end
+
+  if not core.itemElder then
+    local inventory = core.unitSelf:GetInventory(true)
+    for slot = 1, 12, 1 do
+      local curItem = inventory[slot]
+      if curItem then
+        local sCurItem = curItem:GetName()
+        if not core.itemElder and sCurItem == "Item_ElderParasite" then
+          core.itemElder = core.WrapInTable(curItem)
+        end
+      end
+    end
+  end
+  return bUpdated
+end
+core.FindItems = funcFindItemsOverride
+
+
+local oncombateventOld = hammer.oncombatevent
+local function oncombateventOverride(self, EventData)
+  oncombateventOld(self, EventData)
+  --eventsLib.printCombatEvent(EventData)
+
+  local nAddBonus = 0
+  if EventData.Type == "Ability" then
+    if EventData.InflictorName == "Ability_Hammerstorm4" then
+      nAddBonus = nAddBonus + 50
+    end
+  elseif EventData.Type == "Item" then
+    if EventData.InflictorName == "Item_ElderParasite" then
+      nAddBonus = nAddBonus + 100
+    end
+  end
+  if nAddBonus > 0 then
+    core.DecayBonus(self)
+    core.nHarassBonus = core.nHarassBonus + nAddBonus
+  end
+end
+hammer.oncombatevent = oncombateventOverride

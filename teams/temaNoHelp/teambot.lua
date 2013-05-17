@@ -152,16 +152,19 @@ function teambot:ShouldChangeLane()
   local alliesBot = 0
   for element in pairs(nTop) do
     if element:GetTeam() == allyTeam and element:IsHero() then
-      alliesTop++
+--      alliesTop++
     end
+  end
   for element in pairs(nMid) do
     if element:GetTeam() == allyTeam and element:IsHero() then
-      alliesMid++
+--      alliesMid++
     end
+  end
   for element in pairs(nBot) do
     if element:GetTeam() == allyTeam and element:IsHero() then
-      alliesBot++
+--      alliesBot++
     end
+  end
 end
 
 function teambot:GroupAndPushLogic()
