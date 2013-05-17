@@ -39,6 +39,10 @@ BotEcho(object:GetName()..' DEBUG...')
 --object.bDebugUtility = true -- DEBUG
 
 
+---------------
+
+-- function core.GetFurthestCreepWavePos(tLane, bTraverseForward)
+
 --####################################################################
 --####################################################################
 --#                                                                 ##
@@ -412,7 +416,7 @@ jungleLib.nStacking = 0 -- 0 = not, 1 = waiting/attacking 2, = running away
 jungleLib.nStackingCamp = 0
 
 -- easycamp on matala kuin mikä, vähän vaikeammat on 55.
-jungleLib.currentMaxDifficulty = 61
+jungleLib.currentMaxDifficulty = 0
 -- jungleLib.currentMaxDifficulty asetus lennossa tilanteen mukaan lienee aika voittoisaa
 
 --[[
@@ -454,19 +458,14 @@ jungleLib.creepDifficulty={
 local function jungleUtilityOverride(botBrain)
 	local nUtility = 0
 
-    jungleLib.currentMaxDifficulty = 80
 	local level = core.unitSelf:GetLevel()
-	if level < 3 then
-		nUtility = 60
-		if object.bDebugUtility == true then BotEcho("  JungleUtility: " .. nUtility) end
-		return nUtility
-	end
 
     local vecMyPos = core.unitSelf:GetPosition()
     local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
     if vecTargetPos then
     	local distanceToCamp = Vector3.Distance2D(vecMyPos, vecTargetPos)
-    	nUtility = Clamp(70 - distanceToCamp/200, 0, 100) -- [0, 100]
+        nUtility = 24-(distanceToCamp/3000)-(HoN.GetGameTime()/60000) -- remove 1 every 10mins
+    	--nUtility = Clamp(70 - distanceToCamp/200, 0, 100) -- [0, 100]
     end
 
 	if core.unitSelf:GetHealthPercent() < 0.15 then
@@ -525,12 +524,14 @@ local function jungleExecuteOverride(botBrain)
         local vecMyPos = unitSelf:GetPosition()
         local vecTargetPos, nCamp = jungleLib.getNearestCampPos(vecMyPos, 0, jungleLib.currentMaxDifficulty)
         if not vecTargetPos then
+            --[[
 	       		if core.myTeam == HoN.GetHellbourneTeam() then
        				return core.OrderBothMoveToPosClamp(botBrain, unitSelf, Booboo, Vector3.Create(7800,10600))
        			else
     	   			return core.OrderBothMoveToPosClamp(botBrain, unitSelf, Booboo, Vector3.Create(7800,5500))
 	       		end
-                --return false
+                ]]--
+                return false
         end
 
         local distanceToCamp = Vector3.Distance2D(vecMyPos, vecTargetPos)
@@ -795,6 +796,7 @@ local function ShopExecuteOverride(botBrain)
 		behaviorLib.finishedBuying = true
 	else
 		tremove(behaviorLib.StartingItems, 1)
+        jungleLib.currentMaxDifficulty = jungleLib.currentMaxDifficulty + 45
 		--BotEcho(nextItemDef:GetName() .. " next: " .. HoN.GetItemDefinition(behaviorLib.StartingItems[1]):GetName())
 	end
 end
@@ -1116,3 +1118,66 @@ end
 object.RetreatFromThreatBehaviorOld = behaviorLib.RetreatFromThreatBehavior["Utility"]
 behaviorLib.RetreatFromThreatBehavior["Utility"] = RetreatFromThreatUtilityOverride
 behaviorLib.RetreatFromThreatBehavior["Execute"] = RetreatFromThreatExecuteOverride
+
+
+local function HitBuildingExecuteOverride(botBrain)
+    local unitSelf = core.unitSelf
+    local target = behaviorLib.hitBuildingTarget
+
+    local Booboo=false
+    for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
+        if unit2:GetTypeName()=="Pet_Yogi_Ability1" then
+            Booboo=unit2
+        end
+    end
+
+    if target ~= nil then
+        if Booboo then
+            core.OrderBothAttackClamp(botBrain, unitSelf, Booboo, target)
+        else
+            core.OrderAttackClamp(botBrain, unitSelf, target)
+        end
+    end
+end
+behaviorLib.HitBuildingBehavior["Execute"] = HitBuildingExecuteOverride
+
+
+local function AttackCreepsExecuteOverride(botBrain)
+    local unitSelf = core.unitSelf
+    local currentTarget = core.unitCreepTarget
+
+    local Booboo=false
+    for key, unit2 in pairs(core.localUnits["AllyUnits"]) do
+        if unit2:GetTypeName()=="Pet_Yogi_Ability1" then
+            Booboo=unit2
+        end
+    end
+
+    if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then      
+        local vecTargetPos = currentTarget:GetPosition()
+        local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
+        local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+
+        if currentTarget ~= nil then
+            if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
+                --only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
+                if Booboo then
+                    core.OrderBothAttackClamp(botBrain, unitSelf, Booboo, currentTarget)
+                else
+                    core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
+                end
+            else
+                --BotEcho("MOVIN OUT")
+                local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
+                if Booboo then
+                    core.OrderBothMoveToPosClamp(botBrain, unitSelf, Booboo, vecDesiredPos, false)
+                else
+                    core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
+                end
+            end
+        end
+    else
+        return false
+    end
+end
+behaviorLib.AttackCreepsBehavior["Execute"] = AttackCreepsExecuteOverride
