@@ -6,8 +6,8 @@ shaman.heroName = "Hero_Shaman"
 
 runfile 'bots/core_herobot.lua'
 runfile 'bots/teams/trashteam/utils/utils.lua'
---runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
-runfile 'bots/teams/trashteam/utils/predictiveLasthittingVesa.lua'
+runfile 'bots/teams/trashteam/utils/predLastHitSupport.lua'
+--runfile 'bots/teams/trashteam/utils/predictiveLasthittingVesa.lua'
 
 local tinsert = _G.table.insert
 
