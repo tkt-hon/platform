@@ -66,7 +66,7 @@ local function GetAttackDamageOnCreep(botBrain, unitCreepTarget)
 
   --Determine the damage expected on the creep by other towers
   for i, unitTower in pairs(tNearbyAttackingTowers) do
-    if unitTower:GetAttackTarget() == unitCreepTarget then
+    if core.CanSeeUnit(botBrain, unitTower) and unitTower:GetAttackTarget() == unitCreepTarget then
       local nTowerAttacks = 1 + math.floor(unitTower:GetAttackSpeed() * nProjectileTravelTime)
       nExpectedTowerDamage = nExpectedTowerDamage + unitTower:GetFinalAttackDamageMin() * nTowerAttacks
     end

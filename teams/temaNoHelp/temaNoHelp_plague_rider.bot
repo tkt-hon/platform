@@ -4,6 +4,6 @@
   description="temaNoHelp Plague Rider"
   heroname="Hero_DiseasedRider"
   rootlua="temaNoHelp_plague_rider.lua"
-  defaultplayername="temaNoHelpPlagueBot"
+  defaultplayername="[tema]berberi"
   precachepath="/heroes/diseasedrider/"
 />

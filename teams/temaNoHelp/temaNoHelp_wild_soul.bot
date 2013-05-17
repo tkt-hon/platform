@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="temaNoHelp_wild_soul"
+  description="temaNoHelp Wild Soul"
+  heroname="Hero_Yogi"
+  rootlua="temaNoHelp_wild_soul.lua"
+  defaultplayername="[tema]ROFL_XDD"
+  precachepath="/heroes/yogi/"
+/>

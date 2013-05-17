@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="temaNoHelp_forsakenarcher"
+	description="bot_description_forsaken_archer"
+	heroname="Hero_ForsakenArcher"
+	rootlua="temaNoHelp_forsakenarcher.lua"
+	defaultplayername="[tema]MeCarryTema"
+	precachepath="/heroes/forsaken_archer/"
+/>

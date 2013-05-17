@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+	name="temaNoHelp_hammerstorm"
+	description="bot_description_hammerstorm"
+	heroname="Hero_Hammerstorm"
+	rootlua="temaNoHelp_hammerstorm.lua"
+	defaultplayername="[tema]HammerTime"
+	precachepath="/heroes/hammerstorm/"
+/>
