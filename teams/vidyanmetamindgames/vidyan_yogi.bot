@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Vidyan_Yogi"
+  description="Bear Force One"
+  heroname="Hero_Yogi"
+  rootlua="vidyan_yogi.lua"
+  defaultplayername="Vidyan Wildsoul"
+  precachepath="/heroes/yogi/"
+/>

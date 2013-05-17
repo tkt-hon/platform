@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Vidyan_Beastwood"
+  description="PEW PEW PEW AUTO ATTACK"
+  heroname="Hero_FlintBeastwood"
+  rootlua="vidyan_flint.lua"
+  defaultplayername="Vidyan Beastwood"
+  precachepath="/heroes/flint_beastwood/"
+/>

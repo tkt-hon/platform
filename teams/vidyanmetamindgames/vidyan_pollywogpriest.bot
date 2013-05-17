@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bot
+  name="Vidyan_PollywogPriest"
+  description="Kiss me and make my day."
+  heroname="Hero_PollywogPriest"
+  rootlua="vidyan_pollywogpriest.lua"
+  defaultplayername="Vidyan Pollywog Priest"
+  precachepath="/heroes/pollywogpriest/"
+/>
