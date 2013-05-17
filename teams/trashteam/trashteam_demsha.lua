@@ -143,25 +143,6 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
 -- Behaviours only after this point
 
-local function UltimateBehaviorUtility(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  --insert utility logic for when and where to use the ulti
-  return 0
-end
-
-local function UltimateBehaviorExecute(botBrain)
-  local unitSelf = botBrain.core.unitSelf
-  local abilUlti = unitSelf:GetAbility(3)
-  local targetPos = Vector3.Create() -- fix this to correct target, ulti is cast on ground
-  return core.OrderAbilityPosition(botBrain, abilUlti, targetPos)
-end
-
-local UltimateBehavior = {}
-UltimateBehavior["Utility"] = UltimateBehaviorUtility
-UltimateBehavior["Execute"] = UltimateBehaviorExecute
-UltimateBehavior["Name"] = "Using ultimate properly"
---tinsert(behaviorLib.tBehaviors, UltimateBehavior)
-
 
 local function castHealingWaveUtility(botBrain)
   if not skills.abilHeal:CanActivate() then
@@ -249,4 +230,51 @@ ResquehealingWaveBehavior["Utility"] = ResqueHealingWaveUtility
 ResquehealingWaveBehavior["Execute"] = ResqueHealingWaveExecute
 ResquehealingWaveBehavior["Name"] = "HealingwaveEITAPAVITTU"
 tinsert(behaviorLib.tBehaviors, ResquehealingWaveBehavior)
+
+shaman.UltiTargetPos = nil
+local function UltimateBehaviorUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilUlti = unitSelf:GetAbility(3)
+  local ultiLevel = abilUlti:GetLevel()
+  if ultiLevel < 1 or not abilUlti:CanActivate() then
+    return 0
+  end
+  local myPos = unitSelf:GetPosition()
+  local unitsLocal = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 2000, ALIVE + HERO+UNIT)
+  local unitsGot = 0
+  local target = nil
+  for _,unit in pairs(unitsInRange) do
+    if unit and core.CanSeeUnit(botBrain, unit) then
+      local _,heroeslocal = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 600, ALIVE + HERO, true)
+      if core.NumberElements(unitsSorted.EnemyHeroes) > 1 and core.NumberElements(unitsSorted.AllyHeroes) > 0 then
+        local asd = core.NumberElements(heroeslocal)
+        if unitsGot < asd then
+          target = unit:GetPosition()
+          unitsGot = asd
+        end
+      end
+    end
+  end
+  if target then
+    shaman.UltiTargetPos = targetPos
+    return 100
+  end
+  return 0
+end
+
+local function UltimateBehaviorExecute(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local abilUlti = unitSelf:GetAbility(3)
+  local target = shaman.UltiTargetPos
+  if target then
+    return core.OrderAbilityPosition(botBrain, abilUlti, target)
+  end
+  return false
+end
+
+local UltimateBehavior = {}
+UltimateBehavior["Utility"] = UltimateBehaviorUtility
+UltimateBehavior["Execute"] = UltimateBehaviorExecute
+UltimateBehavior["Name"] = "Using ultimate properly"
+tinsert(behaviorLib.tBehaviors, UltimateBehavior)
 

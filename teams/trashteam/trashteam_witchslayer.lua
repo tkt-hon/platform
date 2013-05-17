@@ -10,8 +10,8 @@ local tinsert = _G.table.insert
 local core, behaviorLib = witchslayer.core, witchslayer.behaviorLib
 
 runfile 'bots/teams/trashteam/utils/utils.lua'
---runfile 'bots/teams/trashteam/utils/predictiveLasthittingVesa.lua'
 runfile 'bots/teams/trashteam/utils/attackUtils.lua'
+runfile 'bots/lib/rune_controlling/init.lua'
 
 witchslayer.bRunLogic         = true
 witchslayer.bRunBehaviors    = true
@@ -41,7 +41,7 @@ ALIVE = 0x0000020
 CORPSE = 0x0000040
 
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_HealthPotion", "2 Item_MinorTotem", "Item_MarkOfTheNovice", "Item_PretendersCrown" }
-behaviorLib.LaneItems = { "Item_Marchers","Item_HealthPotion", "Item_Glowstone", "Item_EnhancedMarchers" }
+behaviorLib.LaneItems = { "Item_Bottle", "Item_Marchers", "Item_HealthPotion", "Item_Glowstone", "Item_EnhancedMarchers" }
 behaviorLib.MidItems = { "Item_Protect", "Item_Intelligence7", "Item_Nuke", "Item_Morph", "4 Item_Nuke" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_PostHaste" }
 
@@ -265,7 +265,7 @@ local function CustomHarassUtilityFnOverride(hero)
     end
   end
   if nUtil < 0 then 
-    core.BotEcho("WTF MAN")
+    --core.BotEcho("WTF MAN")
   end
   if unitSelf:GetLevel() < 6 then
     nUtil = nUtil * 0.5
@@ -273,8 +273,20 @@ local function CustomHarassUtilityFnOverride(hero)
   if AmountOfCreepsInRange(unitSelf, myPos, 300, true) < 1 then
     nUtil = nUtil * 0.6
   end
+  local unitsLocal, unitsSorted = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 150, ALIVE + UNIT, true)
+  if core.NumberElements(unitsSorted.EnemyCreeps) > 2 and unitSelf:GetLevel() < 12 then
+    nUtil = nUtil * 0.4
+  end
+
   if witchslayer.bDebugUtility == true and utility ~= 0 then
      core.BotEcho("  HarassUtility: " .. tostring(nUtil))
+  end
+
+  if unitSelf:HasState("State_PowerupDamage") or unitSelf:HasState("State_PowerupMoveSpeed") then
+    nUtil = nUtil + 20
+  end
+  if unitSelf:HasState("State_PowerupStealth") and nUtil < 70 then 
+    nUtil = 0
   end
   witchslayer.HarassUtility = core.Clamp(nUtil-modifier, 0, 70)
   return core.Clamp(nUtil-modifier, 0, 100) -- Never be more important than 70
@@ -286,7 +298,6 @@ witchslayer.stunTime = 0
 local function CanUseCC()
   local matchTime = HoN.GetMatchTime()
   if matchTime - witchslayer.stunTime > 500 then
-    witchslayer.stunTime = 0
     return true
   end
   return false
@@ -337,20 +348,6 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderAbilityEntity(botBrain, drain, unitTarget)
       end
     end
-    if nuke:CanActivate() and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
-      local nRange = nuke:GetRange()
-      if nTargetDistanceSq < nRange then
-        witchslayer.stunTime = HoN.GetMatchTime()
-        bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
-      elseif nTargetDistanceSq < nRange+150 then
-        witchslayer.stunTime = HoN.GetMatchTime()
-        bActionTaken = core.OrderAbilityPosition(botBrain, nuke, targetDirection)
-      end
-    end
-    if taunt and taunt:IsReady() and taunt:CanActivate() then
-      core.BotEcho("taunt")
-      bActionTaken = core.OrderAbilityEntity(botBrain, taunt, unitTarget)
-    end
     if mini:CanActivate() and myMana-miniCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
       local nRange = mini:GetRange()
       if nTargetDistanceSq < nRange then
@@ -362,6 +359,16 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = core.itemCodex:GetRange()
       if nTargetDistanceSq < nRange then
         bActionTaken = core.OrderItemEntityClamp(botBrain, unitSelf, core.itemCodex, unitTarget)
+      end
+    end
+    if nuke:CanActivate() and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
+      local nRange = nuke:GetRange()
+      if nTargetDistanceSq < nRange then
+        witchslayer.stunTime = HoN.GetMatchTime()
+        bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
+      elseif nTargetDistanceSq < nRange+150 then
+        witchslayer.stunTime = HoN.GetMatchTime()
+        bActionTaken = core.OrderAbilityPosition(botBrain, nuke, targetDirection)
       end
     end
     if core.sheepStick and core.sheepStick:CanActivate() and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
@@ -460,8 +467,7 @@ GetManaBehavior["Execute"] = GetManaExecute
 GetManaBehavior["Name"] = "DrainMana"
 tinsert(behaviorLib.tBehaviors, GetManaBehavior)
 
-local function EiMihinkaanUtility(botBrain) -- fix Ulti on certain targets (shrunken/nullstone)
-                                            -- also serious weakness against illusions, FUCK. Geomen too strong.
+local function EiMihinkaanUtility(botBrain)
   --core.BotEcho("ManaUtility calc")
   local unitSelf = botBrain.core.unitSelf
   local ulti = skills.abilUltimate
@@ -523,39 +529,186 @@ EiMihinkaanBehavior["Execute"] = EiMihinkaanExecute
 EiMihinkaanBehavior["Name"] = "EiMihinkaan"
 tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 
-
-local function ComboUtility(botBrain)
-  --core.BotEcho("ManaUtility calc")
+GANKINTERVAL = 1000*160
+witchslayer.nextGankAt = 0
+witchslayer.ganking = false
+witchslayer.gankTarget = nil
+witchslayer.lastGankTarget = nil
+witchslayer.gankLocation = nil
+local function GankUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local ulti = skills.abilUltimate
-  local ultiLevel = ulti:GetLevel()
-  local range = ulti:GetRange()
-  local util = 0
-  local ultdmg = ultiDmg[ultiLevel+1]
-  local ownTeam = botBrain:GetTeam()
-  local ownMoveSpeed = unitSelf:GetMoveSpeed()
-  local myPos = unitSelf:GetPosition()
+  local myLevel = unitSelf:GetLevel()
+  if myLevel < 5 then
+    return 0
+  end
+  local matchTime = HoN.GetMatchTime()
+  if witchslayer.ganking and not skills.abilUltimate:CanActivate() then
+    witchslayer.ganking = false
+    witchslayer.lastGankTarget = witchslayer.gankTarget
+    witchslayer.nextGankAt = matchTime + GANKINTERVAL
+    return 0
+  elseif witchslayer.ganking and skills.abilUltimate:CanActivate() then
+    if core.CanSeeUnit(botBrain, witchslayer.gankTarget) then
+      witchslayer.gankLocation = witchslayer.gankTarget:GetPosition()
+    end
+    return 55
+  end
+  --core.BotEcho("wtf lets gank?")
+  local tEnemyHeroes = HoN.GetHeroes(core.enemyTeam)
+  local utility = 0
+  local unitTarget = nil
+  local nTarget = 0
+  if matchTime < witchslayer.nextGankAt then
+    return 0
+  end
+  for nUID, unit in pairs(tEnemyHeroes) do
+    if core.CanSeeUnit(botBrain, unit) and unit:IsAlive() and myLevel > unit:GetLevel() and skills.abilUltimate:CanActivate() and not (unit == witchslayer.lastGankTarget) then
+      unitTarget = unit
+      nTarget = nUID
 
+    end
+  end
+  if unitTarget then
+    witchslayer.gankLocation = unitTarget:GetPosition()
+    witchslayer.gankTarget = unitTarget
+    witchslayer.ganking = true
+    util = 55
+  end
+  witchslayer.lastGankTarget = nil
   if botBrain.bDebugUtility == true and utility ~= 0 then
-     core.BotEcho("  ComboUtility: " .. tostring(util))
+     core.BotEcho("  GankUtility: " .. tostring(util))
   end
   return util
 end
 
-local function ComboExecute(botBrain)
+local function GankExecute(botBrain)
+  witchslayer.ganking = true
   local unitSelf = botBrain.core.unitSelf
   local targetHero = witchslayer.UltiTarget
   local ulti = skills.abilUltimate
-  return core.OrderAbilityEntity(botBrain, ulti, targetHero)
+  local targetPos = witchslayer.gankLocation
+  return core.OrderMoveToPosClamp(botBrain, unitSelf, targetPos)
 end
 
--- NOT READY FOR DAYLIGHT, BROKEN TO CORE
---local ComboBehavior = {}
---ComboBehavior["Utility"] = ComboUtility
---ComboBehavior["Execute"] = ComboExecute
---ComboBehavior["Name"] = "ComboTime"
---tinsert(behaviorLib.tBehaviors, ComboBehavior)
+local GankBehavior = {}
+GankBehavior["Utility"] = GankUtility
+GankBehavior["Execute"] = GankExecute
+GankBehavior["Name"] = "GankTime"
+tinsert(behaviorLib.tBehaviors, GankBehavior)
 
+DRINKINTERVAL = 3000
+witchslayer.canDrink = 0
+witchslayer.hpot = false
+local function DrinkingUtility(botBrain)
+  local unitSelf = botBrain.core.unitSelf
+  local matchTime = HoN.GetMatchTime()
+  if not core.bottle then 
+    return 0
+  end
+  if witchslayer.canDrink > matchTime or unitSelf:HasState("State_PowerupRegen") or unitSelf:HasState("State_PowerupStealth") then
+    return 0
+  end
+  local _, unitsSorted = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 900, ALIVE + HERO, true)
+  if core.hpotion and unitSelf:GetHealthPercent() < 0.4 and  core.hpotion:GetCharges() > 0 then
+    witchslayer.hpot = true
+    return 50
+  end
+  if core.bottle then
+    local modifierKey = core.bottle:GetActiveModifierKey()
+    if modifierKey == "bottle_stealth" and unitSelf:GetHealthPercent() < 0.30 then
+      return 100
+    end
+    if (modifierKey == "bottle_regen") and unitSelf:GetHealthPercent() < 0.60 and unitSelf:GetManaPercent() < 0.60 and core.NumberElements(unitsSorted.EnemyHeroes) < 1 then
+      return 80
+    end
+    if not (modifierKey == "bottle_empty" or modifierKey == "bottle_regen" or modifierKey == "bottle_stealth") and  (unitSelf:GetHealthPercent() < 0.90 or unitSelf:GetManaPercent() < 0.90) then
+      if unitSelf:GetHealthPercent() < 0.4 then
+        return 50
+      end
+      return 30
+    end
+  end
+  return 0
+end
+
+local function DrinkingExecute(botBrain)
+  if not core.bottle then
+    return
+  end
+  local matchTime = HoN.GetMatchTime()
+  local unitSelf = botBrain.core.unitSelf
+  local modifierKey = core.bottle:GetActiveModifierKey()
+  if witchslayer.hpot then 
+    witchslayer.hpot = false
+    witchslayer.canDrink = matchTime + 10000
+    return core.OrderItemEntityClamp(botBrain, unitSelf, core.hpotion,unitSelf)
+  end
+  if not ( modifierKey == "bottle_stealth" ) then 
+    witchslayer.canDrink = matchTime + DRINKINTERVAL
+  end
+  return core.OrderItemClamp(botBrain, unitSelf, core.bottle)
+end
+
+local DrinkingBehavior = {}
+DrinkingBehavior["Utility"] = DrinkingUtility
+DrinkingBehavior["Execute"] = DrinkingExecute
+DrinkingBehavior["Name"] = "Taking a drink"
+tinsert(behaviorLib.tBehaviors, DrinkingBehavior)
+
+RUNEINTERVAL = 1000 * 60 * 2
+witchslayer.runeCD = 0
+local CanPickRuneFn = RuneControlling_Utils_Hero.CanPickRune
+local GetRuneLocationFn = RuneControlling_Utils_Hero.GetRuneLocation
+local GetRuneEntityFn = RuneControlling_Utils_Hero.GetRuneEntity
+local function RuneTakingUtilityOverride(botBrain)
+  local teambot = core.teamBotBrain
+  local matchTime = HoN.GetMatchTime()
+  local unitSelf = botBrain.core.unitSelf
+  --core.BotEcho("RuneCD: " .. tostring(botBrain.runeCD) .. ", Matchtime: " .. tostring(matchTime))
+
+  local _, unitsSorted = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 900, ALIVE + HERO, true)
+  local heroesAround = core.NumberElements(unitsSorted.EnemyHeroes)
+  if botBrain.runeCD < matchTime and (unitSelf:GetHealthPercent() < 0.7 or heroesAround < 1) and CanPickRuneFn(teambot) then
+    --core.BotEcho("canPickRune")
+    return 30
+  end
+  return 0
+end
+witchslayer.RuneTakingUtilityOld = behaviorLib.RuneTakingBehavior["Utility"]
+behaviorLib.RuneTakingBehavior["Utility"] = RuneTakingUtilityOverride
+local function GetRuneEntity(vecSelf, entities)
+  local target = nil
+  for _, rune in ipairs(entities) do
+    if not target or Vector3.Distance2DSq(vecSelf, rune:GetPosition()) < Vector3.Distance2DSq(vecSelf, target:GetPosition()) then
+      target = rune
+    end
+  end
+  return target
+end
+witchslayer.RuneTakingExecuteOld = behaviorLib.RuneTakingBehavior["Execute"]
+local function RuneTakingExecuteOverride(botBrain)
+  local matchTime = HoN.GetMatchTime()
+  local bActionTaken = false
+  local unitPicker = behaviorLib.RuneControlling.GetRunePicker(botBrain)
+  local vecPicker = unitPicker:GetPosition()
+  local teambot = core.teamBotBrain
+  local runeLocation = behaviorLib.RuneControlling.GetRuneLocation(botBrain, GetRuneLocationFn(teambot))
+  local nTargetDistanceSq = Vector3.Distance2DSq(vecPicker, runeLocation)
+
+  local nRange = 100
+  if nTargetDistanceSq < (nRange * nRange) then
+    local runeEntity = GetRuneEntity(vecPicker, GetRuneEntityFn(teambot))
+    if runeEntity then
+      bActionTaken = behaviorLib.RuneControlling.GetRuneAction(botBrain, unitPicker, runeEntity)
+
+      botBrain.runeCD = matchTime + RUNEINTERVAL
+    end
+  else
+    bActionTaken = core.OrderMoveToPosClamp(botBrain, unitPicker, runeLocation)
+  end
+  return bActionTaken
+end
+behaviorLib.RuneTakingBehavior["Execute"] = RuneTakingExecuteOverride
 
 --find items from inventory and puts them in core.xxxx location, check function for more
 local function funcFindItemsOverride(botBrain)
@@ -576,10 +729,16 @@ local function funcFindItemsOverride(botBrain)
   if core.ultiStaff ~= nil and not core.ultiStaff:IsValid() then
     core.ultiStaff = nil
   end
+  if core.bottle ~= nil and not core.bottle:IsValid() then
+    core.bottle = nil
+  end
+  if core.hpotion ~= nil and not core.hpotion:IsValid() then
+    core.hpotion = nil
+  end
 
   if bUpdated then
     --only update if we need to
-    if core.itemRing and core.itemCodex and core.sheepStick and core.ultiStaff and core.speedBoots then
+    if core.itemRing and core.itemCodex and core.sheepStick and core.ultiStaff and core.speedBoots and core.bottle and core.hpotion then
       return
     end
 
@@ -598,6 +757,10 @@ local function funcFindItemsOverride(botBrain)
           core.speedBoots = core.WrapInTable(curItem)
         elseif core.ultiStaff == nil and curItem:GetName() == "Item_Intelligence7" then
           core.ultiStaff = core.WrapInTable(curItem)
+        elseif core.bottle == nil and curItem:GetName() == "Item_Bottle" then
+          core.bottle = core.WrapInTable(curItem)
+        elseif core.hpotion == nil and curItem:GetName() == "Item_HealthPotion" then
+          core.hpotion = core.WrapInTable(curItem)
         end
       end
     end

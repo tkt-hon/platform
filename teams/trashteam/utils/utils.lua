@@ -17,7 +17,7 @@ end
 
 function IsTower(unit)
   local unitType = unit:GetTypeName()
-  return unitType == "Creep_LegionRanged" or unitType == "Creep_HellbourneRanged"
+  return unitType == "Building_LegionTower" or unitType == "Building_HellbourneTower"
 end
 
 function GetArmorMultiplier(unit, magic)
@@ -46,7 +46,7 @@ function closeToEnemyTowerDist(unit) -- returns pythagoras result , not somethin
   local unitsInRange = HoN.GetUnitsInRadius(myPos, 2000, ALIVE + BUILDING)
   for _,unit in pairs(unitsInRange) do
     if unit and not(myTeam == unit:GetTeam()) then
-      if unit:GetTypeName() == "Building_HellbourneTower" then
+      if IsTower(unit) then
         return Vector3.Distance2D(myPos, unit:GetPosition())
       end
     end
