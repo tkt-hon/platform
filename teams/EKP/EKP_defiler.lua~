@@ -7,17 +7,11 @@ runfile 'bots/core_herobot.lua'
 
 local core, behaviorLib = defiler.core, defiler.behaviorLib
 
-<<<<<<< HEAD
 behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "5 Item_HealthPotion" }
 behaviorLib.LaneItems = { "Item_GraveLocket", "Item_Marchers", "Item_Steamboots" }
 behaviorLib.MidItems = { "Item_FrostfieldPlate", "Item_SacrificialStone"}
 behaviorLib.LateItems = { "Item_Energizer", "Item_Damage9" }
-=======
-behaviorLib.StartingItems = { "2 Item_MinorTotem", "Item_RunesOfTheBlight", "Item_MarkOfTheNovice", "Item_HealthPotion", "Item_PretendersCrown" }
-behaviorLib.LaneItems = { "Item_GraveLocket", "Item_Marchers", "Item_MysticVestments", "Item_Steamboots" }
-behaviorLib.MidItems = { "Item_FrostfieldPlate", "Item_SacrificialStone"}
-behaviorLib.LateItems = { "Item_Energizer" }
->>>>>>> 7bfe90406b3461de2d58dd61f31a433973651048
+
 
 defiler.skills = {}
 local skills = defiler.skills

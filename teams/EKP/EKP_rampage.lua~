@@ -10,7 +10,7 @@ local core, behaviorLib = rampage.core, rampage.behaviorLib
 
 local tinsert = _G.table.insert
 
-behaviorLib.StartingItems = { "Item_RunesOfTheBlight", "Item_IronBuckler"}
+behaviorLib.StartingItems = { "3 Item_HealthPotion", "Item_IronBuckler"}
 behaviorLib.LaneItems = {"Item_Steamboots", "Item_Lifetube"}
 behaviorLib.MidItems = { "Item_Shield2", "Item_Pierce"}
 behaviorLib.LateItems = {"Item_Weapon3", "Item_DaemonicBreastplate"}

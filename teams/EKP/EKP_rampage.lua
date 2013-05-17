@@ -58,29 +58,6 @@ end
 rampage.onthinkOld = rampage.onthink
 rampage.onthink = rampage.onthinkOverride
 
---------------------------------------
--- Heal at well utility override    --
---------------------------------------
-
-local function HealAtWellLogicOverride(botBrain)
-  
-  local nHpPercent = core.unitSelf:GetHealthPercent()
-  local nUtility = 0
-
-  if nHpPercent < 0.2 then
-	nUtility = 80
-  end
-
-  if nUtility = 0 then
-	return defiler.HealAtWellUtilityOld(botBrain)
-  end
-
-  return nUtility
-
-end
-defiler.HealAtWellUtilityOld = behaviorLib.HealAtWellBehavior["Utility"]
-behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellLogicOverride
-
 ----------------------------------------------
 --joku
 ----------------------------------------------
