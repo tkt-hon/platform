@@ -24,8 +24,8 @@ witchslayer.bAttackCommands     = true
 witchslayer.bAbilityCommands = true
 witchslayer.bOtherCommands     = true
 
-witchslayer.bReportBehavior = true
-witchslayer.bDebugUtility = true
+witchslayer.bReportBehavior = false
+witchslayer.bDebugUtility = false
 
 witchslayer.logger = {}
 witchslayer.logger.bWriteLog = false
@@ -197,7 +197,6 @@ end
 
 witchslayer.HarassUtility = -5
 local function CustomHarassUtilityFnOverride(hero)
-  -- LOL tää funktio saiki ton vastustajan sankarin wtf
   local unitSelf = core.unitSelf
   local distToEneTo = closeToEnemyTowerDist(unitSelf)
   local modifier = 0
@@ -348,10 +347,10 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderAbilityEntity(botBrain, drain, unitTarget)
       end
     end
-    if mini:CanActivate() and myMana-miniCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
+    if mini:CanActivate() and mini:GetLevel() > 1 and myMana-miniCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
       local nRange = mini:GetRange()
       if nTargetDistanceSq < nRange then
-        witchslayer.stunTime = HoN.GetMatchTime()
+        botBrain.stunTime = HoN.GetMatchTime()
         bActionTaken = core.OrderAbilityEntity(botBrain, mini, unitTarget)
       end
     end
@@ -361,13 +360,13 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderItemEntityClamp(botBrain, unitSelf, core.itemCodex, unitTarget)
       end
     end
-    if nuke:CanActivate() and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
+    if nuke:CanActivate() and nuke:GetLevel() > 1 and myMana-nukeCost > ultiCost and not (unitTarget:IsStunned() or unitTarget:IsPerplexed()) and CanUseCC() then
       local nRange = nuke:GetRange()
       if nTargetDistanceSq < nRange then
-        witchslayer.stunTime = HoN.GetMatchTime()
+        botBrain.stunTime = HoN.GetMatchTime()
         bActionTaken = core.OrderAbilityEntity(botBrain, nuke, unitTarget)
       elseif nTargetDistanceSq < nRange+150 then
-        witchslayer.stunTime = HoN.GetMatchTime()
+        botBrain.stunTime = HoN.GetMatchTime()
         bActionTaken = core.OrderAbilityPosition(botBrain, nuke, targetDirection)
       end
     end
@@ -387,7 +386,7 @@ local function HarassHeroExecuteOverride(botBrain)
   end
 
   if not bActionTaken then
-    return witchslayer.harassExecuteOld(botBrain)
+    return botBrain.harassExecuteOld(botBrain)
   end
 end
 witchslayer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
@@ -397,7 +396,18 @@ local function IllusionsAlert(botBrain, target) -- returns true if there are mul
   return false
 end
 
-local function targetHasNullStone(botBrain, target) -- returns true if target has nullstone effect
+local function targetHasNullStone(botBrain, target) -- returns true if target has nullstone
+  if target and core.CanSeeUnit(botBrain, target) then
+    local inv = target:GetInventory()
+    for i=1,#inv,1 do
+      local curItem = inv[i]
+      if inv[i] then
+        if curItem:GetName() == "Item_Protect" then 
+          return true
+        end
+      end
+    end
+  end
   return false
 end
 
@@ -441,7 +451,7 @@ local function GetManaUtility(botBrain)
         end
       end
       if potentialCreep then
-        witchslayer.DrainTarget = potentialCreep
+        botBrain.DrainTarget = potentialCreep
         util = 25
       end
     end
@@ -455,7 +465,7 @@ end
 
 local function GetManaExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local targetCreep = witchslayer.DrainTarget
+  local targetCreep = botBrain.DrainTarget
   local manaDrain = skills.abilDrain
   botBrain.cancelTime = HoN.GetMatchTime() + 5000
   return core.OrderAbilityEntity(botBrain, manaDrain, targetCreep)
@@ -491,19 +501,34 @@ local function EiMihinkaanUtility(botBrain)
         if targetHealth < ultdmg*targetArmor then
           if nTargetDistance < range then
             util = 100
-            witchslayer.UltiTarget = unit
+            botBrain.UltiTarget = unit
             break
           elseif nTargetDistance > range and ownMoveSpeed > unit:GetMoveSpeed() then
             util = 100
-            witchslayer.UltiTarget = unit
+            botBrain.UltiTarget = unit
           end
         end
       end
     end
   end
-  if witchslayer.comboFinisher then
+  if targetHasNullStone(botBrain, botBrain.UltiTarget) and HoN.GetMatchTime()>botBrain.removedNullValidTill and  not (botBrain.nullDrainTarget == botBrain.UltiTarget)  then
+    botBrain.useDrainToRemoveNullstone = true
+    botBrain.nullDrainTarget = botBrain.UltiTarget
+    return 0
+  end
+  if targetHasNullStone(botBrain, botBrain.UltiTarget) and HoN.GetMatchTime()<botBrain.removedNullValidTill and  botBrain.nullDrainTarget == botBrain.UltiTarget then 
+    if not ulti:canActivate() then
+      botBrain.removingNull = false
+      botBrain.couldActivateDrain = false
+      botBrain.removedNullValidTill = -1
+      botBrain.nullDrainTarget = nil
+      return 0
+    end
+    return 100
+  end
+  if botBrain.comboFinisher then
     util = 100
-    witchslayer.comboFinisher = false
+    botBrain.comboFinisher = false
   end
   if botBrain.bDebugUtility == true and utility ~= 0 then
      core.BotEcho("  EiMihinkäänUtility: " .. tostring(util))
@@ -513,7 +538,7 @@ end
 
 local function EiMihinkaanExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-  local targetHero = witchslayer.UltiTarget
+  local targetHero = botBrain.UltiTarget
   local ulti = skills.abilUltimate
   local speed = botBrain.core.speedBoots
   core.AllChat("EI MIHINKÄÄN")
@@ -529,12 +554,43 @@ EiMihinkaanBehavior["Execute"] = EiMihinkaanExecute
 EiMihinkaanBehavior["Name"] = "EiMihinkaan"
 tinsert(behaviorLib.tBehaviors, EiMihinkaanBehavior)
 
+witchslayer.removingNull = false
+witchslayer.couldActivateDrain = false
+witchslayer.removedNullValidTill = -1
+local function removeNullUtility(botBrain)
+  local drain = skills.abilDrain
+  if botBrain.useDrainToRemoveNullstone and botBrain.nullDrainTarget and drain:CanActivate() then
+    botBrain.couldActivateDrain = true
+    return 100
+  elseif botBrain.removingNull and not drain:CanActivate() and botBrain.couldActivateDrain then
+    botBrain.removingNull = false
+    botBrain.couldActivateDrain = false
+    botBrain.useDrainToRemoveNullstone = false
+    botBrain.removedNullValidTill = HoN.GetMatchTime() + 20000
+    return 0
+  end
+  return 0
+end
+local function removeNullExecute(botBrain)
+  botBrain.removingNull = true
+  local drain = skills.abilDrain
+  local target = botBrain.nullDrainTarget
+  botBrain.cancelTime = HoN.GetMatchTime() + 100
+  return core.OrderAbilityEntity(botBrain, manaDrain, targetCreep)
+end
+local removeNullBehavior = {}
+removeNullBehavior["Utility"] = removeNullUtility
+removeNullBehavior["Execute"] = removeNullExecute
+removeNullBehavior["Name"] = "removeNull"
+tinsert(behaviorLib.tBehaviors, removeNullBehavior)
+
 GANKINTERVAL = 1000*160
 witchslayer.nextGankAt = 0
 witchslayer.ganking = false
 witchslayer.gankTarget = nil
 witchslayer.lastGankTarget = nil
 witchslayer.gankLocation = nil
+witchslayer.GankTimeLimit = -1
 local function GankUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   local myLevel = unitSelf:GetLevel()
@@ -542,39 +598,43 @@ local function GankUtility(botBrain)
     return 0
   end
   local matchTime = HoN.GetMatchTime()
-  if witchslayer.ganking and not skills.abilUltimate:CanActivate() then
-    witchslayer.ganking = false
-    witchslayer.lastGankTarget = witchslayer.gankTarget
-    witchslayer.nextGankAt = matchTime + GANKINTERVAL
+  if botBrain.ganking and (not skills.abilUltimate:CanActivate() or (matchTime > botBrain.GankTimeLimit and botBrain.GankTimeLimit > 0) or not botBrain.gankTarget:IsValid() or not botBrain.gankTarget:IsAlive()) then
+    botBrain.ganking = false
+    botBrain.lastGankTarget = botBrain.gankTarget
+    botBrain.nextGankAt = matchTime + GANKINTERVAL
+    botBrain.GankTimeLimit = -1
     return 0
-  elseif witchslayer.ganking and skills.abilUltimate:CanActivate() then
-    if core.CanSeeUnit(botBrain, witchslayer.gankTarget) then
-      witchslayer.gankLocation = witchslayer.gankTarget:GetPosition()
+  elseif botBrain.ganking and skills.abilUltimate:CanActivate() then
+    if botBrain.GankTimeLimit < 0 then
+      botBrain.GankTimeLimit = matchTime + GANKINTERVAL
+    end
+    if botBrain.gankTarget and core.CanSeeUnit(botBrain, botBrain.gankTarget) then
+      botBrain.gankLocation = botBrain.gankTarget:GetPosition()
     end
     return 55
   end
   --core.BotEcho("wtf lets gank?")
   local tEnemyHeroes = HoN.GetHeroes(core.enemyTeam)
-  local utility = 0
+  local util = 0
   local unitTarget = nil
   local nTarget = 0
-  if matchTime < witchslayer.nextGankAt then
+  if matchTime < botBrain.nextGankAt then
     return 0
   end
   for nUID, unit in pairs(tEnemyHeroes) do
-    if core.CanSeeUnit(botBrain, unit) and unit:IsAlive() and myLevel > unit:GetLevel() and skills.abilUltimate:CanActivate() and not (unit == witchslayer.lastGankTarget) then
+    if unit and core.CanSeeUnit(botBrain, unit) and unit:IsAlive() and myLevel > unit:GetLevel()+1 and skills.abilUltimate:CanActivate() and not (unit == witchslayer.lastGankTarget) then
       unitTarget = unit
       nTarget = nUID
 
     end
   end
   if unitTarget then
-    witchslayer.gankLocation = unitTarget:GetPosition()
-    witchslayer.gankTarget = unitTarget
-    witchslayer.ganking = true
+    botBrain.gankLocation = unitTarget:GetPosition()
+    botBrain.gankTarget = unitTarget
+    botBrain.ganking = true
     util = 55
   end
-  witchslayer.lastGankTarget = nil
+  botBrain.lastGankTarget = nil
   if botBrain.bDebugUtility == true and utility ~= 0 then
      core.BotEcho("  GankUtility: " .. tostring(util))
   end
@@ -582,11 +642,11 @@ local function GankUtility(botBrain)
 end
 
 local function GankExecute(botBrain)
-  witchslayer.ganking = true
+  botBrain.ganking = true
   local unitSelf = botBrain.core.unitSelf
-  local targetHero = witchslayer.UltiTarget
+  local targetHero = botBrain.UltiTarget
   local ulti = skills.abilUltimate
-  local targetPos = witchslayer.gankLocation
+  local targetPos = botBrain.gankLocation
   return core.OrderMoveToPosClamp(botBrain, unitSelf, targetPos)
 end
 
@@ -605,12 +665,12 @@ local function DrinkingUtility(botBrain)
   if not core.bottle then 
     return 0
   end
-  if witchslayer.canDrink > matchTime or unitSelf:HasState("State_PowerupRegen") or unitSelf:HasState("State_PowerupStealth") then
+  if botBrain.canDrink > matchTime or unitSelf:HasState("State_PowerupRegen") or unitSelf:HasState("State_PowerupStealth") then
     return 0
   end
   local _, unitsSorted = HoN.GetUnitsInRadius(unitSelf:GetPosition(), 900, ALIVE + HERO, true)
   if core.hpotion and unitSelf:GetHealthPercent() < 0.4 and  core.hpotion:GetCharges() > 0 then
-    witchslayer.hpot = true
+    botBrain.hpot = true
     return 50
   end
   if core.bottle then
@@ -638,13 +698,13 @@ local function DrinkingExecute(botBrain)
   local matchTime = HoN.GetMatchTime()
   local unitSelf = botBrain.core.unitSelf
   local modifierKey = core.bottle:GetActiveModifierKey()
-  if witchslayer.hpot then 
-    witchslayer.hpot = false
-    witchslayer.canDrink = matchTime + 10000
+  if botBrain.hpot then 
+    botBrain.hpot = false
+    botBrain.canDrink = matchTime + 10000
     return core.OrderItemEntityClamp(botBrain, unitSelf, core.hpotion,unitSelf)
   end
   if not ( modifierKey == "bottle_stealth" ) then 
-    witchslayer.canDrink = matchTime + DRINKINTERVAL
+    botBrain.canDrink = matchTime + DRINKINTERVAL
   end
   return core.OrderItemClamp(botBrain, unitSelf, core.bottle)
 end
@@ -712,7 +772,7 @@ behaviorLib.RuneTakingBehavior["Execute"] = RuneTakingExecuteOverride
 
 --find items from inventory and puts them in core.xxxx location, check function for more
 local function funcFindItemsOverride(botBrain)
-  local bUpdated = witchslayer.FindItemsOld(botBrain)
+  local bUpdated = botBrain.FindItemsOld(botBrain)
 
   if core.itemRing ~= nil and not core.itemRing:IsValid() then
     core.itemRing = nil

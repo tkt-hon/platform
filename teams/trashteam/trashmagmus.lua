@@ -78,7 +78,7 @@ magmus.onthink = magmus.onthinkOverride
 -- @return: none
 function magmus:oncombateventOverride(EventData)
 self:oncombateventOld(EventData)
-self.eventsLib.printCombatEvent(EventData)  
+--self.eventsLib.printCombatEvent(EventData)  
   -- custom code here
 end
 

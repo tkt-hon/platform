@@ -243,21 +243,23 @@ local function UltimateBehaviorUtility(botBrain)
   local unitsLocal = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 2000, ALIVE + HERO+UNIT)
   local unitsGot = 0
   local target = nil
-  for _,unit in pairs(unitsInRange) do
-    if unit and core.CanSeeUnit(botBrain, unit) then
-      local _,heroeslocal = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 600, ALIVE + HERO, true)
-      if core.NumberElements(unitsSorted.EnemyHeroes) > 1 and core.NumberElements(unitsSorted.AllyHeroes) > 0 then
-        local asd = core.NumberElements(heroeslocal)
-        if unitsGot < asd then
-          target = unit:GetPosition()
-          unitsGot = asd
+  if abilUlti:CanActivate() then
+    for _,unit in pairs(unitsLocal) do
+      if unit  then
+        local _,heroeslocal = HoN.GetUnitsInRadius(core.unitSelf:GetPosition(), 600, ALIVE + HERO, true)
+        if core.NumberElements(heroeslocal.EnemyHeroes) > 0 and core.NumberElements(heroeslocal.AllyHeroes) > 0 then
+          local asd = core.NumberElements(heroeslocal)
+          if unitsGot < asd then
+            target = unit:GetPosition()
+            unitsGot = asd
+          end
         end
       end
     end
-  end
-  if target then
-    shaman.UltiTargetPos = targetPos
-    return 100
+    if target then
+      shaman.UltiTargetPos = targetPos
+      return 100
+    end
   end
   return 0
 end
