@@ -111,7 +111,8 @@ local function DenyBehaviorUtility(botBrain)
   local abilDeny = skills.abilDeny
   local myPos = unitSelf:GetPosition()
   local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
-  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+  local mana = unitSelf:GetMana()
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) and mana < 500 then
     plaguerider.denyTarget = unit
     return 90
   end

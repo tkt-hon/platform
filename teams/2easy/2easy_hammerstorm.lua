@@ -10,7 +10,7 @@ local core, behaviorLib = hammerstorm.core, hammerstorm.behaviorLib
 behaviorLib.StartingItems = { "Item_LoggersHatchet", "Item_IronBuckler", "Item_RunesOfTheBlight"}
 behaviorLib.LaneItems = { "Item_EnhancedMarchers", "Item_Brutalizer" }
 behaviorLib.MidItems = { "Item_Protect" }
-behaviorLib.LateItems = { "Item_Beastheart" }
+behaviorLib.LateItems = { "Item_BehemothsHeart" }
 
 local tinsert = _G.table.insert
 
@@ -19,19 +19,19 @@ local skills = hammerstorm.skills
 
 hammerstorm.tSkills = {
   0, 4, 0, 4, 0,
-  3, 0, 1, 2, 1,
-  3, 1, 1, 1, 4,
-  3, 2, 2, 2, 4,
-  4, 4, 4, 4, 4
+  3, 0, 2, 4, 2,
+  3, 2, 2, 4, 4,
+  3, 4, 4, 4, 4,
+  4, 1, 1, 1, 1
 }
 
 
 function hammerstorm:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
-  if skills.abilDeny == nil then
+  if skills.abilStun == nil then
     skills.abilStun = unitSelf:GetAbility(0)
-    skills.abilDebuff = unitSelf:GetAbility(1)
-    skills.abilAura = unitSelf:GetAbility(2)
+    skills.abilSwing = unitSelf:GetAbility(1)
+    skills.abilBuff = unitSelf:GetAbility(2)
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
@@ -124,7 +124,20 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = 500
         if nTargetDistanceSq < (nRange*nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-	core.AllChat("SUPERULTI",10)
+	core.AllChat("GRAAAAH!",10)
+        else
+          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+        end
+      end
+    end
+    local abilBuff = skills.abilBuff	
+    local mana = unitSelf:GetMana()
+    if not bActionTaken then
+      if abilBuff:CanActivate() and mana > 340 then
+        local nRange = 500
+        if nTargetDistanceSq < (nRange*nRange) then
+          bActionTaken = core.OrderAbility(botBrain, abilBuff)
+	  core.AllChat("CHAARGE!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end

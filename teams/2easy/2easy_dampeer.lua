@@ -122,7 +122,7 @@ local function HarassHeroExecuteOverride(botBrain)
     if abilScare:CanActivate() then
       if nTargetDistanceSq < 250*250 then
         bActionTaken = core.OrderAbility(botBrain, abilScare)
-	core.AllChat("Scaring", 10)
+	core.AllChat("BOOO!", 10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -134,6 +134,7 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+	  core.AllChat("OM NOM", 10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
@@ -146,7 +147,7 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilFlight:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilFlight, unitTarget)
-	core.AllChat("Flying", 10)
+	core.AllChat("I believe I can flyyy", 10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
