@@ -244,35 +244,47 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 -- Sniper behavior. Teambot calculates the position for this.
 --
 local nSnipePossible = 60
+local nSnipeTimeout = 2000 -- ms => 2s
 
 -- this will contain all the info.
 pharaoh.doSnipe = {}
 
 function behaviorLib.SniperUtility(botBrain)
-	if core.teamBotBrain.snipeTargetPos then
+	teambot = core.teamBotBrain
+	if teambot.snipeTargetPos then
 		if skills.abilTormented:CanActivate() then
-			return nSnipePossible
+			if (teambot.snipeTimestamp + nSnipeTimeout) < HoN.GetGameTime() then
+				BotEcho("SniperUtility: Dropping too old.")
+			else
+				return nSnipePossible
+			end
 		else
 			BotEcho("SniperUtility: Can't activate :'(")
-			--pharaoh.doSnipe["target"] = nil
-			core.teamBotBrain.snipeTargetPos = nil
 		end
 	end
+
+	core.teamBotBrain.snipeTargetPos = nil
+	core.teamBotBrain.snipeTimestamp = nil
 
 	return 0
 end
 
 function behaviorLib.SniperExecute(botBrain)
-	--targetPos = pharaoh.doSnipe["target"]
-	targetPos = core.teamBotBrain.snipeTargetPos
+	teambot = core.teamBotBrain
+	targetPos = teambot.snipeTargetPos
 	if targetPos then
 		if skills.abilTormented:CanActivate() then
-			BotEcho(format("SNIPING! to pos { %g, %g, %g }", targetPos.x, targetPos.y, targetPos.z))
-			core.OrderAbilityPosition(botBrain, skills.abilTormented, targetPos)
-			core.teamBotBrain.snipeTargetPos = nil
+			if (teambot.snipeTimestamp + nSnipeTimeout) < HoN.GetGameTime() then
+				BotEcho("SniperExecute: Dropping too old.")
+			else
+				BotEcho(format("SNIPING! to pos { %g, %g, %g }", targetPos.x, targetPos.y, targetPos.z))
+				core.OrderAbilityPosition(botBrain, skills.abilTormented, targetPos)
+				core.teamBotBrain.snipeTargetPos = nil
+				core.teamBotBrain.snipeTimestamp = nil
+			end
 		end
 	else
-		BotEcho("SnipeExecute: INVALID TARGET!")
+		BotEcho("SniperExecute: INVALID TARGET!")
 	end
 end
 behaviorLib.SniperBehavior = {}

@@ -213,13 +213,14 @@ local function FindCollisionPoint(teambot, sniper, heroUnit)
 		end
 	end
 
+	print("timeMin: "..timeMin.."\n")
 	core.DrawDebugLine(sniperPos, sniperPos + vecProjectileMin, 'red')
 
 	return (sniperPos + vecProjectileMin)
 end
 
 local nTicks = 0
-local nUpdateInterval = 4
+local nUpdateInterval = 5
 
 -- health must be below this to start predicting enemy movements
 local nHealthPreThreshold = 0.4
@@ -260,6 +261,7 @@ function teambot:onthinkOverride(tGameVariables)
 				local pos = FindCollisionPoint(self, sniper, teambot.tEnemyHeroes[nUID])
 				if pos then
 					teambot.snipeTargetPos = pos
+					teambot.snipeTimestamp = HoN.GetGameTime()
 					print("YATTTAA!\n")
 				end
 			end
