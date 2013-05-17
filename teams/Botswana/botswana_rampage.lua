@@ -4,7 +4,6 @@ local rampage = _G.object
 rampage.heroName = "Hero_Rampage"
 
 runfile 'bots/core_herobot.lua'
-runfile 'bots/lib/rune_controlling/init.lua'
 
 local core, eventsLib, behaviorLib, skills = object.core, object.eventsLib, object.behaviorLib, object.skills
 

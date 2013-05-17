@@ -1,18 +1,15 @@
 local _G = getfenv(0)
 local magmus = _G.object
 
-magmus.heroName = "Hero_Magmar"
-
 runfile 'bots/magmus/magmus_main.lua'
 
 local core, behaviorLib = magmus.core, magmus.behaviorLib
 
-behaviorLib.LaneItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.StartingItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
+behaviorLib.LaneItems = { "Item_MinorTotem", "Item_MinorTotem", "Item_CrushingClaws", "Item_MinorTotem", "Item_CrushingClaws"  }
 behaviorLib.MidItems = { "Item_PortalKey", "Item_EnhancedMarchers", "Item_PowerSupply" }
 behaviorLib.LateItems = { "Item_GrimoireOfPower", "Item_RestorationStone" }
 
-magmus.skills = {}
 local skills = magmus.skills
 
 local tinsert = _G.table.insert
@@ -33,45 +30,29 @@ magmus.tSkills = {
 ---------------------------------------------------------------
 -- @param: none
 -- @return: none
-function magmus:SkillBuildOverride()
-local unitSelf = self.core.unitSelf
-  if skills.abilTouch == nil then
+local SkillBuildOld = magmus.SkillBuild
+local function SkillBuildOverride(self)
+  local unitSelf = self.core.unitSelf
+  if skills.abilVolcanicTouch == nil then
     skills.abilSurge = unitSelf:GetAbility(0)
     skills.abilBath = unitSelf:GetAbility(1)
-    skills.abilTouch = unitSelf:GetAbility(2)
-    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.abilVolcanicTouch = unitSelf:GetAbility(2)
+    skills.abilEruption = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
-  self:SkillBuildOld()
-end
-magmus.SkillBuildOld = magmus.SkillBuild
-magmus.SkillBuild = magmus.SkillBuildOverride
+  local unitSelf = self.core.unitSelf
+  if unitSelf:GetAbilityPointsAvailable() <= 0 then
+    return
+  end
 
-------------------------------------------------------
---            onthink override                      --
--- Called every bot tick, custom onthink code here  --
-------------------------------------------------------
--- @param: tGameVariables
--- @return: none
-function magmus:onthinkOverride(tGameVariables)
-  -- custom code here
+  local nlev = unitSelf:GetLevel()
+  local nlevpts = unitSelf:GetAbilityPointsAvailable()
+  local nStartPoint = 1+nlev-nlevpts
+  for i = nStartPoint, nlev do
+    unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
+  end
 end
-magmus.onthinkOld = magmus.onthink
-magmus.onthink = magmus.onthinkOverride
-
-----------------------------------------------
---            oncombatevent override        --
--- use to check for infilictors (fe. buffs) --
-----------------------------------------------
--- @param: eventdata
--- @return: none
-function magmus:oncombateventOverride(EventData)
-         magmus:oncombateventOld(EventData)
-  -- custom code here
-end
--- override combat event trigger function.
-magmus.oncombateventOld = magmus.oncombatevent
-magmus.oncombatevent = magmus.oncombateventOverride
+magmus.SkillBuild = SkillBuildOverride
 
 ----------------------------------
 --	Skill use variables	--
@@ -103,8 +84,9 @@ magmus.nUltThreshold = 35
 ----------------------------------
 -- @param: EventData
 -- @return: none 
-function object:oncombateventOverride(EventData)
-    self:oncombateventOld(EventData)
+local oncombateventOld = magmus.oncombatevent
+local function oncombateventOverride(self, EventData)
+    oncombateventOld(self, EventData)
  
     local nAddBonus = 0
  
@@ -127,8 +109,7 @@ function object:oncombateventOverride(EventData)
     end
  end
 -- override combat event trigger function.
-object.oncombateventOld = object.oncombatevent
-object.oncombatevent     = object.oncombateventOverride
+magmus.oncombatevent     = oncombateventOverride
 
 -------------------------------------------------------------
 --              CustomHarassUtility Override
@@ -145,8 +126,8 @@ local function CustomHarassUtilityFnOverride(hero)
     end
   end
 
-  if skills.abilUltimate:CanActivate() then
-    nUtil = nUtil + 100
+  if skills.abilEruption:CanActivate() then
+    nUtil = nUtil + 40
   end
 
   if core.unitSelf.isSuicide then
@@ -155,17 +136,18 @@ local function CustomHarassUtilityFnOverride(hero)
 
   return nUtil
 end
-
+behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 
 ----------------------------------
 --	HarassHeroOverride	--
 ----------------------------------
+local harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 local function HarassHeroExecuteOverride(botBrain)
 
-local unitTarget = behaviorLib.heroTarget
+    local unitTarget = behaviorLib.heroTarget
     if unitTarget == nil then
-        return object.harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
+        return harassExecuteOld(botBrain)  --Target is invalid, move on to the next behavior
     end
      
     local unitSelf = core.unitSelf
@@ -183,60 +165,52 @@ local unitTarget = behaviorLib.heroTarget
     local bActionTaken = false
 
     if core.CanSeeUnit(botBrain, unitTarget) then
-    
-    -- Surge
-    local abilSurge = skills.abilSurge
-    if abilSurge:CanActivate() then
-      local nRange = abilSurge:GetRange()
-      if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilSurge, unitTarget)
-      else
-        bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-      end
-    end
+        -- Surge
+        local abilSurge = skills.abilSurge
+        if abilSurge:CanActivate() then
+          local nRange = abilSurge:GetRange()
+          if nTargetDistanceSq < (nRange * nRange) then
+            bActionTaken = core.OrderAbilityEntity(botBrain, abilSurge, unitTarget)
+          else
+            bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+          end
+        end
 	end
 
 	-- Bath
 	local abilBath = skills.abilBath
 	if abilBath:CanActivate() then
 	  local nRange = abilBath:GetRange()
-	  if nTargetDistanceSq < (nRange * nRange) then	
+	  if nTargetDista/nceSq < (nRange * nRange) then	
 	    local bestUnitTarget = funcBestTargetAoE(tEnemyHeroes, unitTarget, nRange)
 		bActionTaken = core.OrderAbilityEntity(botBrain, abilBath, bestUnitTarget)
-	    else
+	  else
 		bActionTaken = core.OrderMoveToUnitClam(botBrain, unitSelf, bestUnitTarget)
-	   end
-	 end
-   end
+	  end
+	end
     
     -- Ulti
-    local abilUltimate = skills.abilUltimate
+    local abilEruption = skills.abilEruption
     if not bActionTaken then
-      if abilUltimate:CanActivate() then
-        local nRange = abilUltimate:GetRange()
+      if abilEruption:CanActivate() then
+        local nRange = abilEruption:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+          bActionTaken = core.OrderAbilityEntity(botBrain, abilEruption, unitTarget)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
       end
-    end
-    if not bActionTaken then
-      return magmus.harassExecuteOld(botBrain)
-    end
-  
-  end
+end
 
   if not bActionTaken then
-    return magmus.harassExecuteOld(botBrain)
+    return harassExecuteOld(botBrain)
   end
 end
-magmus.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 
----------------------------------------------------------
---		AttackCreepUtility and Execute
----------------------------------------------------------
+------------------------------------------------
+--		AttackCreepUtility and Execute        --
+------------------------------------------------
 
 local function AttackCreepsUtilityOverride(botBrain)	
 	local nDenyVal = 15
