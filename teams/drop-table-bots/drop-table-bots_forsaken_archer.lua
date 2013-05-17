@@ -48,7 +48,7 @@ function behaviorLib.CustomHarassUtility(heroTarget)
     -- Default 0
     local t = core.AssessLocalUnits(forsaken_archer, nil, 400)
     local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 10 - numCreeps*3
+	local util = 15 - numCreeps*3
   	local unitSelf = core.unitSelf
 
 	local volleyMult = 3
@@ -57,7 +57,10 @@ function behaviorLib.CustomHarassUtility(heroTarget)
 	util = util + ultiMult * skills.abilUlti:GetLevel()
 
 	if heroTarget then
-		if skills.abilCripplingVolley:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
+		local range = skills.abilCripplingVolley:GetRange()
+        local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), heroTarget:GetPosition())
+		if skills.abilCripplingVolley:CanActivate() and nTargetDistanceSq < range * range and
+            (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
 			util = util + 1000 -- Splitfire
 		end
 		if skills.abilUlti:CanActivate() and (heroTarget:GetHealthPercent() < 0.4 or numCreeps < 3) then
@@ -89,19 +92,12 @@ local function executeBehavior(botBrain)
     	if nTargetDistanceSq < ultiRange * ultiRange then
             p("ULTI")
 			success = core.OrderAbilityPosition(botBrain, skills.abilUlti, unitTarget:GetPosition())
-        else
-        	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
     end
 
 	if not success and behaviorLib.lastHarassUtil >= 500 then
-		local range = skills.abilCripplingVolley:GetRange()
         p("VOLLEY")
-		if nTargetDistanceSq < range * range then
-			success = core.OrderAbilityPosition(botBrain, skills.abilCripplingVolley, unitTarget:GetPosition())
-		else
-			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-		end
+        success = core.OrderAbilityPosition(botBrain, skills.abilCripplingVolley, unitTarget:GetPosition())
 	end
 
 	if not success then

@@ -1083,7 +1083,8 @@ function behaviorLib.ProxToEnemyTowerUtility(unit, unitClosestEnemyTower)
 		nUtility = -1 * core.ExpDecay((nDist - nBuffers), 100, nTowerRange, 2)
 		
 		local divisor = 1 + core.CountAlliesNearTower(unitClosestEnemyTower)
-		nUtility = nUtility * 0.32 / divisor
+        -- used to be 0.32
+		nUtility = nUtility * 0.90 / divisor
 		
 		if bDebugEchos then BotEcho(format("util: %d  nDistance: %d  nTowerRange: %d divisor: %d",
 			nUtility, (nDist - nBuffers), nTowerRange, divisor)) end

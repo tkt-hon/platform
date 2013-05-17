@@ -33,9 +33,9 @@ runfile "bots/teams/drop-table-bots/builtin/behaviorlib.lua"
 local core = herobot.core
 core.nDifficulty = core.nHARD_DIFFICULTY
 
--- local debug = false
-print(herobot.myName)
-local debug = herobot.myName == "DropTableBotsFlintBeastwoodBot" and herobot:GetTeam() == HoN.GetLegionTeam()
+local debug = false
+-- print(herobot.myName)
+-- local debug = herobot.myName == "DropTableBotsFlintBeastwoodBot" and herobot:GetTeam() == HoN.GetLegionTeam()
 if debug then print("Debug enabled for hero: " .. herobot.myName .. "\n") end
 
 
@@ -44,9 +44,11 @@ object.bReportBehavior = debug
 object.bDebugLines = debug
 object.bDebugPositioning = debug
 
+object.core.bDebugTeambot = true
+
 object.behaviorLib.nBehaviorAssessInterval = 50 -- MORE APM!!!! default 250
 object.behaviorLib.nPositionSelfAllySeparation = 250 -- Useful for team AI
-object.behaviorLib.nCreepPushbackMul = 0.2 -- Stay closer to creep wave, default 1
+object.behaviorLib.nCreepPushbackMul = 0.4 -- Stay closer to creep wave, default 1
 
 object.tSkills = {
   0, 1, 0, 1, 0,

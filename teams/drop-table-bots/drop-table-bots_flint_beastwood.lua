@@ -50,7 +50,7 @@ function behaviorLib.CustomHarassUtility(heroTarget)
     -- Default 0
     local t = core.AssessLocalUnits(flint_beastwood, nil, 400)
     local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 22 - numCreeps*3
+	local util = 15 - numCreeps*3
   	local unitSelf = core.unitSelf
 
 	local moonbeanMult = 4

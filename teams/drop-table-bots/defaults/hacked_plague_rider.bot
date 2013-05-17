@@ -4,6 +4,6 @@
   description="Drop Table Bots' Hacked Default Plague Rider"
   heroname="Hero_DiseasedRider"
   rootlua="hacked_plague_rider.lua"
-  defaultplayername="Drop Table Bots' Hacked DefaultPlagueBot"
+  defaultplayername="DropTableBotsHackedDefaultPlagueBot"
   precachepath="/heroes/diseasedrider/"
 />

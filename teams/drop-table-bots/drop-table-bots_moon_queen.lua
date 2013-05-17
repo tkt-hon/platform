@@ -109,20 +109,12 @@ local function executeBehavior(botBrain)
   	local success = false
 	local ultiRange = 600
     if behaviorLib.lastHarassUtil >= 5000 then
-    	if nTargetDistanceSq < ultiRange * ultiRange then
-			success = core.OrderAbility(botBrain, skills.abilUlti)
-        else
-        	success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
+        success = core.OrderAbility(botBrain, skills.abilUlti)
     end
 
 	if not success and behaviorLib.lastHarassUtil >= 500 then
 		local range = skills.abilMoonbeam:GetRange()
-		if nTargetDistanceSq < range * range then
-			success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
-		else
-			success = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-		end
+        success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
 	end
 
 	if not success then

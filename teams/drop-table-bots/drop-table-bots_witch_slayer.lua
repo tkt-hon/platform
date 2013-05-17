@@ -48,7 +48,7 @@ function behaviorLib.CustomHarassUtility(heroTarget)
     -- Default 0
     local t = core.AssessLocalUnits(witch_slayer, nil, 400)
     local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 15 - numCreeps*3
+	local util = 13 - numCreeps*3
   	local unitSelf = core.unitSelf
 
 	local graveyardMult = 3
@@ -150,9 +150,7 @@ behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 -- @param: tGameVariables
 -- @return: none
 function witch_slayer:onthinkOverride(tGameVariables)
-  self:onthinkOld(tGameVariables)
-
-  -- custom code here
+    self:onthinkOld(tGameVariables)
 end
 witch_slayer.onthinkOld = witch_slayer.onthink
 witch_slayer.onthink = witch_slayer.onthinkOverride
