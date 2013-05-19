@@ -138,7 +138,7 @@ tinsert(behaviorLib.tBehaviors, DenyBehavior)
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-  
+
   local unitSelf = core.unitSelf
   local manaP = unitSelf:GetManaPercent()
   local mana = unitSelf:GetMana()
@@ -313,33 +313,32 @@ end
 behaviorLib.PositionSelfTraverseLaneOld= behaviorLib.PositionSelfTraverseLane
 behaviorLib.PositionSelfTraverseLane = PositionSelfTraverseLaneOverride
 
-function WellHealthUtility(healthPercent)
-	local height = 100
-	local vCriticalPoint = Vector3.Create(0.25, 20)
+local function WellHealthUtility(healthPercent)
+  local height = 100
+  local vCriticalPoint = Vector3.Create(0.25, 20)
 
-	local util = 10 + height / ( (height/vCriticalPoint.y) ^ (healthPercent/vCriticalPoint.x) )
-	--BotEcho("WellHealthUtil: "..util.."  percent: "..healthPercent)
-	return util
+  local util = 10 + height / ( (height/vCriticalPoint.y) ^ (healthPercent/vCriticalPoint.x) )
+  --BotEcho("WellHealthUtil: "..util.."  percent: "..healthPercent)
+  return util
 end
 
 -------- Behavior Fns --------
-function HealAtWellUtility(botBrain)
-	local utility = 0
-	local hpPercent = core.unitSelf:GetHealthPercent()
+local function HealAtWellUtility(botBrain)
+  local utility = 0
+  local hpPercent = core.unitSelf:GetHealthPercent()
 
-	if hpPercent < 0.95 then
-		local wellPos = core.allyWell and core.allyWell:GetPosition() or Vector3.Create()
-		local nDist = Vector3.Distance2D(wellPos, core.unitSelf:GetPosition())
+  if hpPercent < 0.95 then
+    local wellPos = core.allyWell and core.allyWell:GetPosition() or Vector3.Create()
+    local nDist = Vector3.Distance2D(wellPos, core.unitSelf:GetPosition())
 
-		utility = behaviorLib.WellHealthUtility(hpPercent) + behaviorLib.WellProximityUtility(nDist)
-	end
+    utility = behaviorLib.WellHealthUtility(hpPercent) + behaviorLib.WellProximityUtility(nDist)
+  end
 
-	if botBrain.bDebugUtility == true and utility ~= 0 then
-		BotEcho(format("  HealAtWellUtility: %g", utility))
-	end
+  if botBrain.bDebugUtility == true and utility ~= 0 then
+    BotEcho(format("  HealAtWellUtility: %g", utility))
+  end
 
-	return utility
+  return utility
 end
 
 behaviorLib.HealAtWellBehavior["Utility"] = HealAtWellUtility
-

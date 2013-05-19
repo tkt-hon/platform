@@ -72,7 +72,7 @@ hammerstorm.oncombatevent = hammerstorm.oncombateventOverride
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-  
+
   local unitSelf = core.unitSelf
   local manaP = unitSelf:GetManaPercent()
   local mana = unitSelf:GetMana()
@@ -112,7 +112,7 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilStun:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilStun, unitTarget)
-	core.AllChat("Hammertime!",10)
+        core.AllChat("Hammertime!",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -124,20 +124,20 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = 500
         if nTargetDistanceSq < (nRange*nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-	core.AllChat("GRAAAAH!",10)
+          core.AllChat("GRAAAAH!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
       end
     end
-    local abilBuff = skills.abilBuff	
+    local abilBuff = skills.abilBuff
     local mana = unitSelf:GetMana()
     if not bActionTaken then
       if abilBuff:CanActivate() and mana > 340 then
         local nRange = 500
         if nTargetDistanceSq < (nRange*nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilBuff)
-	  core.AllChat("CHAARGE!",10)
+          core.AllChat("CHAARGE!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end

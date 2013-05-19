@@ -84,7 +84,7 @@ andromeda.oncombatevent = andromeda.oncombateventOverride
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-  
+
   local unitSelf = core.unitSelf
   local manaP = unitSelf:GetManaPercent()
   local mana = unitSelf:GetMana()

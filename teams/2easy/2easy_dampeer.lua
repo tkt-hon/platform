@@ -36,7 +36,7 @@ function dampeer:SkillBuildOverride()
     skills.abilUltimate = unitSelf:GetAbility(3)
     skills.stats = unitSelf:GetAbility(4)
   end
-    self:SkillBuildOld()
+  self:SkillBuildOld()
 end
 dampeer.SkillBuildOld = dampeer.SkillBuild
 dampeer.SkillBuild = dampeer.SkillBuildOverride
@@ -73,7 +73,7 @@ dampeer.oncombatevent = dampeer.oncombateventOverride
 local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
-  
+
   local unitSelf = core.unitSelf
   local manaP = unitSelf:GetManaPercent()
   local mana = unitSelf:GetMana()
@@ -122,7 +122,7 @@ local function HarassHeroExecuteOverride(botBrain)
     if abilScare:CanActivate() then
       if nTargetDistanceSq < 250*250 then
         bActionTaken = core.OrderAbility(botBrain, abilScare)
-	core.AllChat("BOOO!", 10)
+        core.AllChat("BOOO!", 10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -134,20 +134,20 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-	  core.AllChat("OM NOM", 10)
+          core.AllChat("OM NOM", 10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
       end
     end
 
-  
+
     local abilFlight = skills.abilFlight
     if abilFlight:CanActivate() then
       local nRange = abilFlight:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilFlight, unitTarget)
-	core.AllChat("I believe I can flyyy", 10)
+        core.AllChat("I believe I can flyyy", 10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -160,4 +160,3 @@ local function HarassHeroExecuteOverride(botBrain)
 end
 dampeer.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
-

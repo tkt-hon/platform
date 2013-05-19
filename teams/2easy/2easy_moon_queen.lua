@@ -102,7 +102,7 @@ local function CustomHarassUtilityFnOverride(hero)
     nUtil = nUtil + 0
   else
     if skills.abilNuke:CanActivate() and unitTarget:GetHealth() < 200 then
-    nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 50
+      nUtil = nUtil + 5*skills.abilNuke:GetLevel() + 50
     end
   end
 
@@ -145,7 +145,7 @@ local function HarassHeroExecuteOverride(botBrain)
         local nRange = 600
         if nTargetDistanceSq < (nRange * nRange) then
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-	  core.AllChat("get owned!",10)
+          core.AllChat("get owned!",10)
         else
           bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
         end
@@ -157,7 +157,7 @@ local function HarassHeroExecuteOverride(botBrain)
       local nRange = abilNuke:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
-	core.AllChat("BAM!",10)
+        core.AllChat("BAM!",10)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
@@ -235,77 +235,75 @@ ThreatenedBehavior["Name"] = "Saving myself with spells"
 tinsert(behaviorLib.tBehaviors, ThreatenedBehavior)
 
 function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
-	local bDebugEchos = false
-	-- no predictive last hitting, just wait and react when they have 1 hit left
-	-- prefers LH over deny
+  local bDebugEchos = false
+  -- no predictive last hitting, just wait and react when they have 1 hit left
+  -- prefers LH over deny
 
-	local unitSelf = core.unitSelf
-	local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
+  local unitSelf = core.unitSelf
+  local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
 
-	if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+  if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
 
-		local nTargetHealth = unitEnemyCreep:GetHealth()
-		if nDamageAverage >= nTargetHealth then
-			return unitEnemyCreep
-		end
-	end
+    local nTargetHealth = unitEnemyCreep:GetHealth()
+    if nDamageAverage >= nTargetHealth then
+      return unitEnemyCreep
+    end
+  end
 
-	if unitAllyCreep then
-		local nTargetHealth = unitAllyCreep:GetHealth()
-		if nDamageAverage >= nTargetHealth then
-			local bActuallyDeny = true	
+  if unitAllyCreep then
+    local nTargetHealth = unitAllyCreep:GetHealth()
+    if nDamageAverage >= nTargetHealth then
+      local bActuallyDeny = true
 
-			-- [Tutorial] Hellbourne *will* deny creeps after shit gets real
-			if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
-				bActuallyDeny = true
-			end
+      -- [Tutorial] Hellbourne *will* deny creeps after shit gets real
+      if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
+        bActuallyDeny = true
+      end
 
-			if bActuallyDeny then
-				if bDebugEchos then BotEcho("Returning an ally") end
-				return unitAllyCreep
-			end
-		end
-	end
+      if bActuallyDeny then
+        if bDebugEchos then BotEcho("Returning an ally") end
+        return unitAllyCreep
+      end
+    end
+  end
 
-	return nil
+  return nil
 end
 
 -------- Behavior Fns --------
-function AttackCreepsUtilityOverride(botBrain)	
-	local nDenyVal = 21
-	local nLastHitVal = 24
-	local nPushHitVal = 23
-	local nUtility = 0
+local function AttackCreepsUtilityOverride(botBrain)
+  local nDenyVal = 21
+  local nLastHitVal = 24
+  local nPushHitVal = 23
+  local nUtility = 0
 
-	--we don't want to deny if we are pushing
-	local unitDenyTarget = core.unitAllyCreepTarget
-	if core.GetCurrentBehaviorName(botBrain) == "Push" then
-		unitDenyTarget = nil
-	end
+  --we don't want to deny if we are pushing
+  local unitDenyTarget = core.unitAllyCreepTarget
+  if core.GetCurrentBehaviorName(botBrain) == "Push" then
+    unitDenyTarget = nil
+  end
 
-	local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
+  local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
 
 
-	if unitTarget and core.unitSelf:IsAttackReady() then
-		if unitTarget:GetTeam() == core.myTeam then
-			nUtility = nDenyVal
-		else
-			local nTargetHealth = unitTarget:GetHealth()
-			local unitSelf = core.unitSelf
-			--local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
-			if 70 >= nTargetHealth then
-				nUtility = nLastHitVal
-			else 
-				nUtility = nPushHitVal
-			end
-		end
-		
-		core.unitCreepTarget = unitTarget
-	end
+  if unitTarget and core.unitSelf:IsAttackReady() then
+    if unitTarget:GetTeam() == core.myTeam then
+      nUtility = nDenyVal
+    else
+      local nTargetHealth = unitTarget:GetHealth()
+      local unitSelf = core.unitSelf
+      --local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf) + 5
+      if 70 >= nTargetHealth then
+        nUtility = nLastHitVal
+      else
+        nUtility = nPushHitVal
+      end
+    end
 
-	return nUtility
+    core.unitCreepTarget = unitTarget
+  end
+
+  return nUtility
 end
 
 behaviorLib.AttackCreepsBehavior["Utility"] = AttackCreepsUtilityOverride
-
-
