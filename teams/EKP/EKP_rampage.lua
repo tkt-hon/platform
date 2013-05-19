@@ -63,35 +63,35 @@ rampage.onthink = rampage.onthinkOverride
 ----------------------------------------------
 
 local function advancedThinkUtility(botBrain)				--## HATCHET TOSS
-        return 95; --always ridiculously important. Though, this rarly returns true.
+  return 95; --always ridiculously important. Though, this rarly returns true.
 end
- 
+
 local function advancedThinkExecute(botBrain)
-        local unitSelf = core.unitSelf
-        local vecSelfPos = unitSelf:GetPosition()
-        local vecWellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-        local distToWellSq=Vector3.Distance2DSq(vecSelfPos, vecWellPos)
-        local bActionTaken=false
+  local unitSelf = core.unitSelf
+  local vecSelfPos = unitSelf:GetPosition()
+  local vecWellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+  local distToWellSq=Vector3.Distance2DSq(vecSelfPos, vecWellPos)
+  local bActionTaken=false
 
   if core.itemHatchet ~= nil and not core.itemHatchet:IsValid() then
-                core.itemHatchet = nil
-        end
-        --hatchet
-        if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() and --can activate
-          Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600 and --in range of hatchet.
-          unitSelf:GetBaseDamage()*(1-core.unitCreepTarget:GetPhysicalResistance())>(core.unitCreepTarget:GetHealth()) and --low enough hp, 10 hp marginal for projectile
-          string.find(core.unitCreepTarget:GetTypeName(), "Creep") then-- viable creep (this makes it ignore minions etc, some of which aren't hatchetable.)
-                bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, core.unitCreepTarget.object or core.unitCreepTarget, false)--use hatchet.
-        end
-       
-        return bActionTaken
+    core.itemHatchet = nil
+  end
+  --hatchet
+  if not bActionTaken and core.unitCreepTarget and core.itemHatchet and core.itemHatchet:CanActivate() and --can activate
+    Vector3.Distance2DSq(unitSelf:GetPosition(), core.unitCreepTarget:GetPosition()) <= 600*600 and --in range of hatchet.
+    unitSelf:GetBaseDamage()*(1-core.unitCreepTarget:GetPhysicalResistance())>(core.unitCreepTarget:GetHealth()) and --low enough hp, 10 hp marginal for projectile
+    string.find(core.unitCreepTarget:GetTypeName(), "Creep") then-- viable creep (this makes it ignore minions etc, some of which aren't hatchetable.)
+    bActionTaken=botBrain:OrderItemEntity(core.itemHatchet.object or core.itemHatchet, core.unitCreepTarget.object or core.unitCreepTarget, false)--use hatchet.
+  end
+
+  return bActionTaken
 end
 behaviorLib.advancedThink = {}
 behaviorLib.advancedThink["Utility"] = advancedThinkUtility
 behaviorLib.advancedThink["Execute"] = advancedThinkExecute
 behaviorLib.advancedThink["Name"] = "advancedThink"
 tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
- 
+
 
 
 ----------------------------------------------
@@ -101,11 +101,11 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
 -- @param: eventdata
 -- @return: none
 
---  function AttackCreepsExecuteOverride(botBrain)					
---	local unitSelf = core.unitSelf						
---	local currentTarget = core.unitCreepTarget					
+--  function AttackCreepsExecuteOverride(botBrain)
+--	local unitSelf = core.unitSelf
+--	local currentTarget = core.unitCreepTarget
 --	local nDamageAverage = core.GetFinalAttackDamageAverage(unitSelf)
-	
+
 --	if core.itemHatchet then
 --		nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
 --	end
@@ -114,7 +114,7 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
 --		nDamageAverage = nDamageAverage + 40 + 20*(skills.abilBash:GetLevel())
 --	end
 
---	if currentTarget and core.CanSeeUnit(botBrain, currentTarget) and skills.abilBash:CanActivate() and currentTarget:GetHealth()<nDamageAverage+50 then	
+--	if currentTarget and core.CanSeeUnit(botBrain, currentTarget) and skills.abilBash:CanActivate() and currentTarget:GetHealth()<nDamageAverage+50 then
 --		local vecTargetPos = currentTarget:GetPosition()
 --		local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
 --		local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
@@ -135,7 +135,7 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.advancedThink)
 --		return rampage.AttackCreepsExecuteOld
 --	end
 --  end
-  
+
 --  rampage.AttackCreepsExecuteOld = behaviorLib.AttackCreepsBehavior["Execute"]
 --  behaviorLib.AttackCreepsBehavior["Execute"] = AttackCreepsExecuteOverride
 --tinsert(behaviorLib.tBehaviors, behaviorLib.BashLasthitOverride)

@@ -20,32 +20,32 @@ local tinsert = _G.table.insert
 core.itemWard = nil
 
 object.tSkills = {
-	1, 4, 1, 4, 4, 
-	3, 4, 1, 1, 2, 
-	2, 2, 2, 3, 0, 
-	3, 0, 0, 0, 4, 
-	4, 4, 4, 4, 4
+  1, 4, 1, 4, 4,
+  3, 4, 1, 1, 2,
+  2, 2, 2, 3, 0,
+  3, 0, 0, 0, 4,
+  4, 4, 4, 4, 4
 }
 
 function object:SkillBuild()
-	local unitSelf = self.core.unitSelf
-	if  skills.abilNuke == nil then
-		skills.abilNuke = unitSelf:GetAbility(0)
-		skills.abilShield = unitSelf:GetAbility(1)
-		skills.abilDeny = unitSelf:GetAbility(2)
-		skills.abilUltimate = unitSelf:GetAbility(3)
-		skills.abilAttributeBoost = unitSelf:GetAbility(4)
-	end
-	
-	local nPoints = unitSelf:GetAbilityPointsAvailable()
-	if nPoints <= 0 then
-		return
-	end
-	
-	local nLevel = unitSelf:GetLevel()
-	for i = nLevel, (nLevel + nPoints) do
-		unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
-	end
+  local unitSelf = self.core.unitSelf
+  if  skills.abilNuke == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilShield = unitSelf:GetAbility(1)
+    skills.abilDeny = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.abilAttributeBoost = unitSelf:GetAbility(4)
+  end
+
+  local nPoints = unitSelf:GetAbilityPointsAvailable()
+  if nPoints <= 0 then
+    return
+  end
+
+  local nLevel = unitSelf:GetLevel()
+  for i = nLevel, (nLevel + nPoints) do
+    unitSelf:GetAbility( self.tSkills[i] ):LevelUp()
+  end
 end
 
 
@@ -303,9 +303,9 @@ local function funcFindItemsOverride(botBrain)
     core.itemWard = nil
   end
 
- if core.itemAstrolabe ~= nil and not core.itemAstrolabe:IsValid() then
-		core.itemAstrolabe = nil
- end
+  if core.itemAstrolabe ~= nil and not core.itemAstrolabe:IsValid() then
+    core.itemAstrolabe = nil
+  end
 
   if bUpdated then
     if core.itemWard and core.itemAstrolabe then
@@ -319,11 +319,11 @@ local function funcFindItemsOverride(botBrain)
         if core.itemWard == nil and curItem:GetName() == "Item_FlamingEye" then
           core.itemWard = core.WrapInTable(curItem)
 
-	elseif core.itemAstrolabe == nil and curItem:GetName() == "Item_Astrolabe" then
-			core.itemAstrolabe = core.WrapInTable(curItem)
-			core.itemAstrolabe.nHealValue = 200
-			core.itemAstrolabe.nRadius = 600
-			Echo("I have Astrolabe")
+        elseif core.itemAstrolabe == nil and curItem:GetName() == "Item_Astrolabe" then
+          core.itemAstrolabe = core.WrapInTable(curItem)
+          core.itemAstrolabe.nHealValue = 200
+          core.itemAstrolabe.nRadius = 600
+          Echo("I have Astrolabe")
         end
       end
     end
@@ -334,100 +334,100 @@ plaguerider.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
 function behaviorLib.HealHealthUtilityFn(unitHerox)
-	local nUtility = 0
-	
-	local nYIntercept = 100
-	local nXIntercept = 100
-	local nOrder = 2
+  local nUtility = 0
 
-	nUtility = core.ExpDecay(unitHerox:GetHealthPercent() * 100, nYIntercept, nXIntercept, nOrder)
-	
-	return nUtility
+  local nYIntercept = 100
+  local nXIntercept = 100
+  local nOrder = 2
+
+  nUtility = core.ExpDecay(unitHerox:GetHealthPercent() * 100, nYIntercept, nXIntercept, nOrder)
+
+  return nUtility
 end
 
 behaviorLib.nHealUtilityMul = 0.8
 behaviorLib.nHealHealthUtilityMul = 1.0
 
 function behaviorLib.HealUtility(botBrain)
-	local nUtility = 0
+  local nUtility = 0
 
-	local unitSelf = core.unitSelf
-	behaviorLib.unitHealTarget = nil
+  local unitSelf = core.unitSelf
+  behaviorLib.unitHealTarget = nil
 
-	core.FindItems()
-	local itemAstrolabe = core.itemAstrolabe
-	
-	local nHighestUtility = 0
-	local unitTarget = nil
+  core.FindItems()
+  local itemAstrolabe = core.itemAstrolabe
 
-	if (itemAstrolabe and itemAstrolabe:CanActivate()) then
-		local tTargets = core.CopyTable(core.localUnits["AllyHeroes"])
-		tTargets[unitSelf:GetUniqueID()] = unitSelf --I am also a target
-		local nMyID = unitSelf:GetUniqueID()
-		for key, hero in pairs(tTargets) do
-			--Don't heal yourself if we are going to head back to the well anyway, 
-			--	as it could cause us to retrace half a walkback
-			if hero:GetUniqueID() ~= nMyID or core.GetCurrentBehaviorName(botBrain) ~= "HealAtWell" then
-				local nCurrentUtility = 0
-		
-				local nHealthUtility = behaviorLib.HealHealthUtilityFn(hero) * behaviorLib.nHealHealthUtilityMul
-				nCurrentUtility = nHealthUtility
-				
-				if nCurrentUtility > nHighestUtility then
-					nHighestUtility = nCurrentUtility
-				end
-			end
-		end
+  local nHighestUtility = 0
+  local unitTarget = nil
 
-		if unitTarget then
-			
-			if nUtility == 0 and (itemAstrolabe and itemAstrolabe:CanActivate()) then
-				nUtility = nHighestUtility				
-				sAbilName = "Astrolabe"
-			end
-			
-			if nUtility ~= 0 then
-				behaviorLib.unitHealTarget = unitTarget
-			end
-	
-		end		
-	end
-	
-	nUtility = nUtility * behaviorLib.nHealUtilityMul
-	
-	if botBrain.bDebugUtility == true and nUtility ~= 0 then
-		BotEcho(format("  HelpUtility: %g", nUtility))
-	end
-	
-	return nUtility
+  if (itemAstrolabe and itemAstrolabe:CanActivate()) then
+    local tTargets = core.CopyTable(core.localUnits["AllyHeroes"])
+    tTargets[unitSelf:GetUniqueID()] = unitSelf --I am also a target
+    local nMyID = unitSelf:GetUniqueID()
+    for key, hero in pairs(tTargets) do
+      --Don't heal yourself if we are going to head back to the well anyway,
+      --	as it could cause us to retrace half a walkback
+      if hero:GetUniqueID() ~= nMyID or core.GetCurrentBehaviorName(botBrain) ~= "HealAtWell" then
+        local nCurrentUtility = 0
+
+        local nHealthUtility = behaviorLib.HealHealthUtilityFn(hero) * behaviorLib.nHealHealthUtilityMul
+        nCurrentUtility = nHealthUtility
+
+        if nCurrentUtility > nHighestUtility then
+          nHighestUtility = nCurrentUtility
+        end
+      end
+    end
+
+    if unitTarget then
+
+      if nUtility == 0 and (itemAstrolabe and itemAstrolabe:CanActivate()) then
+        nUtility = nHighestUtility
+        sAbilName = "Astrolabe"
+      end
+
+      if nUtility ~= 0 then
+        behaviorLib.unitHealTarget = unitTarget
+      end
+
+    end
+  end
+
+  nUtility = nUtility * behaviorLib.nHealUtilityMul
+
+  if botBrain.bDebugUtility == true and nUtility ~= 0 then
+    BotEcho(format("  HelpUtility: %g", nUtility))
+  end
+
+  return nUtility
 end
- 
+
 function behaviorLib.HealExecute(botBrain)
 
-	core.FindItems()
-	local itemAstrolabe = core.itemAstrolabe
-	local unitHealTarget = behaviorLib.unitHealTarget
-	local unitSelf = core.unitSelf
+  core.FindItems()
+  local itemAstrolabe = core.itemAstrolabe
+  local unitHealTarget = behaviorLib.unitHealTarget
+  local unitSelf = core.unitSelf
 
-	if unitHealTarget then
-		if itemAstrolabe and itemAstrolabe:CanActivate() then
-			local vecTargetPosition = unitHealTarget:GetPosition()
-			local nDistance = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPosition)
-			if nDistance < itemAstrolabe.nRadius then
-				core.OrderItemClamp(botBrain, unitSelf, itemAstrolabe)
-			else
-				core.OrderMoveToUnitClamp(botBrain, unitSelf, unitHealTarget)
-			end
-		else 
-			return false
-		end
-	else
-		return false
-	end
-	
-	return
+  if unitHealTarget then
+    if itemAstrolabe and itemAstrolabe:CanActivate() then
+      local vecTargetPosition = unitHealTarget:GetPosition()
+      local nDistance = Vector3.Distance2D(unitSelf:GetPosition(), vecTargetPosition)
+      if nDistance < itemAstrolabe.nRadius then
+        core.OrderItemClamp(botBrain, unitSelf, itemAstrolabe)
+      else
+        core.OrderMoveToUnitClamp(botBrain, unitSelf, unitHealTarget)
+      end
+    else
+      return false
+    end
+  else
+    return false
+  end
+
+  return
 end
- 
+
 behaviorLib.HealBehavior = {}
 behaviorLib.HealBehavior["Utility"] = behaviorLib.HealUtility
 behaviorLib.HealBehavior["Execute"] = behaviorLib.HealExecute
