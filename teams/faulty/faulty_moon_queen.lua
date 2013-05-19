@@ -15,11 +15,11 @@ local BotEcho = core.BotEcho
 BotEcho("loading faulty_moon_queen.lua")
 
 local function PreGameExecuteOverride(botBrain)
-	local unitSelf = core.unitSelf
-	if not unitSelf.isSitter then
-		return behaviorLib.PreGameExecute(botBrain)
-	end
-	return behaviorLib.PreGameSitterExecute(botBrain)
+  local unitSelf = core.unitSelf
+  if not unitSelf.isSitter then
+    return behaviorLib.PreGameExecute(botBrain)
+  end
+  return behaviorLib.PreGameSitterExecute(botBrain)
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
 
@@ -53,15 +53,15 @@ local skills = moonqueen.skills
 -- @param: none
 -- @return: none
 function moonqueen:SkillBuildOverride()
-	local unitSelf = self.core.unitSelf
-	if skills.abilNuke == nil then
-		skills.abilNuke     = unitSelf:GetAbility(0)
-		skills.abilBounce   = unitSelf:GetAbility(1)
-		skills.abilAura     = unitSelf:GetAbility(2)
-		skills.abilUltimate = unitSelf:GetAbility(3)
-		skills.stats        = unitSelf:GetAbility(4)
-	end
-	moonqueen:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilNuke == nil then
+    skills.abilNuke     = unitSelf:GetAbility(0)
+    skills.abilBounce   = unitSelf:GetAbility(1)
+    skills.abilAura     = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats        = unitSelf:GetAbility(4)
+  end
+  moonqueen:SkillBuildOld()
 end
 moonqueen.SkillBuildOld = moonqueen.SkillBuild
 moonqueen.SkillBuild = moonqueen.SkillBuildOverride
@@ -73,9 +73,9 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @param: tGameVariables
 -- @return: none
 function moonqueen:onthinkOverride(tGameVariables)
-	self:onthinkOld(tGameVariables)
+  self:onthinkOld(tGameVariables)
 
-	-- custom code here
+  -- custom code here
 end
 moonqueen.onthinkOld = moonqueen.onthink
 moonqueen.onthink = moonqueen.onthinkOverride
@@ -87,9 +87,9 @@ moonqueen.onthink = moonqueen.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function moonqueen:oncombateventOverride(EventData)
-	self:oncombateventOld(EventData)
+  self:oncombateventOld(EventData)
 
-	-- custom code here
+  -- custom code here
 end
 -- override combat event trigger function.
 moonqueen.oncombateventOld = moonqueen.oncombatevent
@@ -126,89 +126,89 @@ moonqueen.doHarass = {}
 -- moonqueen.doHarass["item"]   = nil
 
 local function CustomHarassUtilityFnOverride(hero)
-	moonqueen.doHarass = {} -- reset
-	local unitSelf = core.unitSelf
+  moonqueen.doHarass = {} -- reset
+  local unitSelf = core.unitSelf
 
-	local heroPos = hero:GetPosition()
-	local selfPos = unitSelf:GetPosition()
+  local heroPos = hero:GetPosition()
+  local selfPos = unitSelf:GetPosition()
 
-	local ultimateVal = 0
-	local nukeVal     = 0
-	local bounceVal   = 0
+  local ultimateVal = 0
+  local nukeVal     = 0
+  local bounceVal   = 0
 
-	local nRet = 0
-	local nMe = HeroStateValueUtility(unitSelf, nEnemyNoMana, nEnemyNoHealth)
-	local nEnemy = HeroStateValueUtility(hero, nEnemyNoMana, nEnemyNoHealth)
-	nRet = (nRet + nEnemy - nMe)
+  local nRet = 0
+  local nMe = HeroStateValueUtility(unitSelf, nEnemyNoMana, nEnemyNoHealth)
+  local nEnemy = HeroStateValueUtility(hero, nEnemyNoMana, nEnemyNoHealth)
+  nRet = (nRet + nEnemy - nMe)
 
-	local canSee = core.CanSeeUnit(moonqueen, hero)
-	local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
-	local nukeRangeSq      = skills.abilNuke:GetRange() * skills.abilNuke:GetRange()
+  local canSee = core.CanSeeUnit(moonqueen, hero)
+  local targetDistanceSq = Vector3.Distance2DSq(selfPos, heroPos)
+  local nukeRangeSq      = skills.abilNuke:GetRange() * skills.abilNuke:GetRange()
 
-	if skills.abilUltimate:CanActivate() and targetDistanceSq < (700 * 700) then
-		local creeps = NearbyEnemyCreepCountUtility(moonqueen, selfPos, 700)
-		ultimateVal = nUltimateUp
-		if creeps > 2 then
-			ultimateVal = ultimateVal + creeps * nUltimateCreepMod
-		end
-		ultimateVal = ultimateVal + skills.abilUltimate:GetLevel() * nSkillLevelBonus
-	end
+  if skills.abilUltimate:CanActivate() and targetDistanceSq < (700 * 700) then
+    local creeps = NearbyEnemyCreepCountUtility(moonqueen, selfPos, 700)
+    ultimateVal = nUltimateUp
+    if creeps > 2 then
+      ultimateVal = ultimateVal + creeps * nUltimateCreepMod
+    end
+    ultimateVal = ultimateVal + skills.abilUltimate:GetLevel() * nSkillLevelBonus
+  end
 
-	if skills.abilNuke:CanActivate() and canSee and targetDistanceSq < nukeRangeSq then
-		local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 400)
-		nukeVal = nNukeUp + creeps * nNukeCreepMod
-		nukeVal = nukeVal + skills.abilNuke:GetLevel() * nSkillLevelBonus
-	end
+  if skills.abilNuke:CanActivate() and canSee and targetDistanceSq < nukeRangeSq then
+    local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 400)
+    nukeVal = nNukeUp + creeps * nNukeCreepMod
+    nukeVal = nukeVal + skills.abilNuke:GetLevel() * nSkillLevelBonus
+  end
 
-	--if skills.abilBounce:CanActivate() then
-	--	local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 500)
-	--	bounceVal = nBounceUp + creeps * nBounceCreepMod
-	--	bounceVal = bounceVal + skills.abilBounce:GetLevel() * nSkillLevelBonus
-	--end
+  --if skills.abilBounce:CanActivate() then
+  --	local creeps = NearbyEnemyCreepCountUtility(moonqueen, heropos, 500)
+  --	bounceVal = nBounceUp + creeps * nBounceCreepMod
+  --	bounceVal = bounceVal + skills.abilBounce:GetLevel() * nSkillLevelBonus
+  --end
 
-	if ultimateVal == 0 and nukeVal == 0 and bounceVal == 0 then
-		return nRet
-	end
+  if ultimateVal == 0 and nukeVal == 0 and bounceVal == 0 then
+    return nRet
+  end
 
-	local doUltimate = false
-	local doNuke     = false
-	local doBounce   = false
+  local doUltimate = false
+  local doNuke     = false
+  local doBounce   = false
 
-	-- determine highest
-	if ultimateVal > nukeVal then
-		if ultimateVal > bounceVal then
-			doUltimate = true
-		else
-			doBounce = true
-		end
-	else
-		if nukeVal > bounceVal then
-			doNuke = true
-		else
-			doBounce = true
-		end
-	end
+  -- determine highest
+  if ultimateVal > nukeVal then
+    if ultimateVal > bounceVal then
+      doUltimate = true
+    else
+      doBounce = true
+    end
+  else
+    if nukeVal > bounceVal then
+      doNuke = true
+    else
+      doBounce = true
+    end
+  end
 
-	moonqueen.doHarass["target"] = hero
+  moonqueen.doHarass["target"] = hero
 
-	if doUltimate then
-		moonqueen.doHarass["skill"] = skills.abilUltimate
-		nRet = nRet + ultimateVal
-	end
+  if doUltimate then
+    moonqueen.doHarass["skill"] = skills.abilUltimate
+    nRet = nRet + ultimateVal
+  end
 
-	if doNuke then
-		moonqueen.doHarass["skill"] = skills.abilNuke
-		nRet = nRet + nukeVal
-	end
+  if doNuke then
+    moonqueen.doHarass["skill"] = skills.abilNuke
+    nRet = nRet + nukeVal
+  end
 
-	if doBounce then
-		moonqueen.doHarass["skill"] = skills.abilBounce
-		nRet = nRet + bounceVal
-	end
+  if doBounce then
+    moonqueen.doHarass["skill"] = skills.abilBounce
+    nRet = nRet + bounceVal
+  end
 
-	BotEcho(format("  CustomHarassUtil: nuke: %g, bounce: %g, ultimate: %g", nukeVal, bounceVal, ultimateVal))
+  BotEcho(format("  CustomHarassUtil: nuke: %g, bounce: %g, ultimate: %g", nukeVal, bounceVal, ultimateVal))
 
-	return nRet
+  return nRet
 end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
@@ -217,38 +217,38 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 --
 --------------------------------------------------------------------------------
 local function HarassHeroExecuteOverride(botBrain)
-	local unitTarget = moonqueen.doHarass["target"]
-	local skill = moonqueen.doHarass["skill"]
-	if unitTarget == nil or skill == nil or not skill:CanActivate() then
-		return moonqueen.harassExecuteOld(botBrain)
-	end
+  local unitTarget = moonqueen.doHarass["target"]
+  local skill = moonqueen.doHarass["skill"]
+  if unitTarget == nil or skill == nil or not skill:CanActivate() then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
 
-	local unitSelf = core.unitSelf
-	-- distance to target squared
-	local targetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
-	local bActionTaken = false
+  local unitSelf = core.unitSelf
+  -- distance to target squared
+  local targetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local bActionTaken = false
 
-	if skill:GetName() == "Ability_Krixi1" then
-		if core.CanSeeUnit(botBrain, unitTarget) then
-			local range = skill:GetRange()
-			if targetDistanceSq < (range * range) then
-				BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
-				bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
-			end
-		end
-	elseif skill:GetName() == "Ability_Krixi2" then
-		BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
-		bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
-	elseif skill:GetName() == "Ability_Krixi4" then
-		BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
-		bActionTaken = core.OrderAbility(botBrain, skill)
-	else
-		BotEcho(format("  HarassHeroExecute: INVALID SKILL %s", skill:GetName()))
-	end
+  if skill:GetName() == "Ability_Krixi1" then
+    if core.CanSeeUnit(botBrain, unitTarget) then
+      local range = skill:GetRange()
+      if targetDistanceSq < (range * range) then
+        BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
+        bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
+      end
+    end
+  elseif skill:GetName() == "Ability_Krixi2" then
+    BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
+    bActionTaken = core.OrderAbilityEntity(botBrain, skill, unitTarget)
+  elseif skill:GetName() == "Ability_Krixi4" then
+    BotEcho(format("  HarassHeroExecute with %s", skill:GetName()))
+    bActionTaken = core.OrderAbility(botBrain, skill)
+  else
+    BotEcho(format("  HarassHeroExecute: INVALID SKILL %s", skill:GetName()))
+  end
 
-	if not bActionTaken then
-		return moonqueen.harassExecuteOld(botBrain)
-	end
+  if not bActionTaken then
+    return moonqueen.harassExecuteOld(botBrain)
+  end
 end
 moonqueen.harassExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride

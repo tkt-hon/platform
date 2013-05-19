@@ -25,16 +25,16 @@ local nNoHealth = 20
 local nNoMana   = 10
 
 local function CustomHarassUtilityOverride2(hero)
-	local nUtility = hammerstorm.CustomHarassUtilityOld(hero)
+  local nUtility = hammerstorm.CustomHarassUtilityOld(hero)
 
-	nUtility = nUtility + HeroStateValueUtility(hero, nNoMana, nNoHealth)
-	nUtility = nUtility - HeroStateValueUtility(core.unitSelf, nNoMana, nNoHealth)
+  nUtility = nUtility + HeroStateValueUtility(hero, nNoMana, nNoHealth)
+  nUtility = nUtility - HeroStateValueUtility(core.unitSelf, nNoMana, nNoHealth)
 
-	if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) and core.unitSelf:GetLevel() < 7 then
-		nUtility = nUtility / 2
-	end
+  if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) and core.unitSelf:GetLevel() < 7 then
+    nUtility = nUtility / 2
+  end
 
-	return nUtility
+  return nUtility
 end
 hammerstorm.CustomHarassUtilityOld = behaviorLib.CustomHarassUtility
 behaviorLib.CustomHarassUtility = CustomHarassUtilityOverride2

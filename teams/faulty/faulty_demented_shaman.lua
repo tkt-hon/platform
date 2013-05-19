@@ -8,10 +8,10 @@ runfile 'bots/teams/faulty/lib/utils.lua'
 local core, behaviorLib = shaman.core, shaman.behaviorLib
 
 local function PreGameExecuteOverride(botBrain)
-	if not core.unitSelf.isSitter then
-		return behaviorLib.PreGameExecute(botBrain)
-	end
-	return behaviorLib.PreGameSitterExecute(botBrain)
+  if not core.unitSelf.isSitter then
+    return behaviorLib.PreGameExecute(botBrain)
+  end
+  return behaviorLib.PreGameSitterExecute(botBrain)
 end
 behaviorLib.PreGameBehavior["Execute"] = PreGameExecuteOverride
 
@@ -24,16 +24,16 @@ local nNoHealth = 20
 local nNoMana   = 10
 
 local function CustomHarassUtilityOverride2(hero)
-	local nUtility = shaman.CustomHarassUtilityOld(hero)
+  local nUtility = shaman.CustomHarassUtilityOld(hero)
 
-	nUtility = nUtility + HeroStateValueUtility(hero, nNoMana, nNoHealth)
-	nUtility = nUtility - HeroStateValueUtility(core.unitSelf, nNoMana, nNoHealth)
+  nUtility = nUtility + HeroStateValueUtility(hero, nNoMana, nNoHealth)
+  nUtility = nUtility - HeroStateValueUtility(core.unitSelf, nNoMana, nNoHealth)
 
-	if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) then
-		nUtility = nUtility / 2
-	end
+  if core.GetClosestEnemyTower(core.unitSelf:GetPosition(), 715) then
+    nUtility = nUtility / 2
+  end
 
-	return nUtility
+  return nUtility
 end
 shaman.CustomHarassUtilityOld = behaviorLib.CustomHarassUtility
 behaviorLib.CustomHarassUtility = CustomHarassUtilityOverride2
