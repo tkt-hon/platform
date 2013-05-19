@@ -62,15 +62,15 @@ plaguerider.nNukeUp = 30
 plaguerider.nArmorUp = 0
 plaguerider.nManaUp = 0
 plaguerider.nUltUp = 25
- 
- 
+
+
 -- These are bonus agression points that are applied to the bot upon successfully using a skill/item
 plaguerider.nNukeUse = 15
 plaguerider.nArmorUse = 5
 plaguerider.nManaUse = 0
 plaguerider.nUltUse = 35
- 
- 
+
+
 --These are thresholds of aggression the bot must reach to use these abilities
 
 plaguerider.nNukeThreshold = 10
@@ -87,30 +87,30 @@ plaguerider.nUltThreshold = 35
 -- @return: none
 function plaguerider:oncombateventOverride(EventData)
   self:oncombateventOld(EventData)
-  
+
   local nAddBonus = 0
-  
+
   if EventData.Type == "Ability" then
-  	if EventData.Inflictorname == "Ability_DiseasedRider1" then
-  		nAddBonus = nAddBonus + plaguerider.nNukeUse
-  	elseif EventData.Inflictorname == "Ability_DiseasedRider4" then
-  		nAddBonus = nAddBonus + plaguerider.nUltUse
-  	elseif EventData.Inflictorname == "Ability_DiseasedRider3" then
-  		nAddBonus = nAddBonus + plaguerider.ManaUse
-  	elseif EventData.Inflictorname == "Ability_DiseasedRider2" then
-  		nAddBonus = nAddBonus + plaguerider.nArmorUse
-  	
-  	end
+    if EventData.Inflictorname == "Ability_DiseasedRider1" then
+      nAddBonus = nAddBonus + plaguerider.nNukeUse
+    elseif EventData.Inflictorname == "Ability_DiseasedRider4" then
+      nAddBonus = nAddBonus + plaguerider.nUltUse
+    elseif EventData.Inflictorname == "Ability_DiseasedRider3" then
+      nAddBonus = nAddBonus + plaguerider.ManaUse
+    elseif EventData.Inflictorname == "Ability_DiseasedRider2" then
+      nAddBonus = nAddBonus + plaguerider.nArmorUse
+
+    end
   end
-  
+
   if nAddBonus > 0 then
-  	core.Decaybonus(self)
-  	core.nHarassBonus = core.nHarassBonus + nAddBonus
+    core.Decaybonus(self)
+    core.nHarassBonus = core.nHarassBonus + nAddBonus
   end
-  
+
 end
-  
-  -- custom code here
+
+-- custom code here
 
 
 -- override combat event trigger function.
@@ -214,7 +214,7 @@ local function HarassHeroExecuteOverride(botBrain)
   local bActionTaken = false
 
   if core.CanSeeUnit(botBrain, unitTarget) then
-    
+
     -- Nuke
     local abilNuke = skills.abilNuke
     if abilNuke:CanActivate() then
@@ -225,7 +225,7 @@ local function HarassHeroExecuteOverride(botBrain)
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
-    
+
     --Ulti
     local abilUltimate = skills.abilUltimate
     if not bActionTaken then
@@ -253,61 +253,61 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 --		AttackCreepUtility and Execute
 ---------------------------------------------------------
 
-local function AttackCreepsUtilityOverride(botBrain)	
-	local nDenyVal = 15
-	local nLastHitVal = 20
+local function AttackCreepsUtilityOverride(botBrain)
+  local nDenyVal = 15
+  local nLastHitVal = 20
 
-	local nUtility = 0
+  local nUtility = 0
 
---we don't want to deny if we are pushing
-	local unitDenyTarget = core.unitAllyCreepTarget
-	if core.GetCurrentBehaviorName(botBrain) == "Push" then
-		unitDenyTarget = nil
-	end
+  --we don't want to deny if we are pushing
+  local unitDenyTarget = core.unitAllyCreepTarget
+  if core.GetCurrentBehaviorName(botBrain) == "Push" then
+    unitDenyTarget = nil
+  end
 
-	local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
+  local unitTarget = behaviorLib.GetCreepAttackTarget(botBrain, core.unitEnemyCreepTarget, unitDenyTarget)
 
-	if unitTarget and core.unitSelf:IsAttackReady() then
-		if unitTarget:GetTeam() == core.myTeam then
-			nUtility = nDenyVal
-		else
-			nUtility = nLastHitVal
-		end
-	core.unitCreepTarget = unitTarget
-	end
+  if unitTarget and core.unitSelf:IsAttackReady() then
+    if unitTarget:GetTeam() == core.myTeam then
+      nUtility = nDenyVal
+    else
+      nUtility = nLastHitVal
+    end
+    core.unitCreepTarget = unitTarget
+  end
 
-		if botBrain.bDebugUtility == true and nUtility ~= 0 then
-			BotEcho(format(" AttackCreepsUtility: %g", nUtility))
-		end
+  if botBrain.bDebugUtility == true and nUtility ~= 0 then
+    BotEcho(format(" AttackCreepsUtility: %g", nUtility))
+  end
 
-	return nUtility
+  return nUtility
 end
 
 behaviorLib.AttackCreepsUtility = AttackCreepsUtilityOverride
 
 
 local function AttackCreepsExecute(botBrain)
-	local unitSelf = core.unitSelf
-	local currentTarget = core.unitCreepTarget
+  local unitSelf = core.unitSelf
+  local currentTarget = core.unitCreepTarget
 
-	if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then	
-	local vecTargetPos = currentTarget:GetPosition()
-	local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
-	local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+  if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then
+    local vecTargetPos = currentTarget:GetPosition()
+    local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
+    local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
 
-		if currentTarget ~= nil then
-			if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
---only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
-				core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
-			else
---BotEcho("MOVIN OUT")
-		local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
-		core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
-			end
-		end
-	else
-	return false
-	end
+    if currentTarget ~= nil then
+      if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() then
+        --only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
+        core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
+      else
+        --BotEcho("MOVIN OUT")
+        local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
+        core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false)
+      end
+    end
+  else
+    return false
+  end
 end
 
 behaviorLib.AttackCreepsBehavior = {}
@@ -317,10 +317,3 @@ behaviorLib.AttackCreepsBehavior["Name"] = "AttackCreeps"
 tinsert(behaviorLib.tBehaviors, behaviorLib.AttackCreepsBehavior)
 
 behaviorLib.AttackCreepsExecute = AttackCreepsExecuteOverride
-
-
-
-
-
-
-

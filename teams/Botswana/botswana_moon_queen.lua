@@ -98,15 +98,15 @@ local function CustomHarassUtilityFnOverride(hero)
 
 
   local leveli = moonqueen:GetHeroUnit():GetLevel()
-  local ultimana = 0  
-	if leveli == 6 then
-	ultimana = 150
-	elseif leveli == 11 then
-	ultimana = 200
-	elseif leveli == 16 then
-	ultimana = 250
-	end
-  ultimana = ultimana+120 
+  local ultimana = 0
+  if leveli == 6 then
+    ultimana = 150
+  elseif leveli == 11 then
+    ultimana = 200
+  elseif leveli == 16 then
+    ultimana = 250
+  end
+  ultimana = ultimana+120
   if skills.abilNuke:CanActivate() and moonqueen:GetHeroUnit():GetMana() > ultimana and leveli > 4 then
     nUtil = nUtil + 5*skills.abilNuke:GetLevel()
   end

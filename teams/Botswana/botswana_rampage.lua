@@ -55,7 +55,7 @@ rampage.SkillBuild = rampage.SkillBuildOverride
 -- @param: tGameVariables
 -- @return: none
 function object:onthinkOverride(tGameVariables)
-self:onthinkOld(tGameVariables)
+  self:onthinkOld(tGameVariables)
 end
 object.onthinkOld = object.onthink
 object.onthink   = object.onthinkOverride
@@ -100,21 +100,21 @@ local function CustomHarassUtilityFnOverride(hero)
   local nUtil = 0
 
   if skills.abilSlow:IsReady() then
-   nUtil = nUtil + 30
+    nUtil = nUtil + 30
   end
 
   if skills.abilCharge:CanActivate() then
-   nUtil = nUtil + 20
+    nUtil = nUtil + 20
   end
 
   if skills.abilUltimate:CanActivate() then
-   nUtil = nUtil + 30
+    nUtil = nUtil + 30
   end
 
   if skills.abilBash:CanActivate() then
-   nUtil = nUtil + 30
+    nUtil = nUtil + 30
   end
-  
+
 
   return nUtil
 end
@@ -122,23 +122,23 @@ behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 
 local function checkTower(range)
--- by ciry
-	local selfPos = core.unitSelf:GetPosition()
-	local torni = core.GetClosestEnemyTower(selfPos, range)
-	if torni == nil then
-	return false
-	end
-	return true
+  -- by ciry
+  local selfPos = core.unitSelf:GetPosition()
+  local torni = core.GetClosestEnemyTower(selfPos, range)
+  if torni == nil then
+    return false
+  end
+  return true
 
 end
 
 local function HarassHeroUtilityOverride(botBrain)
--- by ciry
-	if checkTower(1200) then
-		return 0
-	end
+  -- by ciry
+  if checkTower(1200) then
+    return 0
+  end
 
-	return behaviorLib.HarassHeroUtility(botBrain)
+  return behaviorLib.HarassHeroUtility(botBrain)
 
 end
 behaviorLib.HarassHeroBehavior["Utility"] = HarassHeroUtilityOverride
@@ -166,23 +166,23 @@ local function HarassHeroExecuteOverride(botBrain)
 
   if core.CanSeeUnit(botBrain, unitTarget) then
     if abilUltimate:CanActivate() and nLastHarassUtility > 30 then
-        local nRange = abilUltimate:GetRange()
+      local nRange = abilUltimate:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-       end
-     end
+      end
+    end
 
     if abilCharge:CanActivate() and nLastHarassUtility > 20 then
-      	bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
-     end
+      bActionTaken = core.OrderAbilityEntity(botBrain, abilCharge, unitTarget)
+    end
 
     if abilSlow:CanActivate() and nLastHarassUtility > 30 then
       local nRange = abilSlow:GetRange()
       if nTargetDistanceSq < (nRange * nRange) then
         return core.OrderAbility(botBrain, abilSlow)
-     end
-    end	
-   end
+      end
+    end
+  end
 
   if not bActionTaken then
     return rampage.harassExecuteOld(botBrain)
@@ -206,9 +206,9 @@ local function ChargeTarget(botBrain, unitSelf, abilCharge)
     local damageLevels = {100,140,180,220}
     local chargeDamage = damageLevels[abilCharge:GetLevel()]
     local estimatedHP = unitTarget:GetHealth() - chargeDamage
-	if estimatedHP < 100 then
-	  utility = utility + 20
-	elseif estimatedHP < 200 then
+    if estimatedHP < 100 then
+      utility = utility + 20
+    elseif estimatedHP < 200 then
       utility = utility + 10
     end
     if unitTarget:GetManaPercent() < 25 then
@@ -268,4 +268,3 @@ ChargeBehavior["Utility"] = ChargeUtility
 ChargeBehavior["Execute"] = ChargeExecute
 ChargeBehavior["Name"] = "Charge like a boss"
 tinsert(behaviorLib.tBehaviors, ChargeBehavior)
-

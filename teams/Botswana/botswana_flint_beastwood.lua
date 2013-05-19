@@ -76,13 +76,13 @@ local function GetUltiRange()
   local tEnemyHeroes = HoN.GetHeroes(core.enemyTeam)
   local leveli = beastwood:GetHeroUnit():GetLevel()
   local ultiRange = 0
-	if leveli == 6 then
-	ultiRange = 1500
-	elseif leveli == 11 then
-	ultiRange = 2000
-	elseif leveli == 16 then
-	ultiRange = 2500
-	end
+  if leveli == 6 then
+    ultiRange = 1500
+  elseif leveli == 11 then
+    ultiRange = 2000
+  elseif leveli == 16 then
+    ultiRange = 2500
+  end
   return ultiRange
 end
 
@@ -152,8 +152,8 @@ local function HarassHeroExecuteOverride(botBrain)
       if abilUltimate:CanActivate() then
         local nRange = abilUltimate:GetRange()
         if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
-	end
+          bActionTaken = core.OrderAbilityEntity(botBrain, abilUltimate, unitTarget)
+        end
 
       end
     end
@@ -211,95 +211,94 @@ beastwood.FindItemsOld = core.FindItems
 core.FindItems = funcFindItemsOverride
 
 local function checkTower(range)
-	local selfPos = core.unitSelf:GetPosition()
-	local torni = core.GetClosestEnemyTower(selfPos, range)
-	return torni
+  local selfPos = core.unitSelf:GetPosition()
+  local torni = core.GetClosestEnemyTower(selfPos, range)
+  return torni
 
 end
 
 local function PushExecuteOverwrite(botBrain)
 
 
-	local bDebugLines = true
+  local bDebugLines = true
 
-	if core.unitSelf:IsChanneling() then 
-		return
-	end
+  if core.unitSelf:IsChanneling() then
+    return
+  end
 
-	local unitSelf = core.unitSelf
-	local bActionTaken = false
+  local unitSelf = core.unitSelf
+  local bActionTaken = false
 
-	--Turn on Ring of the Teacher if we have it
-	if bActionTaken == false then
-		local itemRoT = core.itemRoT
-		if itemRoT then
-			itemRoT:Update()
-			local tInventory = unitSelf:GetInventory()
-			if itemRoT.bHeroesOnly then
-				local tRoT = core.InventoryContains(tInventory, itemRoT:GetTypeName())
-				if not core.IsTableEmpty(tRoT) then
-					if bDebugEchos then BotEcho("Turning on RoTeacher") end
-					bActionTaken = core.OrderItemClamp(botBrain, unitSelf, core.itemRoT)
-				end
-			end
-		end
-	end
+  --Turn on Ring of the Teacher if we have it
+  if bActionTaken == false then
+    local itemRoT = core.itemRoT
+    if itemRoT then
+      itemRoT:Update()
+      local tInventory = unitSelf:GetInventory()
+      if itemRoT.bHeroesOnly then
+        local tRoT = core.InventoryContains(tInventory, itemRoT:GetTypeName())
+        if not core.IsTableEmpty(tRoT) then
+          if bDebugEchos then BotEcho("Turning on RoTeacher") end
+          bActionTaken = core.OrderItemClamp(botBrain, unitSelf, core.itemRoT)
+        end
+      end
+    end
+  end
 
-	-- attack tower if we're in range
-	if bActionTaken == false then
-		local attackRange = ( skills.abilRange:GetLevel() * 60 ) + 570
-		local unitTarget = checkTower(attackRange)
-		if unitTarget then
-			if bDebugEchos then BotEcho("Attacking Tower") end
-			local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
-			if unitSelf:GetAttackType() == "melee" then
-				--override melee so they don't stand *just* out of range
-				nRange = 250
-			end
+  -- attack tower if we're in range
+  if bActionTaken == false then
+    local attackRange = ( skills.abilRange:GetLevel() * 60 ) + 570
+    local unitTarget = checkTower(attackRange)
+    if unitTarget then
+      if bDebugEchos then BotEcho("Attacking Tower") end
+      local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
+      if unitSelf:GetAttackType() == "melee" then
+        --override melee so they don't stand *just* out of range
+        nRange = 250
+      end
 
-			if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
-				bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
-			end
+      if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
+        bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
+      end
 
-			if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
-		end
-	end
-
-
-	--Attack creeps if we're in range
-	if bActionTaken == false then
-		local unitTarget = core.unitEnemyCreepTarget
-		if unitTarget then
-			if bDebugEchos then BotEcho("Attacking creeps") end
-			local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
-			if unitSelf:GetAttackType() == "melee" then
-				--override melee so they don't stand *just* out of range
-				nRange = 250
-			end
-
-			if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
-				bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
-			end
-
-			if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
-		end
-	end
+      if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
+    end
+  end
 
 
+  --Attack creeps if we're in range
+  if bActionTaken == false then
+    local unitTarget = core.unitEnemyCreepTarget
+    if unitTarget then
+      if bDebugEchos then BotEcho("Attacking creeps") end
+      local nRange = core.GetAbsoluteAttackRangeToUnit(unitSelf, unitTarget)
+      if unitSelf:GetAttackType() == "melee" then
+        --override melee so they don't stand *just* out of range
+        nRange = 250
+      end
 
-	if bActionTaken == false then
-		local vecDesiredPos = behaviorLib.PositionSelfLogic(botBrain)
-		if vecDesiredPos then
-			if bDebugEchos then BotEcho("Moving out") end
-			bActionTaken = behaviorLib.MoveExecute(botBrain, vecDesiredPos)
+      if unitSelf:IsAttackReady() and core.IsUnitInRange(unitSelf, unitTarget, nRange) then
+        bActionTaken = core.OrderAttackClamp(botBrain, unitSelf, unitTarget)
+      end
 
-			if bDebugLines then core.DrawXPosition(vecDesiredPos, 'blue') end
-		end
-	end
+      if bDebugLines then core.DrawXPosition(unitTarget:GetPosition(), 'red', 125) end
+    end
+  end
 
-	if bActionTaken == false then
-		return false
-	end
+
+
+  if bActionTaken == false then
+    local vecDesiredPos = behaviorLib.PositionSelfLogic(botBrain)
+    if vecDesiredPos then
+      if bDebugEchos then BotEcho("Moving out") end
+      bActionTaken = behaviorLib.MoveExecute(botBrain, vecDesiredPos)
+
+      if bDebugLines then core.DrawXPosition(vecDesiredPos, 'blue') end
+    end
+  end
+
+  if bActionTaken == false then
+    return false
+  end
 end
 behaviorLib.PushBehavior["Execute"] = PushExecuteOverwrite
-
