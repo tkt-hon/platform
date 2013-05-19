@@ -28,11 +28,11 @@ local skills = rampage.skills
 -- Tarkka Skill Up -järjestys
 -- Sama buildi kun defaultilla atm
 rampage.tSkills = {
-1, 2, 1, 0, 1,
-3, 1, 2, 2, 2,
-3, 0, 0, 0, 4, 
-3, 4, 4, 4, 4,
-4, 4, 4, 4, 4
+  1, 2, 1, 0, 1,
+  3, 1, 2, 2, 2,
+  3, 0, 0, 0, 4,
+  3, 4, 4, 4, 4,
+  4, 4, 4, 4, 4
 }
 function rampage:SkillBuildOverride()
   local unitSelf = self.core.unitSelf
@@ -109,12 +109,12 @@ local function CustomHarassUtilityFnOverride(hero)
   -- Ollaanko itse vihollistornin rangella (:---D)
   local selfInsideEnemyTowerRange = core.GetClosestEnemyTower(unitSelf:GetPosition(), 700)
 
-  if enemyInsideAlliedTowerRange then 
-   -- nuoli debuggausta varten
-   core.DrawDebugArrow(hero:GetPosition(), enemyInsideAlliedTowerRange:GetPosition(), "green")
-   nUtil = nUtil + 60
+  if enemyInsideAlliedTowerRange then
+    -- nuoli debuggausta varten
+    core.DrawDebugArrow(hero:GetPosition(), enemyInsideAlliedTowerRange:GetPosition(), "green")
+    nUtil = nUtil + 60
   end
-  
+
   if skills.abilBash:IsReady() then
     nUtil = nUtil + 10
   end
@@ -135,7 +135,7 @@ local function CustomHarassUtilityFnOverride(hero)
     -- nuoli debuggausta varten
     core.DrawDebugArrow(unitSelf:GetPosition(), selfInsideEnemyTowerRange:GetPosition(), "red")
     nUtil = nUtil - 50
-  end  
+  end
 
   return nUtil
 end
@@ -265,35 +265,35 @@ tinsert(behaviorLib.tBehaviors, ChargeBehavior)
 
 function behaviorLib.bigPurseUtility(botBrain)
 
-    local level = core.unitSelf:GetLevel()
-    local multiplier = level*0.18
-    if level < 5 then
+  local level = core.unitSelf:GetLevel()
+  local multiplier = level*0.18
+  if level < 5 then
     rampage.purseMax = 1000
     rampage.purseMin = 600
-    elseif level >= 5 then
+  elseif level >= 5 then
     rampage.purseMax = 1650*multiplier
     rampage.purseMin = 700*multiplier
+  end
+  local bDebugEchos = false
+
+  local Clamp = core.Clamp
+  local m = (100/(rampage.purseMax - rampage.purseMin))
+  nUtil = m*botBrain:GetGold() - m*rampage.purseMin
+  nUtil = Clamp(nUtil,0,100)
+
+  if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
+
+  return nUtil
 end
-    local bDebugEchos = false
-     
-    local Clamp = core.Clamp
-    local m = (100/(rampage.purseMax - rampage.purseMin))
-    nUtil = m*botBrain:GetGold() - m*rampage.purseMin
-    nUtil = Clamp(nUtil,0,100)
- 
-    if bDebugEchos then core.BotEcho("Bot return Priority:" ..nUtil) end
- 
-    return nUtil
-end
- 
+
 -- Execute
 function behaviorLib.bigPurseExecute(botBrain)
-    local unitSelf = core.unitSelf
- 
-    local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
-    core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false) 
- end
- 
+  local unitSelf = core.unitSelf
+
+  local wellPos = core.allyWell and core.allyWell:GetPosition() or behaviorLib.PositionSelfBackUp()
+  core.OrderMoveToPosAndHoldClamp(botBrain, unitSelf, wellPos, false)
+end
+
 behaviorLib.bigPurseBehavior = {}
 behaviorLib.bigPurseBehavior["Utility"] = behaviorLib.bigPurseUtility
 behaviorLib.bigPurseBehavior["Execute"] = behaviorLib.bigPurseExecute
@@ -302,92 +302,90 @@ tinsert(behaviorLib.tBehaviors, behaviorLib.bigPurseBehavior)
 
 
 --Kairus101's last hitter
-function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep) 
---called pretty much constantly 
-   unitSelf=core.unitSelf
-    local bDebugEchos = false
-    -- predictive last hitting, don't just wait and react when they have 1 hit left (that would be stupid. T_T)
- 
- 
-    local unitSelf = core.unitSelf
-    local nDamageAverage = unitSelf:GetFinalAttackDamageMin()+40 --make the hero go to the unit when it is 40 hp away
-    core.FindItems(botBrain)
-    if core.itemHatchet then
-        nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
-    end   
-    -- [Difficulty: Easy] Make bots worse at last hitting
-    if core.nDifficulty == core.nEASY_DIFFICULTY then
-        nDamageAverage = nDamageAverage + 120
+function behaviorLib.GetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
+  --called pretty much constantly
+  unitSelf=core.unitSelf
+  local bDebugEchos = false
+  -- predictive last hitting, don't just wait and react when they have 1 hit left (that would be stupid. T_T)
+
+
+  local unitSelf = core.unitSelf
+  local nDamageAverage = unitSelf:GetFinalAttackDamageMin()+40 --make the hero go to the unit when it is 40 hp away
+  core.FindItems(botBrain)
+  if core.itemHatchet then
+    nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
+  end
+  -- [Difficulty: Easy] Make bots worse at last hitting
+  if core.nDifficulty == core.nEASY_DIFFICULTY then
+    nDamageAverage = nDamageAverage + 120
+  end
+  if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+    local nTargetHealth = unitEnemyCreep:GetHealth()
+    if nDamageAverage >= nTargetHealth then
+      local bActuallyLH = true
+      if bDebugEchos then BotEcho("Returning an enemy") end
+      return unitEnemyCreep
     end
-    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-        local nTargetHealth = unitEnemyCreep:GetHealth()
-        if nDamageAverage >= nTargetHealth then
-            local bActuallyLH = true
-            if bDebugEchos then BotEcho("Returning an enemy") end
-            return unitEnemyCreep
-        end
+  end
+
+
+  if unitAllyCreep then
+    local nTargetHealth = unitAllyCreep:GetHealth()
+    if nDamageAverage >= nTargetHealth then
+      local bActuallyDeny = true
+
+
+      --[Difficulty: Easy] Don't deny
+      if core.nDifficulty == core.nEASY_DIFFICULTY then
+        bActuallyDeny = false
+      end
+
+
+      -- [Tutorial] Hellbourne *will* deny creeps after **** gets real
+      if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
+        bActuallyDeny = true
+      end
+
+
+      if bActuallyDeny then
+        if bDebugEchos then BotEcho("Returning an ally") end
+        return unitAllyCreep
+      end
     end
- 
- 
-    if unitAllyCreep then
-        local nTargetHealth = unitAllyCreep:GetHealth()
-        if nDamageAverage >= nTargetHealth then
-            local bActuallyDeny = true
- 
- 
-            --[Difficulty: Easy] Don't deny
-            if core.nDifficulty == core.nEASY_DIFFICULTY then
-                bActuallyDeny = false
-            end           
- 
- 
-            -- [Tutorial] Hellbourne *will* deny creeps after **** gets real
-            if core.bIsTutorial and core.bTutorialBehaviorReset == true and core.myTeam == HoN.GetHellbourneTeam() then
-                bActuallyDeny = true
-            end
- 
- 
-            if bActuallyDeny then
-                if bDebugEchos then BotEcho("Returning an ally") end
-                return unitAllyCreep
-            end
-        end
-    end
-    return nil
+  end
+  return nil
 end
- 
- 
+
+
 function KaiAttackCreepsExecuteOverride(botBrain)
-    local unitSelf = core.unitSelf
-    local currentTarget = core.unitCreepTarget
- 
- 
-    if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then       
-        local vecTargetPos = currentTarget:GetPosition()
-        local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
-        local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
-         
-        local nDamageAverage = unitSelf:GetFinalAttackDamageMin()if core.itemHatchet then
-nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
-end
- 
- 
-        if currentTarget ~= nil then
-            if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and nDamageAverage>=currentTarget:GetHealth() then --only kill if you can get gold
-                --only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
-                core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
-            elseif (nDistSq > nAttackRangeSq) then
-                local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
-                core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false) --moves hero to target
-            else
-                core.OrderHoldClamp(botBrain, unitSelf, false) --this is where the magic happens. Wait for the kill.
-            end
-        end
+  local unitSelf = core.unitSelf
+  local currentTarget = core.unitCreepTarget
+
+
+  if currentTarget and core.CanSeeUnit(botBrain, currentTarget) then
+    local vecTargetPos = currentTarget:GetPosition()
+    local nDistSq = Vector3.Distance2DSq(unitSelf:GetPosition(), vecTargetPos)
+    local nAttackRangeSq = core.GetAbsoluteAttackRangeToUnit(unitSelf, currentTarget, true)
+
+    local nDamageAverage = unitSelf:GetFinalAttackDamageMin()if core.itemHatchet then
+    nDamageAverage = nDamageAverage * core.itemHatchet.creepDamageMul
+  end
+
+
+  if currentTarget ~= nil then
+    if nDistSq < nAttackRangeSq and unitSelf:IsAttackReady() and nDamageAverage>=currentTarget:GetHealth() then --only kill if you can get gold
+      --only attack when in nRange, so not to aggro towers/creeps until necessary, and move forward when attack is on cd
+      core.OrderAttackClamp(botBrain, unitSelf, currentTarget)
+    elseif (nDistSq > nAttackRangeSq) then
+      local vecDesiredPos = core.AdjustMovementForTowerLogic(vecTargetPos)
+      core.OrderMoveToPosClamp(botBrain, unitSelf, vecDesiredPos, false) --moves hero to target
     else
-        return false
+      core.OrderHoldClamp(botBrain, unitSelf, false) --this is where the magic happens. Wait for the kill.
     end
+  end
+else
+  return false
+end
 end
 object.AttackCreepsExecuteOld = behaviorLib.HarassHeroBehavior["Execute"]
 behaviorLib.AttackCreepsBehavior["Execute"] = KaiAttackCreepsExecuteOverride
-
-

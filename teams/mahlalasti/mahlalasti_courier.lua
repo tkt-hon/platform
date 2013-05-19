@@ -25,13 +25,13 @@ MASKS = M
   if botBrain.bCourierOnWay and not courier:GetBehavior() then
     botBrain.bCourierOnWay = false
   end
-  if botBrain.bCourierOnWay and matchTime > botBrain.nCourierMeetupTime then 
+  if botBrain.bCourierOnWay and matchTime > botBrain.nCourierMeetupTime then
     return 55
   end
   return 0
 end
 
-local function ComeToCourierExecute(botBrain) 
+local function ComeToCourierExecute(botBrain)
   local safePos = core.GetClosestAllyTower(core.unitSelf:GetPosition()):GetPosition()
   object.behaviorLib.MoveExecute(botBrain, safePos)
 end
@@ -159,21 +159,21 @@ local function onthinkCourier(bot)
   local hero = bot:GetHeroUnit()
 
   -- TODO: buy new?
-  if not courier then 
-    return 
+  if not courier then
+    return
   end
-  
-  if not hero:IsAlive() then 
+
+  if not hero:IsAlive() then
     ReturnHome(bot, courier)
   end
 
-  if not courier:GetStashAccess() then 
+  if not courier:GetStashAccess() then
     if ItemsInInventory(courier:GetInventory()) == 0 then
       if courier:GetBehavior() and courier:GetBehavior():GetType() ~= "Move" then
         ReturnHome(bot, courier)
       end
     end
-    return 
+    return
   end
 
   local itemsInCourier = ItemsInInventory(courier:GetInventory())
@@ -186,7 +186,7 @@ local function onthinkCourier(bot)
   local items = ItemIndexes(hero)
   MoveItemsToCourier(courier, items)
 
-  if ItemsInInventory(courier:GetInventory()) > 0 then 
+  if ItemsInInventory(courier:GetInventory()) > 0 then
     DeliverItems(bot, courier)
   end
 end

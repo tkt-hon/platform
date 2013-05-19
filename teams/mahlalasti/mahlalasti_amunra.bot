@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-	name="Mahlalasti Epic Amun      Ra"
+	name="mahlalasti_amunra"
 	description="rar_ses"
 	rootlua="mahlalasti_amunra.lua"
 	heroname="Hero_Ra"

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-    name="Mahlalasti Epic Rhapsody"
-    description="Community Built Support-Bot by fane_maciuca"
-    heroname="Hero_Rhapsody"
-    rootlua="mahlalasti_rhapsody.lua"
-    defaultplayername="MahlalastiEpicRhapsodyBot"
-    precachepath="/heroes/rhapsody/"
+  name="mahlalasti_rhapsody"
+  description="Community Built Support-Bot by fane_maciuca"
+  heroname="Hero_Rhapsody"
+  rootlua="mahlalasti_rhapsody.lua"
+  defaultplayername="MahlalastiEpicRhapsodyBot"
+  precachepath="/heroes/rhapsody/"
 />

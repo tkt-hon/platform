@@ -57,7 +57,7 @@ plaguerider.SkillBuild = plaguerider.SkillBuildOverride
 function plaguerider:onthinkOverride(tGameVariables)
   self:onthinkOld(tGameVariables)
 
-local matchtime = HoN.GetMatchTime()
+  local matchtime = HoN.GetMatchTime()
 
   if matchtime == 1000 then
     self:Chat("Just got kicked out of my house for being an atheist at 17. Any advice?")

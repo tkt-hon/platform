@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bot
-    name="Mahlalasti Epic Soulreaper Bot"
-    description="bot_description_soul_reaper"
-    heroname="Hero_HellDemon"
-    rootlua="mahlalasti_soulreaper.lua"
-    defaultplayername="MahlalastiEpicSoulReaperBot"
-    precachepath="/heroes/helldemon/"
+  name="mahlalasti_soulreaper"
+  description="bot_description_soul_reaper"
+  heroname="Hero_HellDemon"
+  rootlua="mahlalasti_soulreaper.lua"
+  defaultplayername="MahlalastiEpicSoulReaperBot"
+  precachepath="/heroes/helldemon/"
 />
