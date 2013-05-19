@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="DropTableBots_Hacked_Rampage"
-  description="Drop Table Bots' Hacked Default Rampage"
-  heroname="Hero_Rampage"
-  rootlua="hacked_rampage.lua"
-  defaultplayername="Drop Table Bots' Hacked DefaultRampageBot"
-  precachepath="/heroes/rampage/"
-/>

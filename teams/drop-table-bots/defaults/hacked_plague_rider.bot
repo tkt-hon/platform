@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="DropTableBots_Hacked_PlagueRider"
-  description="Drop Table Bots' Hacked Default Plague Rider"
-  heroname="Hero_DiseasedRider"
-  rootlua="hacked_plague_rider.lua"
-  defaultplayername="DropTableBotsHackedDefaultPlagueBot"
-  precachepath="/heroes/diseasedrider/"
-/>

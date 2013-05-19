@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<bot
-  name="DropTableBots_Hacked_MoonQueen"
-  description="Drop Table Bots' Hacked Default Moon Queen"
-  heroname="Hero_Krixi"
-  rootlua="hacked_moon_queen.lua"
-  defaultplayername="Drop Table Bots' Hacked DefaultMQBot"
-  precachepath="/heroes/krixi/"
-/>
