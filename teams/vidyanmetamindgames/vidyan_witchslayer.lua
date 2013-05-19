@@ -40,7 +40,7 @@ witchslayer.tSkills = {
 }
 
 function witchslayer:SkillBuildOverride()
-local unitSelf = self.core.unitSelf
+  local unitSelf = self.core.unitSelf
   if skills.abilNuke == nil then
     skills.abilNuke = unitSelf:GetAbility(0)
     skills.abilHex = unitSelf:GetAbility(1)

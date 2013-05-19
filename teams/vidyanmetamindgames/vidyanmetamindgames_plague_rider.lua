@@ -21,11 +21,11 @@ plaguerider.skills = {}
 local skills = plaguerider.skills
 
 plaguerider.tSkills = {
-    1, 4, 1, 4, 1,
-    3, 1, 4, 4, 4,
-    3, 0, 0, 0, 0,
-    3, 4, 4, 4, 4,
-    4, 2, 2, 2, 2
+  1, 4, 1, 4, 1,
+  3, 1, 4, 4, 4,
+  3, 0, 0, 0, 0,
+  3, 4, 4, 4, 4,
+  4, 2, 2, 2, 2
 }
 
 local tinsert = _G.table.insert
@@ -33,15 +33,15 @@ local tinsert = _G.table.insert
 core.itemWard = nil
 
 function plaguerider:SkillBuildOverride()
-    local unitSelf = self.core.unitSelf
-    if skills.abilDeny == nil then
-        skills.abilNuke = unitSelf:GetAbility(0)
-        skills.abilShield = unitSelf:GetAbility(1)
-        skills.abilDeny = unitSelf:GetAbility(2)
-        skills.abilUltimate = unitSelf:GetAbility(3)
-        skills.stats = unitSelf:GetAbility(4)
-    end
-    self:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilDeny == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilShield = unitSelf:GetAbility(1)
+    skills.abilDeny = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
@@ -51,55 +51,55 @@ plaguerider.ShieldTarget = nil
 local ArrowTarget = nil
 
 local function IsMelee(unit)
-    local unitType = unit:GetTypeName()
-    return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
 end
 
 -- check if the bot should cast the armor spell on an allied creep
 -- the creep with the most HP which has no armor will be chosen
 local function GetShieldTarget(units)
-    local nMaxHP = 0
-    local unitTarget = nil
+  local nMaxHP = 0
+  local unitTarget = nil
 
-    if units == nil then
-        return nil
+  if units == nil then
+    return nil
+  end
+
+  for _,unit in pairs(units.AllyCreeps) do
+    local nNewMaxHP = unit:GetHealth()
+    local bHasShield = unit:HasState("State_DiseasedRider_Ability2_Buff")
+    local bIsMelee = IsMelee(unit)
+
+    if bIsMelee and nNewMaxHP > nMaxHP and not bHasShield then
+      nMaxHP = nNewMaxHP
+      unitTarget = unit
     end
+  end
 
-    for _,unit in pairs(units.AllyCreeps) do
-        local nNewMaxHP = unit:GetHealth()
-        local bHasShield = unit:HasState("State_DiseasedRider_Ability2_Buff")
-        local bIsMelee = IsMelee(unit)
-
-        if bIsMelee and nNewMaxHP > nMaxHP and not bHasShield then
-            nMaxHP = nNewMaxHP
-            unitTarget = unit
-        end
-    end
-
-    return unitTarget
+  return unitTarget
 end
 
 local function ShieldBehaviorUtility(botBrain)
-    if skills.abilShield:CanActivate() then
-        return 150
-    end
+  if skills.abilShield:CanActivate() then
+    return 150
+  end
 
-    return 0
+  return 0
 end
 
 local function ShieldBehaviorExecute(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilShield = skills.abilShield
-    local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
+  local unitSelf = botBrain.core.unitSelf
+  local abilShield = skills.abilShield
+  local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
 
-    local target = GetShieldTarget(unitsLocal)  
+  local target = GetShieldTarget(unitsLocal)
 
-    if target ~= nil and abilShield:CanActivate() then
-        core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
-        return core.OrderAbilityEntity(botBrain, abilShield, target, false)
-    end
+  if target ~= nil and abilShield:CanActivate() then
+    core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
+    return core.OrderAbilityEntity(botBrain, abilShield, target, false)
+  end
 
-    return false
+  return false
 end
 
 local ShieldBehavior = {}
@@ -109,25 +109,25 @@ ShieldBehavior["Name"] = "Casting shield spell on a creep"
 tinsert(behaviorLib.tBehaviors, ShieldBehavior)
 
 local function GetEnemyTower(units)
-    if units.EnemyTowers == nil then
-        return nil
-    end
+  if units.EnemyTowers == nil then
+    return nil
+  end
 
-    for unit in units.EnemyTowers do
-        return unit
-    end
+  for unit in units.EnemyTowers do
+    return unit
+  end
 end
 
 local function TowerAttackBehaviorUtility(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local units = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
+  local unitSelf = botBrain.core.unitSelf
+  local units = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 1000)
 
-    local tower = nil--GetEnemyTower(units)
-    if tower == nil then
-        return 0
-    end
+  local tower = nil--GetEnemyTower(units)
+  if tower == nil then
+    return 0
+  end
 
-    -- do your magic
+  -- do your magic
 
 end
 
@@ -147,25 +147,25 @@ tinsert(behaviorLib.tBehaviors, TowerAttackBehavior)
 -- @param: tGameVariables
 -- @return: none
 function plaguerider:onthinkOverride(tGameVariables)
-    self:onthinkOld(tGameVariables)
-    local myPos = core.unitSelf:GetPosition()
+  self:onthinkOld(tGameVariables)
+  local myPos = core.unitSelf:GetPosition()
 
 
-    --Continuously prints tower position if near one. Will be removed in the future
-    local localUnits = core.localUnits
-    local enemyBuildings = localUnits["EnemyBuildings"]
-    local sortedEnemyBuildings = core.SortBuildings(enemyBuildings)
-    local towers = sortedEnemyBuildings.enemyTowers
-    if core.NumberElements(towers) > 0 then
-        for id, tower in pairs(towers) do
-            core.BotEcho("tower pos: " ..tostring(tower:GetPosition()))
-        end
+  --Continuously prints tower position if near one. Will be removed in the future
+  local localUnits = core.localUnits
+  local enemyBuildings = localUnits["EnemyBuildings"]
+  local sortedEnemyBuildings = core.SortBuildings(enemyBuildings)
+  local towers = sortedEnemyBuildings.enemyTowers
+  if core.NumberElements(towers) > 0 then
+    for id, tower in pairs(towers) do
+      core.BotEcho("tower pos: " ..tostring(tower:GetPosition()))
     end
-    --tower pos print end
+  end
+  --tower pos print end
 
-    if ArrowTarget ~= nil then
-        core.DrawDebugArrow(myPos, ArrowTarget, "lime")
-    end
+  if ArrowTarget ~= nil then
+    core.DrawDebugArrow(myPos, ArrowTarget, "lime")
+  end
 end
 plaguerider.onthinkOld = plaguerider.onthink
 plaguerider.onthink = plaguerider.onthinkOverride
@@ -177,72 +177,72 @@ plaguerider.onthink = plaguerider.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function plaguerider:oncombateventOverride(EventData)
-    self:oncombateventOld(EventData)
+  self:oncombateventOld(EventData)
 
-    -- custom code here
+  -- custom code here
 end
 -- override combat event trigger function.
 plaguerider.oncombateventOld = plaguerider.oncombatevent
 plaguerider.oncombatevent = plaguerider.oncombateventOverride
 
 local function IsSiege(unit)
-    local unitType = unit:GetTypeName()
-    return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
 
 
 local function ShouldDenyByHP(unit)
-    local hpp = unit:GetHealthPercent()
+  local hpp = unit:GetHealthPercent()
 
-    if hpp < 0.05 then
-        core.BotEcho('denying unit with health at '..hpp..'%')
-        return true
-    end
+  if hpp < 0.05 then
+    core.BotEcho('denying unit with health at '..hpp..'%')
+    return true
+  end
 
-    return false
+  return false
 end
 
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
-    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
-    local allies = unitsLocal.AllyCreeps
-    local unitTarget = nil
-    local nDistance = 0
-    for _,unit in pairs(allies) do
-        local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
+  local allies = unitsLocal.AllyCreeps
+  local unitTarget = nil
+  local nDistance = 0
+  for _,unit in pairs(allies) do
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
 
-        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then --and ShouldDenyByHP(unit) then
-            unitTarget = unit
-            nDistance = nNewDistance
-        end
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then --and ShouldDenyByHP(unit) then
+      unitTarget = unit
+      nDistance = nNewDistance
     end
-    return unitTarget
+  end
+  return unitTarget
 end
 
 local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
-    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
-    return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+  return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
 end
 
 local function DenyBehaviorUtility(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilDeny = skills.abilDeny
-    local myPos = unitSelf:GetPosition()
-    local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
-    if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
-        plaguerider.denyTarget = unit
-        return 100
-    end
-    return 0
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local myPos = unitSelf:GetPosition()
+  local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+    plaguerider.denyTarget = unit
+    return 100
+  end
+  return 0
 end
 
 local function DenyBehaviorExecute(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilDeny = skills.abilDeny
-    local target = plaguerider.denyTarget
-    if target then
-        return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
-    end
-    return false
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilDeny
+  local target = plaguerider.denyTarget
+  if target then
+    return core.OrderAbilityEntity(botBrain, abilDeny, target, false)
+  end
+  return false
 end
 
 local DenyBehavior = {}
@@ -252,57 +252,57 @@ DenyBehavior["Name"] = "Denying creep with spell"
 tinsert(behaviorLib.tBehaviors, DenyBehavior)
 
 local function OverrideGetCreepAttackTarget(botBrain, unitEnemyCreep, unitAllyCreep)
-    if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
-        local unitSelf = botBrain.core.unitSelf
-        local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 550)
-        local unitsAllies = unitsLocal.AllyCreeps
-        
-        if #unitsAllies == 1 and unitsAllies[1]:GetHealthPercent() ~= 1 then
-          return nil
-        end
-        
-        if unitEnemyCreep:GetHealthPercent() < 0.4 then
-            return unitEnemyCreep
-        end
+  if unitEnemyCreep and core.CanSeeUnit(botBrain, unitEnemyCreep) then
+    local unitSelf = botBrain.core.unitSelf
+    local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), 550)
+    local unitsAllies = unitsLocal.AllyCreeps
 
-        return nil
+    if #unitsAllies == 1 and unitsAllies[1]:GetHealthPercent() ~= 1 then
+      return nil
     end
-    return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
+
+    if unitEnemyCreep:GetHealthPercent() < 0.4 then
+      return unitEnemyCreep
+    end
+
+    return nil
+  end
+  return behaviorLib.GetCreepAttackTargetOLD(botBrain, unitEnemyCreep, unitAllyCreep)
 end
 
 behaviorLib.GetCreepAttackTargetOLD = behaviorLib.GetCreepAttackTarget
 behaviorLib.GetCreepAttackTarget = OverrideGetCreepAttackTarget
 
 local function OverridePositionSelfExecute(botBrain)
-    	
-	local nCurrentTimeMS = HoN.GetGameTime()
-	local unitSelf = core.unitSelf
-	local vecMyPosition = unitSelf:GetPosition()
-	
-	if core.unitSelf:IsChanneling() then 
-		return
-	end
-	
-	local vecDesiredPos = vecMyPosition
-	local unitTarget = nil
-	vecDesiredPos, unitTarget = behaviorLib.PositionSelfLogic(botBrain)
 
-	if vecDesiredPos then
-		behaviorLib.MoveExecute(botBrain, vecDesiredPos)
-	else
-		BotEcho("PositionSelfExecute - nil desired position")
-		return false
-	end
+  local nCurrentTimeMS = HoN.GetGameTime()
+  local unitSelf = core.unitSelf
+  local vecMyPosition = unitSelf:GetPosition()
 
-	if bDebugLines then
-		if unitTarget ~= nil then
-			core.DrawXPosition(unitTarget:GetPosition(), 'orange', 125)
-		end
+  if core.unitSelf:IsChanneling() then
+    return
+  end
 
-		if vecDesiredPos then
-			core.DrawXPosition(vecDesiredPos, 'blue')
-		end
-	end
+  local vecDesiredPos = vecMyPosition
+  local unitTarget = nil
+  vecDesiredPos, unitTarget = behaviorLib.PositionSelfLogic(botBrain)
+
+  if vecDesiredPos then
+    behaviorLib.MoveExecute(botBrain, vecDesiredPos)
+  else
+    BotEcho("PositionSelfExecute - nil desired position")
+    return false
+  end
+
+  if bDebugLines then
+    if unitTarget ~= nil then
+      core.DrawXPosition(unitTarget:GetPosition(), 'orange', 125)
+    end
+
+    if vecDesiredPos then
+      core.DrawXPosition(vecDesiredPos, 'blue')
+    end
+  end
 
 end
 
@@ -474,8 +474,8 @@ local function PositionSelfTraverseLaneOverride(botBrain)
       local towerPosition = core.GetFurthestLaneTower(core.teamBotBrain:GetDesiredLane(unitSelf), core.bTraverseForward, core.myTeam):GetPosition()
       local basePosition = core.allyMainBaseStructure:GetPosition()
       if Vector3.Distance2DSq(oldPosition, basePosition) < Vector3.Distance2DSq(towerPosition, basePosition) then
-      ArrowTarget = oldPosition  
-      return oldPosition
+        ArrowTarget = oldPosition
+        return oldPosition
       else
         ArrowTarget = towerPosition
         return towerPosition

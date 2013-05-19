@@ -78,7 +78,7 @@ magmus.onthink = magmus.onthinkOverride
 -- @return: none
 function magmus:oncombateventOverride(EventData)
 self:oncombateventOld(EventData)
---self.eventsLib.printCombatEvent(EventData)  
+--self.eventsLib.printCombatEvent(EventData)
   -- custom code here
 end
 
@@ -119,21 +119,21 @@ end
 local function ManaRingBehaviorUtility(botBrain)
   local unitSelf = botBrain.core.unitSelf
   core.FindItems(botBrain)
-	local util = 0	
+	local util = 0
 	local itemRing = core.itemRing
 
- 	if botBrain.bDebugUtility == true and utility ~= 0 then
+if botBrain.bDebugUtility == true and utility ~= 0 then
      core.BotEcho("  ManaRingBehaviorUtility: " .. tostring(util))
   end
   if itemRing and itemRing:CanActivate() and unitSelf:GetManaPercent() < 0.9 and not IsChanneling() then
     util = 50
   end
-  	return util
+return util
 end
 
 local function ManaRingExecute(botBrain)
   local unitSelf = botBrain.core.unitSelf
-	core.FindItems(botBrain)	
+	core.FindItems(botBrain)
 	local itemRing = core.itemRing
 		magmus.bRunCommands = true
 		return core.OrderItemClamp(botBrain, unitSelf, itemRing)
@@ -156,7 +156,7 @@ behaviorLib.RetreatFromThreatBehavior["Utility"] = PussyUtilityOverride
 local function CustomHarassUtilityFnOverride(hero)
 	local nUtil = 0
 
-	if hero:IsStunned() then 
+	if hero:IsStunned() then
 			nUtil = nUtil + 100
 	end
 
@@ -170,7 +170,7 @@ local function CustomHarassUtilityFnOverride(hero)
 
   local damaget = {100, 160, 220, 280}
 
-	if hero:GetHealth() < damaget[core.unitSelf:GetAbility(0):GetLevel()] 
+	if hero:GetHealth() < damaget[core.unitSelf:GetAbility(0):GetLevel()]
     and core.unitSelf:GetMana() > 130 then
 		nUtil = nUtil + 20
 	end
@@ -178,7 +178,7 @@ local function CustomHarassUtilityFnOverride(hero)
 		nUtil = nUtil - 50
 	end
 
-  
+
   return nUtil
 end
 
@@ -236,7 +236,7 @@ local function HarassHeroExecuteOverride(botBrain)
 					core.AllChat("GET ON MY LEVEL, HOE!")
           bActionTaken = core.OrderAbility(botBrain, abilUltimate)
 			else
-					bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
+					bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
 
@@ -244,7 +244,7 @@ local function HarassHeroExecuteOverride(botBrain)
 			if unitTarget ~= nil and not core.unitSelf:IsChanneling() then
 				bActionTaken = core.OrderAttack(botBrain, unitSelf, unitTarget)
 			else
-				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)	
+				bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
 		end
   end

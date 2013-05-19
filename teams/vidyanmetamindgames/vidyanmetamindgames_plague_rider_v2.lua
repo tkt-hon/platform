@@ -22,11 +22,11 @@ plaguerider.skills = {}
 local skills = plaguerider.skills
 
 plaguerider.tSkills = {
-    1, 4, 1, 4, 1,
-    3, 1, 4, 4, 4,
-    3, 0, 0, 0, 0,
-    3, 4, 4, 4, 4,
-    4, 2, 2, 2, 2
+  1, 4, 1, 4, 1,
+  3, 1, 4, 4, 4,
+  3, 0, 0, 0, 0,
+  3, 4, 4, 4, 4,
+  4, 2, 2, 2, 2
 }
 
 local tinsert = _G.table.insert
@@ -34,15 +34,15 @@ local tinsert = _G.table.insert
 core.itemWard = nil
 
 function plaguerider:SkillBuildOverride()
-    local unitSelf = self.core.unitSelf
-    if skills.abilDeny == nil then
-        skills.abilNuke = unitSelf:GetAbility(0)
-        skills.abilShield = unitSelf:GetAbility(1)
-        skills.abilDeny = unitSelf:GetAbility(2)
-        skills.abilUltimate = unitSelf:GetAbility(3)
-        skills.stats = unitSelf:GetAbility(4)
-    end
-    self:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if skills.abilDeny == nil then
+    skills.abilNuke = unitSelf:GetAbility(0)
+    skills.abilShield = unitSelf:GetAbility(1)
+    skills.abilDeny = unitSelf:GetAbility(2)
+    skills.abilUltimate = unitSelf:GetAbility(3)
+    skills.stats = unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 plaguerider.SkillBuildOld = plaguerider.SkillBuild
 plaguerider.SkillBuild = plaguerider.SkillBuildOverride
@@ -52,55 +52,55 @@ plaguerider.ShieldTarget = nil
 local ArrowTarget = nil
 
 local function IsMelee(unit)
-    local unitType = unit:GetTypeName()
-    return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionMelee" or unitType == "Creep_HellbourneMelee"
 end
 
 -- check if the bot should cast the armor spell on an allied creep
 -- the creep with the most HP which has no armor will be chosen
 local function GetShieldTarget(units)
-    local nMaxHP = 0
-    local unitTarget = nil
+  local nMaxHP = 0
+  local unitTarget = nil
 
-    if units == nil then
-        return nil
+  if units == nil then
+    return nil
+  end
+
+  for _,unit in pairs(units.AllyCreeps) do
+    local nNewMaxHP = unit:GetHealth()
+    local bHasShield = unit:HasState("State_DiseasedRider_Ability2_Buff")
+    local bIsMelee = IsMelee(unit)
+
+    if bIsMelee and nNewMaxHP > nMaxHP and not bHasShield then
+      nMaxHP = nNewMaxHP
+      unitTarget = unit
     end
+  end
 
-    for _,unit in pairs(units.AllyCreeps) do
-        local nNewMaxHP = unit:GetHealth()
-        local bHasShield = unit:HasState("State_DiseasedRider_Ability2_Buff")
-        local bIsMelee = IsMelee(unit)
-
-        if bIsMelee and nNewMaxHP > nMaxHP and not bHasShield then
-            nMaxHP = nNewMaxHP
-            unitTarget = unit
-        end
-    end
-
-    return unitTarget
+  return unitTarget
 end
 
 local function ShieldBehaviorUtility(botBrain)
-    if skills.abilShield:CanActivate() then
-        return 100
-    end
+  if skills.abilShield:CanActivate() then
+    return 100
+  end
 
-    return 0
+  return 0
 end
 
 local function ShieldBehaviorExecute(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilShield = skills.abilShield
-    local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
+  local unitSelf = botBrain.core.unitSelf
+  local abilShield = skills.abilShield
+  local unitsLocal = core.AssessLocalUnits(botBrain, unitSelf:GetPosition(), skills.abilShield:GetRange())
 
-    local target = GetShieldTarget(unitsLocal)  
+  local target = GetShieldTarget(unitsLocal)
 
-    if target ~= nil and abilShield:CanActivate() then
-        core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
-        return core.OrderAbilityEntity(botBrain, abilShield, target, false)
-    end
+  if target ~= nil and abilShield:CanActivate() then
+    core.BotEcho("Casting shield on "..target:GetTypeName().." with hp="..target:GetHealth())
+    return core.OrderAbilityEntity(botBrain, abilShield, target, false)
+  end
 
-    return false
+  return false
 end
 
 local ShieldBehavior = {}

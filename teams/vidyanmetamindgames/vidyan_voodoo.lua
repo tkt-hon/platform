@@ -123,29 +123,28 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local bActionTaken = false
 
-    local abilUltimate = skills.abilUltimate
-    if not bActionTaken and nLastHarassUtility > 50 then
-      if abilUltimate:CanActivate() then
-        local nRange = 600
-        if nTargetDistanceSq < (nRange * nRange) then
-          bActionTaken = core.OrderAbility(botBrain, abilUltimate)
-        else
-          bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
-        end
-      end
-    end
-
-    local abilNuke = skills.abilStun
-    if abilNuke:CanActivate() then
-      local nRange = abilNuke:GetRange()
+  local abilUltimate = skills.abilUltimate
+  if not bActionTaken and nLastHarassUtility > 50 then
+    if abilUltimate:CanActivate() then
+      local nRange = 600
       if nTargetDistanceSq < (nRange * nRange) then
-        bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+        bActionTaken = core.OrderAbility(botBrain, abilUltimate)
       else
         bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
       end
     end
   end
-  
+
+  local abilNuke = skills.abilStun
+  if abilNuke:CanActivate() then
+    local nRange = abilNuke:GetRange()
+    if nTargetDistanceSq < (nRange * nRange) then
+      bActionTaken = core.OrderAbilityEntity(botBrain, abilNuke, unitTarget)
+    else
+      bActionTaken = core.OrderMoveToUnitClamp(botBrain, unitSelf, unitTarget)
+    end
+  end
+
   if not bActionTaken then
     return voodoo.harassExecuteOld(botBrain)
   end

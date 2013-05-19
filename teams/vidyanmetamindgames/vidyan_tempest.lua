@@ -94,91 +94,91 @@ tempest.oncombatevent = tempest.oncombateventOverride
 ----------------------------------------------
 
 local function IsSiege(unit)
-    local unitType = unit:GetTypeName()
-    return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
+  local unitType = unit:GetTypeName()
+  return unitType == "Creep_LegionSiege" or unitType == "Creep_HellbourneSiege"
 end
 
 local function ShouldDenyByHP(unit)
-    local hpp = unit:GetHealthPercent()
+  local hpp = unit:GetHealthPercent()
 
-    if hpp < 0.05 then
-        core.BotEcho('denying unit with health at '..hpp..'%')
-        return true
-    end
+  if hpp < 0.05 then
+    core.BotEcho('denying unit with health at '..hpp..'%')
+    return true
+  end
 
-    return false
+  return false
 end
 
 local function GetUnitToDenyWithSpell(botBrain, myPos, radius)
-    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
-    local allies = unitsLocal.AllyCreeps
-    local enemies = unitsLocal.EnemyCreeps
-    local unitTarget = nil
-    local nDistance = 0
-    
-    for _,unit in pairs(allies) do
-        local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, radius)
+  local allies = unitsLocal.AllyCreeps
+  local enemies = unitsLocal.EnemyCreeps
+  local unitTarget = nil
+  local nDistance = 0
 
-        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
-            unitTarget = unit
-            nDistance = nNewDistance
-        end
-    end
-    
-    local allyTargetHealth = 0.0
-    if unitTarget then
-        allyTargetHealth = unitTarget:GetHealthPercent()
-    end
-    
-    for _,unit in pairs(enemies) do
-        local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+  for _,unit in pairs(allies) do
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
 
-        if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) 
-           and unit:GetHealthPercent() <= allyTargetHealth then
-            unitTarget = unit
-            nDistance = nNewDistance
-        end
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance) then
+      unitTarget = unit
+      nDistance = nNewDistance
     end
-    
-    return unitTarget
+  end
+
+  local allyTargetHealth = 0.0
+  if unitTarget then
+    allyTargetHealth = unitTarget:GetHealthPercent()
+  end
+
+  for _,unit in pairs(enemies) do
+    local nNewDistance = Vector3.Distance2DSq(myPos, unit:GetPosition())
+
+    if not IsSiege(unit) and (not unitTarget or nNewDistance < nDistance)
+      and unit:GetHealthPercent() <= allyTargetHealth then
+      unitTarget = unit
+      nDistance = nNewDistance
+    end
+  end
+
+  return unitTarget
 end
 
 local function IsUnitCloserThanEnemies(botBrain, myPos, unit)
-    local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
-    return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
+  local unitsLocal = core.AssessLocalUnits(botBrain, myPos, Vector3.Distance2DSq(myPos, unit:GetPosition()))
+  return core.NumberElements(unitsLocal.EnemyHeroes) <= 0
 end
 
 local function DenyBehaviorUtility(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilDeny = skills.abilMinions
-    local myPos = unitSelf:GetPosition()
-    local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
-    
-    if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
-        tempest.denyTarget = unit
-        return 100
-    end
-    
-    return 0
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilMinions
+  local myPos = unitSelf:GetPosition()
+  local unit = GetUnitToDenyWithSpell(botBrain, myPos, abilDeny:GetRange())
+
+  if abilDeny:CanActivate() and unit and IsUnitCloserThanEnemies(botBrain, myPos, unit) then
+    tempest.denyTarget = unit
+    return 100
+  end
+
+  return 0
 end
 
 local function DenyBehaviorExecute(botBrain)
-    local unitSelf = botBrain.core.unitSelf
-    local abilDeny = skills.abilMinions
-    local target = tempest.denyTarget
-    
-    -- for some reason this check needs to be done, wtf
-    if target and target:GetTypeName() == "Gadget_HomecomingStone" then
-        tempest.denyTarget = nil
-        return false
-    end
-    
-    if target then
-        core.BotEcho("denying unit "..target:GetTypeName())
-        tempest.denyTarget = nil
-        return core.OrderAbilityEntity(botBrain, abilDeny, target)
-    end
+  local unitSelf = botBrain.core.unitSelf
+  local abilDeny = skills.abilMinions
+  local target = tempest.denyTarget
+
+  -- for some reason this check needs to be done, wtf
+  if target and target:GetTypeName() == "Gadget_HomecomingStone" then
+    tempest.denyTarget = nil
     return false
+  end
+
+  if target then
+    core.BotEcho("denying unit "..target:GetTypeName())
+    tempest.denyTarget = nil
+    return core.OrderAbilityEntity(botBrain, abilDeny, target)
+  end
+  return false
 end
 
 local DenyBehavior = {}

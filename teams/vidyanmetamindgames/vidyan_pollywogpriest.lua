@@ -90,52 +90,52 @@ pollywogpriest.oncombatevent = pollywogpriest.oncombateventOverride
 -- Ulti behavior
 ----------------------------------------------
 local function IsStunned(unit)
-    -- todo: implement
-    return nil
+  -- todo: implement
+  return nil
 end
 
 local ultiTarget = nil
 
 local function UltiBehaviorUtility(botBrain)
-    if not skills.abilUltimate:CanActivate() then
-        return 0
-    end
-
-    local unitSelf = core.unitSelf
-    
-    -- todo: check for nearby heroes
-    -- if found: check if any of them are stunned
-    -- if stunned: cast ulti on them
-    
-    
-    -- else: cast it on a turret when own creeps are nearby
-    local tower = core.GetClosestEnemyTower(unitSelf:GetPosition(), 1000)
-    if tower ~= nil then
-        local towerPos = tower:GetPosition()
-        local units = core.AssessLocalUnits(botBrain, towerPos, 600)
-        
-        -- enough creeps, let's cast
-        if #units.AllyCreeps > 0 then
-            ultiTarget = tower
-            core.BotEcho("found tower")
-            
-            return 100
-        end
-    end
-    
+  if not skills.abilUltimate:CanActivate() then
     return 0
+  end
+
+  local unitSelf = core.unitSelf
+
+  -- todo: check for nearby heroes
+  -- if found: check if any of them are stunned
+  -- if stunned: cast ulti on them
+
+
+  -- else: cast it on a turret when own creeps are nearby
+  local tower = core.GetClosestEnemyTower(unitSelf:GetPosition(), 1000)
+  if tower ~= nil then
+    local towerPos = tower:GetPosition()
+    local units = core.AssessLocalUnits(botBrain, towerPos, 600)
+
+    -- enough creeps, let's cast
+    if #units.AllyCreeps > 0 then
+      ultiTarget = tower
+      core.BotEcho("found tower")
+
+      return 100
+    end
+  end
+
+  return 0
 end
 
 local function UltiBehaviorExecute(botBrain)
-    if not skills.abilUltimate:CanActivate() or ultiTarget == nil then
-        return false
-    end
-    
-    local ulti = skills.abilUltimate
-    local targetPos = ultiTarget:GetPosition()
-    
-    ultiTarget = nil
-    return core.OrderAbilityPosition(botBrain, ulti, targetPos)
+  if not skills.abilUltimate:CanActivate() or ultiTarget == nil then
+    return false
+  end
+
+  local ulti = skills.abilUltimate
+  local targetPos = ultiTarget:GetPosition()
+
+  ultiTarget = nil
+  return core.OrderAbilityPosition(botBrain, ulti, targetPos)
 end
 
 local UltiBehavior = {}
@@ -143,4 +143,3 @@ UltiBehavior["Utility"] = UltiBehaviorUtility
 UltiBehavior["Execute"] = UltiBehaviorExecute
 UltiBehavior["Name"] = "Casting ulti on some unlucky bastard"
 tinsert(behaviorLib.tBehaviors, UltiBehavior)
-
