@@ -15,6 +15,16 @@ local tinsert = _G.table.insert
 
 teambot.myName = 'Kiinalainen Team'
 
+local function printLanes(t, lane)
+  print(lane ..'{\n')
+  if t then
+    for i,v in pairs(t) do
+      print(' '..tostring(i)..', '.. tostring(v:GetTypeName())..'\n')
+    end
+  end
+  print('}\n')
+end
+
 function teambot:GetMemoryUnit(unit)
   return unit and self.tMemoryUnits[unit:GetUniqueID()]
 end
@@ -73,8 +83,8 @@ function teambot:BuildLanesOverride()
   end
 
   for nUID, memUnit in pairs(memUnits) do
-  	if memUnit.isMid then
-  	  tMiddleLane[nUID] = memUnit.object
+    if memUnit.isMid then
+      tMiddleLane[nUID] = memUnit.object
     else
       tSafeLane[nUID] = memUnit.object
     end
@@ -84,9 +94,9 @@ function teambot:BuildLanesOverride()
   self.tMiddleLane = tMiddleLane
   self.tBottomLane = tBottomLane
 
---  printLanes(self.tTopLane, "top")
---  printLanes(self.tMiddleLane, "middle")
---  printLanes(self.tBottomLane, "bottom")
+  --  printLanes(self.tTopLane, "top")
+  --  printLanes(self.tMiddleLane, "middle")
+  --  printLanes(self.tBottomLane, "bottom")
 end
 teambot.BuildLanesOld = teambot.BuildLanes
 teambot.BuildLanes = teambot.BuildLanesOverride
@@ -156,13 +166,3 @@ function teambot:CreateMemoryUnitOverride(unit)
 end
 teambot.CreateMemoryUnitOld = teambot.CreateMemoryUnit
 teambot.CreateMemoryUnit = teambot.CreateMemoryUnitOverride
-
-function printLanes(t, lane) 
-	print(lane ..'{\n')
-	if t then    
-		for i,v in pairs(t) do
-			print(' '..tostring(i)..', '.. tostring(v:GetTypeName())..'\n')
-		end
-	end
-	print('}\n')
-end

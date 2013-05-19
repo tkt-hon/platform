@@ -85,11 +85,11 @@ end
 behaviorLib.CustomHarassUtility = CustomHarassUtilityFnOverride
 
 local function RetreatFromThreatExecuteOverride(botBrain)
-    local abilWall = skills.abilSpeed
+  local abilWall = skills.abilSpeed
 
-    return abilWall:CanActivate() and core.OrderAbility(botBrain, abilWall) or behaviorLib.RetreatFromThreatExecute
+  return abilWall:CanActivate() and core.OrderAbility(botBrain, abilWall) or behaviorLib.RetreatFromThreatExecute
 end
-    
+
 behaviorLib.RetreatFromThreatBehavior["Execute"] = RetreatFromThreatExecuteOverride
 
 
@@ -107,9 +107,9 @@ local function HarassHeroExecuteOverride(botBrain)
 
   local bActionTaken = false
 
---  core.BotEcho(tostring(unitTarget))
+  --  core.BotEcho(tostring(unitTarget))
   if core.CanSeeUnit(botBrain, unitTarget) then
---    core.BotEcho("FOOO!")
+    --    core.BotEcho("FOOO!")
 
     local abilUltimate = skills.abilUltimate
     local nRange = skills.abilStun:GetRange()
@@ -137,4 +137,3 @@ behaviorLib.HarassHeroBehavior["Execute"] = HarassHeroExecuteOverride
 -- override combat event trigger function.
 aluna.oncombateventOld = aluna.oncombatevent
 aluna.oncombatevent = aluna.oncombateventOverride
-
