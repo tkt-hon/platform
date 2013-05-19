@@ -68,26 +68,26 @@ moonqueen.SkillBuild = moonqueen.SkillBuildOverride
 -- @param: hero
 -- @return: utility
 function behaviorLib.CustomHarassUtility(heroTarget)
-    -- Default 0
-    local t = core.AssessLocalUnits(moonqueen, nil, 400)
-    local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 20 - numCreeps*2
-  	local unitSelf = core.unitSelf
+  -- Default 0
+  local t = core.AssessLocalUnits(moonqueen, nil, 400)
+  local numCreeps = core.NumberElements(t.EnemyUnits)
+  local util = 20 - numCreeps*2
+  local unitSelf = core.unitSelf
 
-	local moonbeanMult = 3
-	local ultiMult = 6
-	util = util + moonbeanMult * skills.abilMoonbeam:GetLevel()
-	util = util + ultiMult * skills.abilUlti:GetLevel()
+  local moonbeanMult = 3
+  local ultiMult = 6
+  util = util + moonbeanMult * skills.abilMoonbeam:GetLevel()
+  util = util + ultiMult * skills.abilUlti:GetLevel()
 
-	if heroTarget then
-		if skills.abilMoonbeam:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
-			util = util + 1000 -- Moonbeam
-		end
-		if skills.abilUlti:CanActivate() and numCreeps < 3 then
-			util = util + 10000 -- Ulti
-		end
-	end
-	return util
+  if heroTarget then
+    if skills.abilMoonbeam:CanActivate() and (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.5) then
+      util = util + 1000 -- Moonbeam
+    end
+    if skills.abilUlti:CanActivate() and numCreeps < 3 then
+      util = util + 10000 -- Ulti
+    end
+  end
+  return util
 end
 
 --------------------------------------------------------------
@@ -98,67 +98,67 @@ end
 -- @return: none
 local oldExecute = behaviorLib.HarassHeroBehavior["Execute"]
 local function executeBehavior(botBrain)
-  	local unitTarget = behaviorLib.heroTarget
-  	if unitTarget == nil then
-    	return oldExecute(botBrain)
-  	end
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return oldExecute(botBrain)
+  end
 
-  	local unitSelf = core.unitSelf
-  	local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
 
-  	local success = false
-	local ultiRange = 600
-    if behaviorLib.lastHarassUtil >= 5000 then
-        success = core.OrderAbility(botBrain, skills.abilUlti)
-    end
+  local success = false
+  local ultiRange = 600
+  if behaviorLib.lastHarassUtil >= 5000 then
+    success = core.OrderAbility(botBrain, skills.abilUlti)
+  end
 
-	if not success and behaviorLib.lastHarassUtil >= 500 then
-		local range = skills.abilMoonbeam:GetRange()
-        success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
-	end
+  if not success and behaviorLib.lastHarassUtil >= 500 then
+    local range = skills.abilMoonbeam:GetRange()
+    success = core.OrderAbilityEntity(botBrain, skills.abilMoonbeam, unitTarget)
+  end
 
-	if not success then
-		return oldExecute(botBrain)
-	end
-	return success
+  if not success then
+    return oldExecute(botBrain)
+  end
+  return success
 end
 behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 
 local lastChatMessageIndex = nil
 
 function sanitizeChat(msg)
-    -- remove leading space & color codes
-    msg = msg:sub(2)
-    msg = msg:gsub("%^%*", "")
-    msg = msg:gsub("%^%d%d%d", "")
-    return msg
+  -- remove leading space & color codes
+  msg = msg:sub(2)
+  msg = msg:gsub("%^%*", "")
+  msg = msg:gsub("%^%d%d%d", "")
+  return msg
 end
 
 function moonqueen:onthinkOverride(tGameVariables)
-    self:onthinkOld(tGameVariables)
+  self:onthinkOld(tGameVariables)
 
-    local chat = GameChat.gameChat
-    if lastChatMessageIndex ~= nil then
-        for i = lastChatMessageIndex + 1, #chat do
-            local msg = chat[i]
-            if msg.senderName == "dezgeg" then
-                local code = sanitizeChat(msg.message)
-                local func, err = loadstring(code)
+  local chat = GameChat.gameChat
+  if lastChatMessageIndex ~= nil then
+    for i = lastChatMessageIndex + 1, #chat do
+      local msg = chat[i]
+      if msg.senderName == "dezgeg" then
+        local code = sanitizeChat(msg.message)
+        local func, err = loadstring(code)
 
-                if not func then
-                    self:Chat('^900Parse Error: ^*' .. err)
-                else
-                    local status, err = pcall(function()
-                            self:Chat(str(func()))
-                        end)
-                    if not status then
-                        self:Chat('^900Lua Error: ^*' .. err)
-                    end
-                end
-            end
+        if not func then
+          self:Chat('^900Parse Error: ^*' .. err)
+        else
+          local status, err = pcall(function()
+            self:Chat(str(func()))
+          end)
+          if not status then
+            self:Chat('^900Lua Error: ^*' .. err)
+          end
         end
+      end
     end
-    lastChatMessageIndex = #chat
+  end
+  lastChatMessageIndex = #chat
 
 end
 moonqueen.onthinkOld = moonqueen.onthink
@@ -171,10 +171,10 @@ moonqueen.onthink = moonqueen.onthinkOverride
 -- @param: eventdata
 -- @return: none
 function moonqueen:oncombateventOverride(eventData)
-    self:oncombateventOld(eventData)
+  self:oncombateventOld(eventData)
 
-    -- Uncomment this to print the combat events
-    -- p(eventData)
+  -- Uncomment this to print the combat events
+  -- p(eventData)
 end
 -- override combat event trigger function.
 moonqueen.oncombateventOld = moonqueen.oncombatevent

@@ -26,15 +26,15 @@ forsaken_archer.tSkills = {
 -- @param: none
 -- @return: none
 function forsaken_archer:SkillBuildOverride()
-    local unitSelf = self.core.unitSelf
-    if  skills.abilCripplingVolley == nil then
-		skills.abilCripplingVolley	= unitSelf:GetAbility(0)
-		skills.abilSplitFire		= unitSelf:GetAbility(1)
-		skills.abilCallOfTheDamned	= unitSelf:GetAbility(2)
-		skills.abilUlti	            = unitSelf:GetAbility(3)
-		skills.abilAttributeBoost	= unitSelf:GetAbility(4)
-	end
-    self:SkillBuildOld()
+  local unitSelf = self.core.unitSelf
+  if  skills.abilCripplingVolley == nil then
+    skills.abilCripplingVolley	= unitSelf:GetAbility(0)
+    skills.abilSplitFire		= unitSelf:GetAbility(1)
+    skills.abilCallOfTheDamned	= unitSelf:GetAbility(2)
+    skills.abilUlti	            = unitSelf:GetAbility(3)
+    skills.abilAttributeBoost	= unitSelf:GetAbility(4)
+  end
+  self:SkillBuildOld()
 end
 forsaken_archer.SkillBuildOld = forsaken_archer.SkillBuild
 forsaken_archer.SkillBuild = forsaken_archer.SkillBuildOverride
@@ -45,29 +45,29 @@ forsaken_archer.SkillBuild = forsaken_archer.SkillBuildOverride
 -- @param: hero
 -- @return: utility
 function behaviorLib.CustomHarassUtility(heroTarget)
-    -- Default 0
-    local t = core.AssessLocalUnits(forsaken_archer, nil, 400)
-    local numCreeps = core.NumberElements(t.EnemyUnits)
-	local util = 15 - numCreeps*3
-  	local unitSelf = core.unitSelf
+  -- Default 0
+  local t = core.AssessLocalUnits(forsaken_archer, nil, 400)
+  local numCreeps = core.NumberElements(t.EnemyUnits)
+  local util = 15 - numCreeps*3
+  local unitSelf = core.unitSelf
 
-	local volleyMult = 3
-	local ultiMult = 6
-	util = util + volleyMult * skills.abilCripplingVolley:GetLevel()
-	util = util + ultiMult * skills.abilUlti:GetLevel()
+  local volleyMult = 3
+  local ultiMult = 6
+  util = util + volleyMult * skills.abilCripplingVolley:GetLevel()
+  util = util + ultiMult * skills.abilUlti:GetLevel()
 
-	if heroTarget then
-		local range = skills.abilCripplingVolley:GetRange()
-        local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), heroTarget:GetPosition())
-		if skills.abilCripplingVolley:CanActivate() and nTargetDistanceSq < range * range and
-            (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
-			util = util + 1000 -- Splitfire
-		end
-		if skills.abilUlti:CanActivate() and (heroTarget:GetHealthPercent() < 0.4 or numCreeps < 3) then
-			util = util + 10000 -- Ulti
-		end
-	end
-	return util
+  if heroTarget then
+    local range = skills.abilCripplingVolley:GetRange()
+    local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), heroTarget:GetPosition())
+    if skills.abilCripplingVolley:CanActivate() and nTargetDistanceSq < range * range and
+      (unitSelf:GetManaPercent() >= 0.95 or heroTarget:GetHealthPercent() < 0.75) then
+      util = util + 1000 -- Splitfire
+    end
+    if skills.abilUlti:CanActivate() and (heroTarget:GetHealthPercent() < 0.4 or numCreeps < 3) then
+      util = util + 10000 -- Ulti
+    end
+  end
+  return util
 end
 
 --------------------------------------------------------------
@@ -78,32 +78,32 @@ end
 -- @return: none
 local oldExecute = behaviorLib.HarassHeroBehavior["Execute"]
 local function executeBehavior(botBrain)
-  	local unitTarget = behaviorLib.heroTarget
-  	if unitTarget == nil then
-    	return oldExecute(botBrain)
-  	end
+  local unitTarget = behaviorLib.heroTarget
+  if unitTarget == nil then
+    return oldExecute(botBrain)
+  end
 
-  	local unitSelf = core.unitSelf
-  	local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
+  local unitSelf = core.unitSelf
+  local nTargetDistanceSq = Vector3.Distance2DSq(unitSelf:GetPosition(), unitTarget:GetPosition())
 
-  	local success = false
-	local ultiRange = 625
-    if behaviorLib.lastHarassUtil >= 5000 then
-    	if nTargetDistanceSq < ultiRange * ultiRange then
-            p("ULTI")
-			success = core.OrderAbilityPosition(botBrain, skills.abilUlti, unitTarget:GetPosition())
-        end
+  local success = false
+  local ultiRange = 625
+  if behaviorLib.lastHarassUtil >= 5000 then
+    if nTargetDistanceSq < ultiRange * ultiRange then
+      p("ULTI")
+      success = core.OrderAbilityPosition(botBrain, skills.abilUlti, unitTarget:GetPosition())
     end
+  end
 
-	if not success and behaviorLib.lastHarassUtil >= 500 then
-        p("VOLLEY")
-        success = core.OrderAbilityPosition(botBrain, skills.abilCripplingVolley, unitTarget:GetPosition())
-	end
+  if not success and behaviorLib.lastHarassUtil >= 500 then
+    p("VOLLEY")
+    success = core.OrderAbilityPosition(botBrain, skills.abilCripplingVolley, unitTarget:GetPosition())
+  end
 
-	if not success then
-		return oldExecute(botBrain)
-	end
-	return success
+  if not success then
+    return oldExecute(botBrain)
+  end
+  return success
 end
 behaviorLib.HarassHeroBehavior["Execute"] = executeBehavior
 
